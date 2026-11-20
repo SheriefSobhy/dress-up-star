@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:dress_up_star/data/game_config.dart';
@@ -19,7 +20,14 @@ void main() {
         if (c.previewItemId != null) {
           expect(findItem(c.previewItemId!), isNotNull, reason: c.id);
         }
-        expect(c.previewItemId != null || c.icon != null, isTrue, reason: c.id);
+        if (c.iconArt != null) {
+          expect(File(c.iconArt!).existsSync(), isTrue, reason: c.id);
+        }
+        expect(
+          c.previewItemId != null || c.icon != null || c.iconArt != null,
+          isTrue,
+          reason: c.id,
+        );
       }
     });
 

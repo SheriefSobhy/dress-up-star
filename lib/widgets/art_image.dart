@@ -86,7 +86,8 @@ class ItemThumbnail extends StatelessWidget {
           return rasterizeScene(sceneLayer(worn), pixels);
         }
         final wear = <Slot, WornItem>{item.slot: worn};
-        // Head things and glasses look best on a doll with hair.
+        // Head things and glasses look best on a doll with hair (earrings
+        // are shown on her bare ear).
         if (item.slot == Slot.head || item.slot == Slot.eyes) {
           final hair = findItem('hair_bob') ?? itemsForSlot(Slot.hair).first;
           wear[Slot.hair] = WornItem(hair, hair.color);
@@ -127,6 +128,22 @@ class LookPicture extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// A square SVG picture (100 x 100), such as a category button's icon.
+class ArtIcon extends StatelessWidget {
+  const ArtIcon(this.asset, {super.key});
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final layer = ArtLayer(asset);
+    return ArtImage(
+      cacheKey: 'icon|$asset',
+      draw: (pixels) => rasterizeArt(layer, const Size(100, 100), pixels),
     );
   }
 }

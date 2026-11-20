@@ -83,8 +83,12 @@ class Outfit {
       wearRandom(Slot.skirt, clothesColors);
     }
     wearRandom(Slot.shoes, clothesColors);
-    for (final slot in [Slot.head, Slot.eyes, Slot.hand]) {
+    for (final slot in [Slot.head, Slot.hand]) {
       if (rnd.nextInt(3) == 0) wearRandom(slot, accessoryColors);
+    }
+    if (rnd.nextInt(3) == 0) wearRandom(Slot.eyes, glassesColors);
+    for (final slot in [Slot.neck, Slot.ears, Slot.wrist]) {
+      if (rnd.nextInt(5) < 2) wearRandom(slot, jewelryColors);
     }
     var salon = SalonHair.natural;
     final salonHair = findItem(salonHairId);

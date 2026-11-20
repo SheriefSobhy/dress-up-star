@@ -69,6 +69,13 @@ Rect focusRectFor(ItemShape shape) {
       return const Rect.fromLTRB(40, 4, 160, 112);
     case Slot.eyes:
       return const Rect.fromLTRB(50, 84, 150, 146);
+    case Slot.neck:
+      return const Rect.fromLTRB(64, 150, 136, 218);
+    case Slot.ears:
+      // The left ear, with a bit of her cheek.
+      return const Rect.fromLTRB(22, 102, 64, 146);
+    case Slot.wrist:
+      return const Rect.fromLTRB(44, 220, 88, 264);
     case Slot.hand:
       switch (shape) {
         case ItemShape.handWand:
@@ -167,10 +174,15 @@ Future<DollRecipe> dollRecipe(
       ...part(Slot.dress, '_front')
     else
       ...part(Slot.top, '_front'),
+    // Jewelry sits on top of the clothes, under her chin.
+    ...part(Slot.wrist),
+    ...part(Slot.neck),
     doll('head'),
   ];
   final over = <ArtLayer>[
     if (salon != null) salon.last else ...part(Slot.hair),
+    // Earrings peek out in front of the hair.
+    ...part(Slot.ears),
     ...part(Slot.head),
     ...part(Slot.eyes),
     ...part(Slot.hand),

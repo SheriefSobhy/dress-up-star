@@ -63,6 +63,7 @@ flutter:
   assets:
     - assets/sounds/
     - assets/svg/doll/
+    - assets/svg/icons/
     - assets/svg/items/
     - assets/svg/scenes/
     - assets/svg/tools/

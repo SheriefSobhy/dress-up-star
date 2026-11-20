@@ -74,6 +74,15 @@ const List<Color> accessoryColors = [
   ...clothesColors,
 ];
 
+/// Jewelry colors: gold and silver first, then bright gem colors.
+const List<Color> jewelryColors = accessoryColors;
+
+/// Glasses colors (sunglasses lenses are tinted with the frame color).
+const List<Color> glassesColors = [
+  ...accessoryColors,
+  Color(0xFF3A3550), // movie-star black
+];
+
 // ---------------------------------------------------------------------------
 // Items
 // ---------------------------------------------------------------------------
@@ -240,7 +249,7 @@ const List<GameItem> gameItems = [
     color: Color(0xFFFF8FC7),
   ),
 
-  // Accessories: glasses
+  // Glasses (in the Glasses category; the ids are older than it)
   GameItem(
     id: 'eyes_round',
     shape: ItemShape.eyesRound,
@@ -256,8 +265,143 @@ const List<GameItem> gameItems = [
     shape: ItemShape.eyesStar,
     color: Color(0xFFFFD84D),
   ),
+  GameItem(
+    id: 'eyes_wire',
+    shape: ItemShape.eyesWire,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'eyes_cat_eye',
+    shape: ItemShape.eyesCatEye,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'eyes_heart_frame',
+    shape: ItemShape.eyesHeartFrame,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'eyes_star_frame',
+    shape: ItemShape.eyesStarFrame,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(id: 'eyes_big', shape: ItemShape.eyesBig, color: Color(0xFF5CD6D6)),
 
-  // Accessories: bags and things to hold
+  // Sunglasses
+  GameItem(
+    id: 'eyes_sun_aviator',
+    shape: ItemShape.eyesSunAviator,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'eyes_sun_heart',
+    shape: ItemShape.eyesSunHeart,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'eyes_sun_star',
+    shape: ItemShape.eyesSunStar,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'eyes_sun_big',
+    shape: ItemShape.eyesSunBig,
+    color: Color(0xFF3A3550),
+  ),
+  GameItem(
+    id: 'eyes_sun_sport',
+    shape: ItemShape.eyesSunSport,
+    color: Color(0xFF5CD6D6),
+  ),
+
+  // Jewelry: necklaces
+  GameItem(
+    id: 'neck_pearl',
+    shape: ItemShape.neckPearl,
+    color: Color(0xFFFFFFFF),
+  ),
+  GameItem(
+    id: 'neck_heart',
+    shape: ItemShape.neckHeart,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'neck_star',
+    shape: ItemShape.neckStar,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'neck_gold',
+    shape: ItemShape.neckGold,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'neck_rainbow',
+    shape: ItemShape.neckRainbow,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'neck_choker',
+    shape: ItemShape.neckChoker,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(
+    id: 'neck_crystal',
+    shape: ItemShape.neckCrystal,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'neck_butterfly',
+    shape: ItemShape.neckButterfly,
+    color: Color(0xFFD873F0),
+  ),
+
+  // Jewelry: earrings
+  GameItem(
+    id: 'ears_stud',
+    shape: ItemShape.earsStud,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'ears_hoop',
+    shape: ItemShape.earsHoop,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'ears_heart',
+    shape: ItemShape.earsHeart,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'ears_star',
+    shape: ItemShape.earsStar,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(id: 'ears_gem', shape: ItemShape.earsGem, color: Color(0xFFD873F0)),
+
+  // Jewelry: bracelets
+  GameItem(
+    id: 'wrist_beads',
+    shape: ItemShape.wristBeads,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'wrist_bangle',
+    shape: ItemShape.wristBangle,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'wrist_charm',
+    shape: ItemShape.wristCharm,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'wrist_friendship',
+    shape: ItemShape.wristFriendship,
+    color: Color(0xFF5CD6D6),
+  ),
+
+  // Accessories: bags) and things to hold
   GameItem(
     id: 'hand_bag',
     shape: ItemShape.handBag,
@@ -352,10 +496,24 @@ const List<GameCategory> gameCategories = [
   ),
   GameCategory(
     id: 'accessories',
-    slots: [Slot.head, Slot.eyes, Slot.hand],
+    slots: [Slot.head, Slot.hand],
     buttonColor: Color(0xFFFFDAC1),
     colors: accessoryColors,
     previewItemId: 'head_crown',
+  ),
+  GameCategory(
+    id: 'jewelry',
+    slots: [Slot.neck, Slot.ears, Slot.wrist],
+    buttonColor: Color(0xFFFFC2DF),
+    colors: jewelryColors,
+    iconArt: 'assets/svg/icons/jewelry.svg',
+  ),
+  GameCategory(
+    id: 'glasses',
+    slots: [Slot.eyes],
+    buttonColor: Color(0xFFBFE3FF),
+    colors: glassesColors,
+    iconArt: 'assets/svg/icons/glasses.svg',
   ),
   GameCategory(
     id: 'background',

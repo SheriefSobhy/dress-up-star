@@ -10,7 +10,9 @@ import 'dart:ui' as ui;
 
 import 'package:dress_up_star/art/doll_art.dart';
 import 'package:dress_up_star/art/motion.dart';
+import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/main.dart';
+import 'package:dress_up_star/models/outfit.dart';
 import 'package:dress_up_star/services/game_audio.dart';
 import 'package:dress_up_star/services/game_settings.dart';
 import 'package:dress_up_star/services/looks_storage.dart';
@@ -117,6 +119,7 @@ Future<void> pumpApp(WidgetTester tester, Size size) async {
 void main() {
   GameMotion.idleAnimations = false;
   setUpAll(loadFonts);
+  accessoryMain();
   setUp(
     // ignore: invalid_use_of_visible_for_testing_member
     () => SharedPreferences.setMockInitialValues({
@@ -316,5 +319,132 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await shot(tester, '${tag}_25_main_with_nails');
     });
+
+    testWidgets('jewelry and glasses screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await tapInRow(tester, 'category_jewelry', 'category_bar');
+      await shot(tester, '${tag}_30_jewelry');
+      await tapInRow(tester, 'item_neck_heart', 'item_row');
+      await tapInRow(tester, 'item_ears_star', 'item_row');
+      await tapInRow(tester, 'item_wrist_charm', 'item_row');
+      await shot(tester, '${tag}_31_jewelry_worn');
+      await tapInRow(tester, 'category_glasses', 'category_bar');
+      await tapInRow(tester, 'item_eyes_cat_eye', 'item_row');
+      await tap(tester, 'activities_button');
+      await tap(tester, 'activity_makeup');
+      await shot(tester, '${tag}_33_makeup_glasses');
+      await tap(tester, 'tool_eyeshadow');
+      await shot(tester, '${tag}_34_makeup_eyeshadow');
+      await tap(tester, 'done_button');
+      await tester.pump(const Duration(seconds: 2));
+      await tap(tester, 'activities_button');
+      await tap(tester, 'activity_salon');
+      await shot(tester, '${tag}_35_salon_glasses');
+      await tap(tester, 'done_button');
+      await tester.pump(const Duration(seconds: 2));
+      await tapInRow(tester, 'item_eyes_sun_heart', 'item_row');
+      await shot(tester, '${tag}_32_sunglasses');
+    });
   }
+}
+
+/// Scrolls [row] until [key] shows, then taps it.
+Future<void> tapInRow(WidgetTester tester, String key, String row) async {
+  await tester.scrollUntilVisible(
+    find.byKey(Key(key)),
+    80,
+    scrollable: find.descendant(
+      of: find.byKey(Key(row)),
+      matching: find.byType(Scrollable),
+    ),
+  );
+  await tester.ensureVisible(find.byKey(Key(key)));
+  await tester.pump(const Duration(milliseconds: 400));
+  await tap(tester, key);
+}
+
+/// Draws one doll picture per entry of [looks] in a grid and saves it.
+Future<void> grid(
+  WidgetTester tester,
+  String name,
+  List<Outfit> looks,
+  Rect frame, {
+  int columns = 5,
+  double cell = 180,
+}) async {
+  await tester.runAsync(() async {
+    final rows = (looks.length / columns).ceil();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final size = Size(columns * cell, rows * cell * frame.height / frame.width);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFFFFF0F7),
+    );
+    final h = cell * frame.height / frame.width;
+    for (var i = 0; i < looks.length; i++) {
+      final recipe = await dollRecipe(looks[i]);
+      final image = await rasterizeDoll(
+        recipe.flat(Face.open),
+        frame,
+        Size(cell, h),
+      );
+      canvas.drawImage(
+        image,
+        Offset((i % columns) * cell, (i ~/ columns) * h),
+        Paint(),
+      );
+    }
+    final image = await recorder.endRecording().toImage(
+      size.width.round(),
+      size.height.round(),
+    );
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory(outDir).createSync(recursive: true);
+    File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+  });
+}
+
+void accessoryMain() {
+  testWidgets('accessory grids', (tester) async {
+    final hairs = itemsForSlot(Slot.hair);
+    final glasses = itemsForSlot(Slot.eyes);
+    for (final g in glasses) {
+      await grid(
+        tester,
+        'grid_glasses_${g.id}',
+        [for (final h in hairs) Outfit.starter().wear(h).wear(g)],
+        const Rect.fromLTRB(20, 30, 180, 170),
+        columns: 4,
+      );
+    }
+    await grid(tester, 'grid_glasses_all', [
+      for (final g in glasses)
+        Outfit.starter().wear(findItem('hair_bob')!).wear(g),
+    ], const Rect.fromLTRB(30, 60, 170, 160));
+    final jewelry = [
+      ...itemsForSlot(Slot.neck),
+      ...itemsForSlot(Slot.ears),
+      ...itemsForSlot(Slot.wrist),
+    ];
+    await grid(tester, 'grid_jewelry_close', [
+      for (final j in jewelry)
+        Outfit.starter().wear(findItem('hair_bun')!).wear(j),
+    ], const Rect.fromLTRB(20, 90, 180, 270));
+    await grid(
+      tester,
+      'grid_jewelry_hair',
+      [
+        for (final h in hairs)
+          Outfit.starter()
+              .wear(h)
+              .wear(findItem('dress_party')!)
+              .wear(findItem('neck_heart')!)
+              .wear(findItem('ears_gem')!)
+              .wear(findItem('wrist_bangle')!),
+      ],
+      const Rect.fromLTRB(10, 40, 190, 280),
+      columns: 4,
+    );
+  });
 }

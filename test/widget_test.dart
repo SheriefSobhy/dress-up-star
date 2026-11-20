@@ -69,6 +69,8 @@ void main() {
       'skirts',
       'shoes',
       'accessories',
+      'jewelry',
+      'glasses',
       'background',
     ]) {
       await reveal(tester, 'category_$id');

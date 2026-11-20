@@ -2,7 +2,20 @@ import 'package:flutter/material.dart';
 
 /// A place on the doll where one item can be worn.
 /// Items in the same slot replace each other.
-enum Slot { background, hair, dress, top, skirt, shoes, head, eyes, hand }
+enum Slot {
+  background,
+  hair,
+  dress,
+  top,
+  skirt,
+  shoes,
+  head,
+  eyes,
+  hand,
+  neck,
+  ears,
+  wrist,
+}
 
 /// How an item is drawn. Every shape belongs to exactly one [Slot].
 ///
@@ -51,6 +64,35 @@ enum ItemShape {
   eyesRound,
   eyesHeart,
   eyesStar,
+  eyesWire,
+  eyesCatEye,
+  eyesHeartFrame,
+  eyesStarFrame,
+  eyesBig,
+  // Sunglasses (glasses too: only one pair at a time)
+  eyesSunAviator,
+  eyesSunHeart,
+  eyesSunStar,
+  eyesSunBig,
+  eyesSunSport,
+  // Jewelry
+  neckPearl,
+  neckHeart,
+  neckStar,
+  neckGold,
+  neckRainbow,
+  neckChoker,
+  neckCrystal,
+  neckButterfly,
+  earsStud,
+  earsHoop,
+  earsHeart,
+  earsStar,
+  earsGem,
+  wristBeads,
+  wristBangle,
+  wristCharm,
+  wristFriendship,
   // Things to hold
   handBag,
   handWand,
@@ -77,6 +119,9 @@ extension ItemShapeSlot on ItemShape {
     if (n.startsWith('head')) return Slot.head;
     if (n.startsWith('eyes')) return Slot.eyes;
     if (n.startsWith('hand')) return Slot.hand;
+    if (n.startsWith('neck')) return Slot.neck;
+    if (n.startsWith('ears')) return Slot.ears;
+    if (n.startsWith('wrist')) return Slot.wrist;
     return Slot.background;
   }
 }
@@ -114,6 +159,7 @@ class GameCategory {
     required this.colors,
     this.previewItemId,
     this.icon,
+    this.iconArt,
     this.colorOnly = false,
   });
 
@@ -131,6 +177,10 @@ class GameCategory {
 
   /// ...or this icon, if there is no preview item.
   final IconData? icon;
+
+  /// A drawn picture for the button (an SVG in assets/svg/icons/). When
+  /// set, it is shown instead of the preview item and the icon.
+  final String? iconArt;
 
   /// If true, the category shows only big color buttons that recolor the
   /// item in `slots.first` (used for "Hair color").

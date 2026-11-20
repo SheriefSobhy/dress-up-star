@@ -843,7 +843,12 @@ class _DressUpScreenState extends State<DressUpScreen>
                       ? darkenForBorder(category.buttonColor)
                       : Colors.white,
                   glow: selected ? category.buttonColor : null,
-                  child: preview != null
+                  child: category.iconArt != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: ArtIcon(category.iconArt!),
+                        )
+                      : preview != null
                       ? Padding(
                           padding: EdgeInsets.all(
                             preview.slot == Slot.background ? 0 : 5,

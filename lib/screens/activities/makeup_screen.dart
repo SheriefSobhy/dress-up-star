@@ -13,14 +13,16 @@ import 'activity_shell.dart';
 /// The part of doll space shown in the Makeup close-up (her face).
 const Rect kMakeupFrame = Rect.fromLTRB(16, 40, 184, 176);
 
-/// The doll for a close-up: hats, glasses and things in her hand are put
-/// away while she has her makeover (they come back afterwards).
-Outfit closeUpOutfit(Outfit o) => o.copyWith(
-  worn: Map.of(o.worn)
+/// The doll for a close-up: hats and things in her hand are put away while
+/// she has her makeover (they come back afterwards). Her glasses and
+/// jewelry stay on, unless [glasses] is false.
+Outfit closeUpOutfit(Outfit o, {bool glasses = true}) {
+  final worn = Map.of(o.worn)
     ..remove(Slot.head)
-    ..remove(Slot.eyes)
-    ..remove(Slot.hand),
-);
+    ..remove(Slot.hand);
+  if (!glasses) worn.remove(Slot.eyes);
+  return o.copyWith(worn: worn);
+}
 
 /// Makeup: lipstick, blush, eyeshadow, eyelashes, face stickers and a
 /// sponge that wipes it all off again.
@@ -128,6 +130,11 @@ class _MakeupScreenState extends State<MakeupScreen>
     if (mounted) setState(() {});
   });
   late final Outfit _closeUp = closeUpOutfit(widget.outfit);
+
+  /// Glasses come off while she paints her eyes, so nothing is in the way.
+  late final Outfit _noGlasses = closeUpOutfit(widget.outfit, glasses: false);
+  int _tool = 0;
+  bool get _eyeTool => _tool == _shadow || _tool == _lashes;
 
   @override
   void initState() {
@@ -285,14 +292,12 @@ class _MakeupScreenState extends State<MakeupScreen>
       onDone: _done,
       onStroke: _stroke,
       onLift: _lift,
-      onToolChanged: (i) => _particles.emit(
-        ParticleKind.sparkle,
-        _targets[i],
-        count: 6,
-        size: 2.4,
-      ),
+      onToolChanged: (i) {
+        setState(() => _tool = i);
+        _particles.emit(ParticleKind.sparkle, _targets[i], count: 6, size: 2.4);
+      },
       stageBuilder: (context, info) => LiveDoll(
-        outfit: _closeUp.copyWith(makeup: _makeup),
+        outfit: (_eyeTool ? _noGlasses : _closeUp).copyWith(makeup: _makeup),
         frame: kMakeupFrame,
         face: info.happy
             ? Face.happy
