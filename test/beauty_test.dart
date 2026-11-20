@@ -175,4 +175,94 @@ void main() {
       }
     });
   });
+
+  group('salon', () {
+    final styled = SalonHair(
+      cutLeft: 2,
+      cutRight: 1,
+      curlRight: true,
+      dye: SpotGrid.none.set([3, 4, 5], hairDyeColors.length - 1),
+      shine: SpotGrid.filled(hairZone.length, 0),
+    );
+    Outfit withSalon(SalonHair s) =>
+        Outfit.starter().wear(findItem(salonHairId)!).copyWith(salon: s);
+
+    test('json round trip, natural hair is not saved', () {
+      expect(SalonHair.fromJson(styled.toJson()), styled);
+      expect(SalonHair.natural.toJson(), isEmpty);
+      final o = withSalon(styled);
+      expect(o.hasSalonHair, isTrue);
+      expect(Outfit.fromJson(o.toJson()), o);
+      expect(Outfit.starter().toJson().containsKey('salon'), isFalse);
+    });
+
+    test('broken salon json is skipped', () {
+      final s = SalonHair.fromJson({
+        'cut': [7, -3],
+        'curl': ['yes', true],
+        'dye': '!!',
+      });
+      expect(s.cutLeft, hairLengthCount - 1);
+      expect(s.cutRight, 0);
+      expect(s.curlLeft, isFalse);
+      expect(s.curlRight, isTrue);
+      expect(s.dye, SpotGrid.none);
+    });
+
+    test('a new hair style replaces the salon hair, colors keep it', () {
+      final o = withSalon(styled);
+      expect(o.recolor(Slot.hair, const Color(0xFFFF8FC7)).salon, styled);
+      expect(o.wear(findItem('dress_party')!).salon, styled);
+      final bob = o.wear(findItem('hair_bob')!);
+      expect(bob.salon.isNatural, isTrue);
+      expect(bob.toJson().containsKey('salon'), isFalse);
+    });
+
+    test('shorter hair ends higher; curls bounce up', () {
+      expect(styled.backHem(0), lessThan(styled.backHem(1)));
+      expect(styled.frontHem(0), kFrontHems[2]);
+      expect(styled.frontHem(1), kFrontHems[1] - kCurlLift);
+      expect(SalonHair.natural.backHem(0), kBackHems[0]);
+    });
+
+    test('hair is found on the hair, not on her face or body', () {
+      const s = SalonHair.natural;
+      expect(s.hairAt(const Offset(100, 50)), isTrue); // top of the head
+      expect(s.hairAt(const Offset(40, 180)), isTrue); // long lock
+      expect(s.hairAt(const Offset(100, 120)), isFalse); // face
+      expect(s.hairAt(const Offset(100, 210)), isFalse); // body
+      expect(s.hairAt(const Offset(40, 250)), isTrue);
+      expect(styled.hairAt(const Offset(40, 250)), isFalse); // cut off
+    });
+
+    test('surprise me sometimes gives salon hair, always valid', () {
+      final rnd = Random(5);
+      final looks = [for (var i = 0; i < 80; i++) Outfit.random(rnd)];
+      expect(looks.where((o) => o.hasSalonHair), isNotEmpty);
+      for (final o in looks) {
+        if (!o.salon.isNatural) {
+          expect(o[Slot.hair]!.item.id, salonHairId);
+        }
+        expect(Outfit.fromJson(o.toJson()), o);
+      }
+    });
+
+    test('salon hair replaces the plain hair layers', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final recipe = await dollRecipe(withSalon(styled));
+      expect(
+        recipe.under.where((l) => l.slot == Slot.hair).single.asset,
+        startsWith('drawn:salon_back'),
+      );
+      expect(recipe.over.first.asset, startsWith('drawn:salon_front'));
+      expect(outfitKey(withSalon(styled)), contains('salon:'));
+      final plain = await dollRecipe(withSalon(SalonHair.natural));
+      expect(plain.over.first.asset, endsWith('hairLong.svg'));
+      final wet = await dollRecipe(
+        withSalon(SalonHair.natural),
+        wetHair: SpotGrid('a'),
+      );
+      expect(wet.over.first.asset, startsWith('drawn:salon_front'));
+    });
+  });
 }

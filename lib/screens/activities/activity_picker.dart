@@ -8,9 +8,10 @@ import '../../services/game_audio.dart';
 import '../../widgets/art_image.dart';
 import '../../widgets/big_round_button.dart';
 import 'makeup_screen.dart';
+import 'salon_screen.dart';
 
 /// The activities that can be opened from the main screen.
-enum Activity { makeup }
+enum Activity { makeup, salon }
 
 /// The screen for [activity]. It returns the outfit with the result.
 Route<Outfit> activityRoute(
@@ -23,6 +24,7 @@ Route<Outfit> activityRoute(
     reverseTransitionDuration: const Duration(milliseconds: 320),
     pageBuilder: (_, _, _) => switch (activity) {
       Activity.makeup => MakeupScreen(outfit: outfit, audio: audio),
+      Activity.salon => SalonScreen(outfit: outfit, audio: audio),
     },
     transitionsBuilder: (_, animation, _, child) => FadeTransition(
       opacity: animation,
@@ -151,6 +153,10 @@ class _Picker extends StatelessWidget {
         const [Color(0xFFFFB8D9), Color(0xFFFF8FC7)],
         const ['lipstick', 'blush'],
       ),
+      Activity.salon => (
+        const [Color(0xFFA8EBD8), Color(0xFF5CCB9E)],
+        const ['scissors', 'dryer'],
+      ),
     };
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -257,6 +263,18 @@ class _Portrait extends StatelessWidget {
             stickers: const [FaceSticker(StickerKind.star, Offset(138, 124))],
           ),
         );
+      case Activity.salon:
+        final long = findItem(salonHairId);
+        return (long == null ? o : o.wear(long)).copyWith(
+          salon: SalonHair(
+            cutLeft: 1,
+            cutRight: 1,
+            curlLeft: true,
+            curlRight: true,
+            dye: SpotGrid.filled(hairZone.length, 0),
+            shine: SpotGrid.filled(hairZone.length, 0),
+          ),
+        );
     }
   }
 
@@ -289,7 +307,9 @@ class _Portrait extends StatelessWidget {
               final recipe = await dollRecipe(look);
               return rasterizeDoll(
                 recipe.flat(Face.happy),
-                kMakeupFrame.deflate(4),
+                activity == Activity.makeup
+                    ? kMakeupFrame.deflate(4)
+                    : const Rect.fromLTRB(14, 26, 186, 226),
                 pixels,
               );
             },
@@ -308,7 +328,11 @@ class _ToolArt extends StatelessWidget {
   Widget build(BuildContext context) {
     final layer = ArtLayer(
       'assets/svg/tools/$name.svg',
-      color: name == 'lipstick' ? lipstickColors.first.color : null,
+      color: switch (name) {
+        'lipstick' => lipstickColors.first.color,
+        'dryer' => const Color(0xFFFF7EB6),
+        _ => null,
+      },
     );
     return ArtImage(
       cacheKey: 'tool|${layer.key}',

@@ -472,3 +472,210 @@ bool _listEquals<T>(List<T> a, List<T> b) {
   }
   return true;
 }
+
+// ------------------------------------------------------------ hair salon
+//
+// The salon works on the long hair (see `salonHairId`). Each side (0 = her
+// right, on the left of the screen; 1 = the other side) can be cut and
+// curled on its own.
+
+/// How many lengths the hair can have: long, shoulder, short.
+const int hairLengthCount = 3;
+
+/// Where the hair ends for each length: the locks in front of the
+/// shoulders, and the hair behind her.
+const List<double> kFrontHems = [208, 174, 142];
+const List<double> kBackHems = [280, 214, 162];
+
+/// Curls bounce up a little.
+const double kCurlLift = 10;
+
+/// Half the width of the long hair (behind her) at height [y].
+double _hairHalfWidth(double y) {
+  if (y < 36) return 0;
+  if (y < 106) {
+    final t = (106 - y) / 72;
+    return 68 * sqrt(max(0, 1 - t * t));
+  }
+  return 68 - max(0, y - 160) * 0.08;
+}
+
+bool _inBackHair(Offset p) =>
+    (p.dx - 100).abs() <= _hairHalfWidth(p.dy) && p.dy <= kBackHems[0];
+
+/// Spots covering the whole long hair.
+final SpotZone hairZone = SpotZone.grid(
+  const Rect.fromLTRB(26, 30, 174, 286),
+  12,
+  20,
+  (p) => _inBackHair(p) ? 0 : null,
+);
+
+/// The side of the hair at [p].
+int hairSide(Offset p) => p.dx < 100 ? 0 : 1;
+
+/// The Hair Salon result.
+class SalonHair {
+  const SalonHair({
+    this.cutLeft = 0,
+    this.cutRight = 0,
+    this.curlLeft = false,
+    this.curlRight = false,
+    this.dye = SpotGrid.none,
+    this.shine = SpotGrid.none,
+  });
+
+  static const SalonHair natural = SalonHair();
+
+  /// Length per side: 0 long ... [hairLengthCount] - 1 short.
+  final int cutLeft;
+  final int cutRight;
+  final bool curlLeft;
+  final bool curlRight;
+
+  /// Spray paint on [hairZone] (indexes into [hairDyeColors]).
+  final SpotGrid dye;
+
+  /// Shiny spots after washing and drying ([hairZone], value 0).
+  final SpotGrid shine;
+
+  bool get isNatural => this == natural;
+
+  int cut(int side) => side == 0 ? cutLeft : cutRight;
+  bool curl(int side) => side == 0 ? curlLeft : curlRight;
+
+  /// Where the hair behind her ends on [side].
+  double backHem(int side) =>
+      kBackHems[cut(side)] - (curl(side) ? kCurlLift : 0);
+
+  /// Where the lock in front of her shoulder ends on [side].
+  double frontHem(int side) =>
+      kFrontHems[cut(side)] - (curl(side) ? kCurlLift : 0);
+
+  /// Is there hair to see at [p] (not her face or body)?
+  bool hairAt(Offset p) {
+    final side = hairSide(p);
+    final drape =
+        p.dy >= 96 &&
+        p.dy <= frontHem(side) &&
+        (side == 0 ? p.dx >= 30 && p.dx <= 57 : p.dx >= 143 && p.dx <= 170);
+    if (drape) return true;
+    if (!_inBackHair(p) || p.dy > backHem(side)) return false;
+    final face = p.dy > 88 && _inEllipse(p, const Offset(100, 108), 56, 51);
+    final body =
+        (p.dx > 74 && p.dx < 126 && p.dy > 164) ||
+        (p.dx > 91 && p.dx < 109 && p.dy > 148);
+    return !face && !body;
+  }
+
+  SalonHair copyWith({
+    int? cutLeft,
+    int? cutRight,
+    bool? curlLeft,
+    bool? curlRight,
+    SpotGrid? dye,
+    SpotGrid? shine,
+  }) => SalonHair(
+    cutLeft: cutLeft ?? this.cutLeft,
+    cutRight: cutRight ?? this.cutRight,
+    curlLeft: curlLeft ?? this.curlLeft,
+    curlRight: curlRight ?? this.curlRight,
+    dye: dye ?? this.dye,
+    shine: shine ?? this.shine,
+  );
+
+  SalonHair withCut(int side, int length) =>
+      side == 0 ? copyWith(cutLeft: length) : copyWith(cutRight: length);
+
+  SalonHair withCurl(int side, bool curly) =>
+      side == 0 ? copyWith(curlLeft: curly) : copyWith(curlRight: curly);
+
+  String get key => isNatural
+      ? ''
+      : '$cutLeft$cutRight${curlLeft ? 1 : 0}${curlRight ? 1 : 0}/'
+            '${dye.cells}/${shine.cells}';
+
+  Map<String, dynamic> toJson() => {
+    if (cutLeft != 0 || cutRight != 0) 'cut': [cutLeft, cutRight],
+    if (curlLeft || curlRight) 'curl': [curlLeft, curlRight],
+    if (!dye.isEmpty) 'dye': dye.cells,
+    if (!shine.isEmpty) 'shine': shine.cells,
+  };
+
+  factory SalonHair.fromJson(Object? json) {
+    if (json is! Map) return natural;
+    int cut(int i) {
+      final c = json['cut'];
+      if (c is List && c.length == 2 && c[i] is int) {
+        return (c[i] as int).clamp(0, hairLengthCount - 1);
+      }
+      return 0;
+    }
+
+    bool curl(int i) {
+      final c = json['curl'];
+      return c is List && c.length == 2 && c[i] == true;
+    }
+
+    return SalonHair(
+      cutLeft: cut(0),
+      cutRight: cut(1),
+      curlLeft: curl(0),
+      curlRight: curl(1),
+      dye: SpotGrid.read(
+        json['dye'],
+        hairZone.length,
+        maxColor: hairDyeColors.length - 1,
+      ),
+      shine: SpotGrid.read(json['shine'], hairZone.length, maxColor: 0),
+    );
+  }
+
+  /// A random salon hairdo for "Surprise me".
+  factory SalonHair.random(Random rnd) {
+    final cut = rnd.nextInt(hairLengthCount);
+    final odd = rnd.nextInt(5) == 0;
+    final curly = rnd.nextBool();
+    var dye = SpotGrid.none;
+    switch (rnd.nextInt(6)) {
+      case 0 || 1:
+        dye = SpotGrid.filled(
+          hairZone.length,
+          rnd.nextInt(hairDyeColors.length),
+        );
+      case 2:
+        // Two colored streaks.
+        final color = rnd.nextInt(hairDyeColors.length);
+        dye = dye.set([
+          for (var i = 0; i < hairZone.length; i++)
+            if ((hairZone.spots[i].dx - 52).abs() < 9 ||
+                (hairZone.spots[i].dx - 148).abs() < 9)
+              i,
+        ], color);
+    }
+    return SalonHair(
+      cutLeft: cut,
+      cutRight: odd ? rnd.nextInt(hairLengthCount) : cut,
+      curlLeft: curly,
+      curlRight: curly,
+      dye: dye,
+      shine: rnd.nextBool()
+          ? SpotGrid.filled(hairZone.length, 0)
+          : SpotGrid.none,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is SalonHair &&
+      other.cutLeft == cutLeft &&
+      other.cutRight == cutRight &&
+      other.curlLeft == curlLeft &&
+      other.curlRight == curlRight &&
+      other.dye == dye &&
+      other.shine == shine;
+
+  @override
+  int get hashCode =>
+      Object.hash(cutLeft, cutRight, curlLeft, curlRight, dye, shine);
+}

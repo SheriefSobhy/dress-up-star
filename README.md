@@ -28,6 +28,12 @@ in "Surprise me".
 
 - 💄 Makeup: lipstick, blush, eyeshadow (with glitter), eyelashes, face
   stickers and a sponge that wipes makeup off.
+- 💇 Hair Salon (in any order): wash with shampoo and the shower, dry with
+  the hair dryer (washed hair gets shiny), cut each side with the scissors
+  (long, shoulder or short), curl or straighten with the curling iron, and
+  spray paint the hair (8 colors including rainbow). The magic wand button
+  grows the long hair back. The salon works on the long hair; picking
+  another hairstyle in the wardrobe replaces the salon hairdo.
 
 Activity colors live at the end of `lib/data/game_config.dart`. Tool
 pictures are SVGs in `assets/svg/tools/`.

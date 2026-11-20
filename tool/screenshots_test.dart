@@ -188,5 +188,74 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await shot(tester, '${tag}_06_main_with_makeup');
     });
+
+    testWidgets('salon screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await tap(tester, 'activities_button');
+      await tap(tester, 'activity_salon');
+      await shot(tester, '${tag}_10_salon_empty');
+
+      const frame = Rect.fromLTRB(14, 24, 186, 292);
+      // Wash: shampoo, then a bit of shower.
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(40, 50, 160, 90)),
+      );
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(34, 110, 56, 200)),
+      );
+      await tap(tester, 'tool_shower');
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(40, 50, 160, 80)),
+      );
+      await shot(tester, '${tag}_11_salon_washing');
+      // Dry everything, with the dryer still blowing.
+      await tap(tester, 'tool_dryer');
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(30, 40, 170, 200), rows: 8),
+      );
+      final stage = tester.getRect(find.byKey(const Key('activity_stage')));
+      final fit = FitTransform(frame, stage.size);
+      final g = await tester.startGesture(
+        stage.topLeft + fit.apply(const Offset(150, 140)),
+      );
+      await g.moveTo(stage.topLeft + fit.apply(const Offset(152, 150)));
+      await shot(tester, '${tag}_12_salon_drying');
+      await g.up();
+      // Cut the left side short and the right side to the shoulders.
+      await tap(tester, 'tool_scissors');
+      await stroke(tester, frame, const [Offset(40, 150), Offset(46, 152)]);
+      await stroke(tester, frame, const [Offset(158, 240), Offset(160, 242)]);
+      await shot(tester, '${tag}_13_salon_cut');
+      // Curl the right side, rainbow and pink paint.
+      await tap(tester, 'tool_curler');
+      await stroke(tester, frame, const [Offset(160, 160), Offset(162, 170)]);
+      await tap(tester, 'tool_spray');
+      await tap(tester, 'option_7');
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(128, 40, 172, 210), rows: 9),
+      );
+      await tap(tester, 'option_0');
+      await stroke(
+        tester,
+        frame,
+        scribble(const Rect.fromLTRB(30, 40, 70, 150), rows: 6),
+      );
+      await shot(tester, '${tag}_14_salon_styled');
+      await tap(tester, 'done_button');
+      await tester.pump(const Duration(seconds: 2));
+      await shot(tester, '${tag}_15_main_with_salon');
+      await tap(tester, 'activities_button');
+      await shot(tester, '${tag}_16_picker');
+    });
   }
 }

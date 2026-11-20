@@ -16,6 +16,16 @@ import 'doll_art.dart' show Face;
 
 /// A round path covering the painted spots of [grid] for which [use] is
 /// true. Spots overlap a little so the paint looks smooth.
+/// A round path covering the spots [cells] of [zone].
+Path cellsPath(SpotZone zone, Iterable<int> cells, {double size = 0.85}) {
+  final path = Path();
+  final r = zone.spacing * size;
+  for (final i in cells) {
+    path.addOval(Rect.fromCircle(center: zone.spots[i], radius: r));
+  }
+  return path;
+}
+
 Path spotsPath(
   SpotZone zone,
   SpotGrid grid, {

@@ -135,3 +135,126 @@ class MakeupBackdrop extends CustomPainter {
   @override
   bool shouldRepaint(MakeupBackdrop oldDelegate) => false;
 }
+
+/// A minty hair salon: striped wall, a big round mirror and a shelf of
+/// colorful bottles.
+class SalonBackdrop extends CustomPainter {
+  const SalonBackdrop();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stripe = Paint()..color = const Color(0x22FFFFFF);
+    final w = size.width / 9;
+    for (var i = 0; i < 9; i += 2) {
+      canvas.drawRect(Rect.fromLTWH(i * w, 0, w, size.height), stripe);
+    }
+    _bokeh(canvas, size, 9, const [
+      Color(0xFFFFFFFF),
+      Color(0xFFC9F2E4),
+      Color(0xFFFFE3F1),
+    ]);
+    final r = math.min(size.width * 0.47, size.height * 0.4);
+    final c = Offset(size.width / 2, size.height * 0.36);
+    canvas.drawCircle(
+      c + const Offset(0, 6),
+      r,
+      Paint()
+        ..color = const Color(0x3341A08A)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          c - Offset(r, r),
+          c + Offset(r, r),
+          const [Color(0xFFFFFFFF), Color(0xFFB8E6F0), Color(0xFF9CC8E8)],
+          const [0, 0.5, 1],
+        ),
+    );
+    canvas.drawCircle(
+      c,
+      r * 0.92,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          c - Offset(0, r),
+          c + Offset(0, r),
+          const [Color(0xFFF6FDFF), Color(0xFFDDF3F7)],
+        ),
+    );
+    canvas.save();
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: c, radius: r * 0.92)),
+    );
+    final shine = Paint()..color = const Color(0x99FFFFFF);
+    for (final x in [-0.55, -0.32]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(c.dx + r * x, c.dy - r)
+          ..lineTo(c.dx + r * (x + 0.14), c.dy - r)
+          ..lineTo(c.dx + r * (x - 0.36), c.dy + r)
+          ..lineTo(c.dx + r * (x - 0.5), c.dy + r)
+          ..close(),
+        shine,
+      );
+    }
+    canvas.restore();
+    // Shelves with bottles on both sides, low on the wall.
+    final shelfY = size.height * 0.86;
+    for (final left in [true, false]) {
+      final x0 = left ? 0.0 : size.width * 0.74;
+      final x1 = left ? size.width * 0.26 : size.width;
+      canvas.drawRRect(
+        RRect.fromLTRBR(
+          x0 - 8,
+          shelfY,
+          x1 + 8,
+          shelfY + 9,
+          const Radius.circular(4),
+        ),
+        Paint()..color = const Color(0xFFFFFFFF),
+      );
+      const colors = [Color(0xFFFF8FC7), Color(0xFFB79CFF), Color(0xFFFFD84D)];
+      final bw = (x1 - x0) / 4.5;
+      for (var i = 0; i < 3; i++) {
+        final bx = x0 + bw * (0.6 + i * 1.3);
+        final bh = bw * (1.5 + (i % 2) * 0.5);
+        final body = RRect.fromLTRBR(
+          bx,
+          shelfY - bh,
+          bx + bw,
+          shelfY,
+          Radius.circular(bw * 0.3),
+        );
+        canvas.drawRRect(
+          body,
+          Paint()..color = colors[(i + (left ? 0 : 1)) % 3],
+        );
+        canvas.drawRRect(
+          RRect.fromLTRBR(
+            bx + bw * 0.3,
+            shelfY - bh - bw * 0.4,
+            bx + bw * 0.7,
+            shelfY - bh + 1,
+            Radius.circular(bw * 0.1),
+          ),
+          Paint()..color = const Color(0xFFFFFFFF),
+        );
+        canvas.drawRRect(
+          RRect.fromLTRBR(
+            bx + bw * 0.18,
+            shelfY - bh * 0.85,
+            bx + bw * 0.34,
+            shelfY - bh * 0.25,
+            Radius.circular(bw * 0.08),
+          ),
+          Paint()..color = const Color(0x88FFFFFF),
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(SalonBackdrop oldDelegate) => false;
+}

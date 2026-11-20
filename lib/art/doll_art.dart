@@ -8,6 +8,7 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
 import 'beauty_art.dart';
+import 'salon_art.dart';
 
 export 'art_library.dart' show ArtLayer, ArtLibrary, recordPicture;
 
@@ -122,6 +123,7 @@ class DollRecipe {
 Future<DollRecipe> dollRecipe(
   Outfit outfit, {
   bool separateRightArm = false,
+  SpotGrid? wetHair,
 }) async {
   final assets = await ArtLibrary.instance.manifest();
   List<ArtLayer> part(Slot slot, [String suffix = '']) {
@@ -135,12 +137,20 @@ Future<DollRecipe> dollRecipe(
   }
 
   ArtLayer doll(String name) => ArtLayer('$kDollDir$name.svg');
+  // Salon hair replaces the plain long hair (also while it is wet).
+  final hair = outfit[Slot.hair];
+  final wet = wetHair != null && !wetHair.isEmpty;
+  final salon =
+      hair != null &&
+          (outfit.hasSalonHair || (wet && hair.item.id == salonHairId))
+      ? salonHairLayers(outfit.salon, hair.color, wet: wetHair)
+      : null;
   final hasDress = outfit[Slot.dress] != null;
   final arm = [doll('arm_right')];
 
   final under = <ArtLayer>[
     ...part(Slot.dress, '_back'),
-    ...part(Slot.hair, '_back'),
+    if (salon != null) salon.first else ...part(Slot.hair, '_back'),
     doll('body'),
     ...part(Slot.shoes),
     if (hasDress)
@@ -158,7 +168,7 @@ Future<DollRecipe> dollRecipe(
     doll('head'),
   ];
   final over = <ArtLayer>[
-    ...part(Slot.hair),
+    if (salon != null) salon.last else ...part(Slot.hair),
     ...part(Slot.head),
     ...part(Slot.eyes),
     ...part(Slot.hand),
@@ -300,6 +310,7 @@ String outfitKey(Outfit o) => [
   for (final e in o.worn.entries)
     '${e.key.name}:${e.value.item.id}:${e.value.color.toARGB32()}',
   if (!o.makeup.isEmpty) 'makeup:${o.makeup.key}',
+  if (o.hasSalonHair) 'salon:${o.salon.key}',
 ].join(',');
 
 /// Pixel density used for art: sharp, but capped so low-end phones stay fast.

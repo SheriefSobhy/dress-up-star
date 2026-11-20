@@ -42,8 +42,11 @@ class WornItem {
 /// Everything the doll is wearing right now. Outfits never change; every
 /// action returns a new outfit.
 class Outfit {
-  Outfit(Map<Slot, WornItem> worn, {this.makeup = Makeup.none})
-    : worn = Map.unmodifiable(worn);
+  Outfit(
+    Map<Slot, WornItem> worn, {
+    this.makeup = Makeup.none,
+    this.salon = SalonHair.natural,
+  }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
   factory Outfit.starter() {
@@ -82,9 +85,17 @@ class Outfit {
     for (final slot in [Slot.head, Slot.eyes, Slot.hand]) {
       if (rnd.nextInt(3) == 0) wearRandom(slot, accessoryColors);
     }
+    var salon = SalonHair.natural;
+    final salonHair = findItem(salonHairId);
+    if (salonHair != null && rnd.nextInt(3) == 0) {
+      // A hairdo from the Hair Salon.
+      worn[Slot.hair] = WornItem(salonHair, worn[Slot.hair]!.color);
+      salon = SalonHair.random(rnd);
+    }
     return Outfit(
       worn,
       makeup: rnd.nextInt(3) > 0 ? Makeup.random(rnd) : Makeup.none,
+      salon: salon,
     );
   }
 
@@ -93,9 +104,23 @@ class Outfit {
   /// What the Makeup activity put on her face.
   final Makeup makeup;
 
+  /// What the Hair Salon did (only shown with the salon's long hair).
+  final SalonHair salon;
+
+  /// True when her hair comes from the Hair Salon.
+  bool get hasSalonHair =>
+      !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
+
   /// The same outfit with other clothes and/or activity results.
-  Outfit copyWith({Map<Slot, WornItem>? worn, Makeup? makeup}) =>
-      Outfit(worn ?? this.worn, makeup: makeup ?? this.makeup);
+  Outfit copyWith({
+    Map<Slot, WornItem>? worn,
+    Makeup? makeup,
+    SalonHair? salon,
+  }) => Outfit(
+    worn ?? this.worn,
+    makeup: makeup ?? this.makeup,
+    salon: salon ?? this.salon,
+  );
 
   WornItem? operator [](Slot slot) => worn[slot];
 
@@ -123,7 +148,9 @@ class Outfit {
       item,
       color ?? (keepColor ? previous.color : item.color),
     );
-    return copyWith(worn: next);
+    // A new hair style replaces the salon hairdo.
+    final newHair = item.slot == Slot.hair && item.id != salonHairId;
+    return copyWith(worn: next, salon: newHair ? SalonHair.natural : null);
   }
 
   Outfit remove(Slot slot) => copyWith(worn: Map.of(worn)..remove(slot));
@@ -141,6 +168,7 @@ class Outfit {
         'color': entry.value.color.toARGB32(),
       },
     if (!makeup.isEmpty) 'makeup': makeup.toJson(),
+    if (hasSalonHair) 'salon': salon.toJson(),
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -161,13 +189,16 @@ class Outfit {
       final fallback = starter.worn[slot];
       if (!worn.containsKey(slot) && fallback != null) worn[slot] = fallback;
     }
-    return Outfit(worn, makeup: Makeup.fromJson(json['makeup']));
+    final salon = worn[Slot.hair]?.item.id == salonHairId
+        ? SalonHair.fromJson(json['salon'])
+        : SalonHair.natural;
+    return Outfit(worn, makeup: Makeup.fromJson(json['makeup']), salon: salon);
   }
 
   @override
   bool operator ==(Object other) {
     if (other is! Outfit || other.worn.length != worn.length) return false;
-    if (other.makeup != makeup) return false;
+    if (other.makeup != makeup || other.salon != salon) return false;
     for (final entry in worn.entries) {
       if (other.worn[entry.key] != entry.value) return false;
     }
@@ -180,5 +211,6 @@ class Outfit {
       worn.entries.map((e) => Object.hash(e.key, e.value)),
     ),
     makeup,
+    salon,
   );
 }

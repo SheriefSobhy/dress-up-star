@@ -40,6 +40,7 @@ class ActivityTool {
     this.tip = const Offset(0.22, 0.78),
     this.tinted = false,
     this.carriesOption = false,
+    this.artColor,
   });
 
   final String id;
@@ -60,6 +61,9 @@ class ActivityTool {
 
   /// The finger carries the option itself (a sticker, a gem...).
   final bool carriesOption;
+
+  /// A fixed color for the tool picture (when it is not [tinted]).
+  final Color? artColor;
 }
 
 /// What a finger move did.
@@ -79,7 +83,8 @@ class StrokeResult {
   /// a "ta-da" and a smile.
   final List<Offset> finished;
 
-  /// The sound for this change (the brush twinkle if null).
+  /// The sound for this move (the brush twinkle if null and something
+  /// changed).
   final Sfx? sound;
 }
 
@@ -231,6 +236,9 @@ class ActivityShellState extends State<ActivityShell>
   FitTransform get _fit => FitTransform(widget.frame, _stageSize);
 
   void _handle(StrokeResult r, Offset at) {
+    // Tools like the shower and dryer make their sound even with nothing
+    // left to change.
+    if (!r.changed && r.sound != null) _play(r.sound!);
     if (r.changed) {
       _changedThisStroke = true;
       _play(r.sound ?? Sfx.brush);
@@ -464,7 +472,7 @@ class ActivityShellState extends State<ActivityShell>
               height: size,
               child: _ToolPicture(
                 tool: tool,
-                color: tool.tinted ? option?.color : null,
+                color: tool.tinted ? option?.color : tool.artColor,
               ),
             ),
           ],
@@ -500,7 +508,7 @@ class ActivityShellState extends State<ActivityShell>
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                height: 62,
+                height: _optionAreaHeight(MediaQuery.sizeOf(context).width),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
                   transitionBuilder: (child, animation) => FadeTransition(
@@ -525,40 +533,72 @@ class ActivityShellState extends State<ActivityShell>
     );
   }
 
+  static const double _dot = 46;
+  static const double _dotGap = 8;
+
+  /// How many rows of option buttons fit [count] options in [width].
+  static int _optionRows(int count, double width) {
+    final perRow = ((width - 24 + _dotGap) / (_dot + _dotGap)).floor();
+    return count <= perRow ? 1 : 2;
+  }
+
+  /// The option area is as tall as the tool with the most options needs,
+  /// so the girl does not jump when switching tools.
+  double _optionAreaHeight(double width) {
+    final most = widget.tools.map((t) => t.options.length).fold(0, math.max);
+    return _optionRows(most, width) == 1 ? 62 : 62 + _dot + _dotGap - 6;
+  }
+
   Widget _optionRow(ActivityTool tool) {
     if (tool.options.isEmpty) return const SizedBox.expand();
     final selected = _options[_tool];
+    final width = MediaQuery.sizeOf(context).width;
+    final rows = _optionRows(tool.options.length, width);
+    final perRow = (tool.options.length / rows).ceil();
+    Widget dot(int i) {
+      final o = tool.options[i];
+      final isSelected = i == selected;
+      return Pressable(
+        key: Key('option_$i'),
+        onTap: () => _selectOption(i),
+        builder: (pressed) => AnimatedScale(
+          scale: isSelected ? 1.14 : 1,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          child: GlossyCircle(
+            color: o.paint != null ? Colors.white : o.color,
+            size: _dot,
+            pressed: pressed,
+            rim: isSelected ? 4 : 3,
+            rimColor: isSelected ? darken(tool.color, 0.3) : Colors.white,
+            glow: isSelected ? lighten(o.color, 0.1) : null,
+            child: CustomPaint(painter: _OptionPainter(o)),
+          ),
+        ),
+      );
+    }
+
     return Center(
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: tool.options.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final o = tool.options[i];
-          final isSelected = i == selected;
-          return Center(
-            child: Pressable(
-              key: Key('option_$i'),
-              onTap: () => _selectOption(i),
-              builder: (pressed) => AnimatedScale(
-                scale: isSelected ? 1.14 : 1,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutBack,
-                child: GlossyCircle(
-                  color: o.paint != null ? Colors.white : o.color,
-                  size: 46,
-                  pressed: pressed,
-                  rim: isSelected ? 4 : 3,
-                  rimColor: isSelected ? darken(tool.color, 0.3) : Colors.white,
-                  glow: isSelected ? lighten(o.color, 0.1) : null,
-                  child: CustomPaint(painter: _OptionPainter(o)),
-                ),
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var r = 0; r < rows; r++) ...[
+            if (r > 0) const SizedBox(height: _dotGap - 2),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (
+                  var i = r * perRow;
+                  i < math.min(tool.options.length, (r + 1) * perRow);
+                  i++
+                ) ...[
+                  if (i > r * perRow) const SizedBox(width: _dotGap),
+                  dot(i),
+                ],
+              ],
             ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }
@@ -608,7 +648,7 @@ class ActivityShellState extends State<ActivityShell>
             padding: EdgeInsets.all(size * 0.1),
             child: _ToolPicture(
               tool: tool,
-              color: tool.tinted ? option?.color : null,
+              color: tool.tinted ? option?.color : tool.artColor,
             ),
           ),
         ),

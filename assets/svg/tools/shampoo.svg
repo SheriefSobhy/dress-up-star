@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bottle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9A72E8"/><stop offset="0.4" stop-color="#D2BCFF"/><stop offset="1" stop-color="#8460D6"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E05A9C"/><stop offset="0.45" stop-color="#FFA8D2"/><stop offset="1" stop-color="#C94888"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-135 50 50)">
+    <path d="M34 44 Q34 36 42 36 L58 36 Q66 36 66 44 L68 86 Q68 94 60 94 L40 94 Q32 94 32 86 Z" fill="url(#bottle)" stroke="#6B4AB8" stroke-width="2.2"/>
+    <rect x="38" y="52" width="24" height="26" rx="6" fill="#FFFFFF" opacity="0.92"/>
+    <path d="M50 72 C40 66 41 58 46 57 C48 56.5 49.5 58 50 59.5 C50.5 58 52 56.5 54 57 C59 58 60 66 50 72 Z" fill="#FF6FA5"/>
+    <path d="M38 44 L38 86" stroke="#EFE6FF" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+    <rect x="40" y="24" width="20" height="14" rx="4" fill="url(#cap)" stroke="#A8356E" stroke-width="2"/>
+    <path d="M45 24 L47 12 L53 12 L55 24 Z" fill="url(#cap)" stroke="#A8356E" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+  <g fill="#FFFFFF" stroke="#A9D8FF" stroke-width="1.6">
+    <circle cx="16" cy="88" r="7"/><circle cx="28" cy="94" r="4"/><circle cx="9" cy="76" r="3.5"/>
+  </g>
+  <circle cx="14" cy="86" r="2" fill="#FFFFFF"/>
+</svg>

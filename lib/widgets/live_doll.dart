@@ -19,6 +19,8 @@ class LiveDoll extends StatefulWidget {
     this.face = Face.open,
     this.hairSway,
     this.bounce,
+    this.wetHair,
+    this.foreground,
   });
 
   final Outfit outfit;
@@ -30,6 +32,12 @@ class LiveDoll extends StatefulWidget {
 
   /// A little happy hop (0..1, 0 = still).
   final ValueListenable<double>? bounce;
+
+  /// Wet spots of the salon hair (darker while wet).
+  final SpotGrid? wetHair;
+
+  /// Draws on top of her, in doll space (soap foam, water drops).
+  final void Function(Canvas canvas)? foreground;
 
   @override
   State<LiveDoll> createState() => _LiveDollState();
@@ -50,7 +58,7 @@ class _Pictures {
 
 class _LiveDollState extends State<LiveDoll> {
   _Pictures? _pictures;
-  Outfit? _wanted;
+  int _token = 0;
 
   @override
   void initState() {
@@ -61,14 +69,14 @@ class _LiveDollState extends State<LiveDoll> {
   @override
   void didUpdateWidget(LiveDoll old) {
     super.didUpdateWidget(old);
-    if (old.outfit != widget.outfit) _load();
+    if (old.outfit != widget.outfit || old.wetHair != widget.wetHair) _load();
   }
 
   Future<void> _load() async {
     final outfit = widget.outfit;
-    _wanted = outfit;
+    final token = ++_token;
     try {
-      final recipe = await dollRecipe(outfit);
+      final recipe = await dollRecipe(outfit, wetHair: widget.wetHair);
       Future<List<_Layer>> pictures(List<ArtLayer> layers) async {
         final list = await Future.wait(layers.map(ArtLibrary.instance.picture));
         return [
@@ -82,7 +90,7 @@ class _LiveDollState extends State<LiveDoll> {
         pictures(recipe.over),
         for (final face in Face.values) pictures(recipe.face(face)),
       ]);
-      if (!mounted || _wanted != outfit) return;
+      if (!mounted || token != _token) return;
       setState(() {
         _pictures = _Pictures(results[0], {
           for (var i = 0; i < Face.values.length; i++)
@@ -105,6 +113,7 @@ class _LiveDollState extends State<LiveDoll> {
           face: widget.face,
           sway: widget.hairSway,
           bounce: widget.bounce,
+          foreground: widget.foreground,
         ),
       ),
     );
@@ -118,6 +127,7 @@ class _LiveDollPainter extends CustomPainter {
     required this.face,
     this.sway,
     this.bounce,
+    this.foreground,
   }) : super(repaint: Listenable.merge([sway, bounce]));
 
   final _Pictures? pictures;
@@ -125,6 +135,9 @@ class _LiveDollPainter extends CustomPainter {
   final Face face;
   final ValueListenable<double>? sway;
   final ValueListenable<double>? bounce;
+
+  /// Draws on top of her, in doll space (soap foam, water drops).
+  final void Function(Canvas canvas)? foreground;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -160,10 +173,14 @@ class _LiveDollPainter extends CustomPainter {
     p.under.forEach(draw);
     p.faces[face]?.forEach(draw);
     p.over.forEach(draw);
+    foreground?.call(canvas);
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(_LiveDollPainter old) =>
-      old.pictures != pictures || old.face != face || old.frame != frame;
+      old.pictures != pictures ||
+      old.face != face ||
+      old.frame != frame ||
+      old.foreground != foreground;
 }
