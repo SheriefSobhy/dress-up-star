@@ -357,6 +357,8 @@ class _DollArtist {
     );
 
     final hair = outfit[Slot.hair];
+    final dressWorn = outfit[Slot.dress];
+    if (dressWorn != null) dressBack(dressWorn);
     if (hair != null) hairBack(hair);
 
     // Legs and feet
@@ -538,6 +540,22 @@ class _DollArtist {
         fill(Path.combine(PathOperation.union, p, Path()), c);
       case ItemShape.hairBraids:
         circle(const Offset(100, 88), 46, c);
+      case ItemShape.hairPonytail:
+        // A swishy ponytail from the top-right of the head.
+        fill(
+          Path()
+            ..moveTo(128, 46)
+            ..cubicTo(176, 34, 188, 112, 164, 176)
+            ..quadraticBezierTo(162, 150, 152, 136)
+            ..quadraticBezierTo(166, 100, 140, 62)
+            ..close(),
+          c,
+        );
+        circle(const Offset(100, 88), 46, c);
+      case ItemShape.hairSpaceBuns:
+        circle(const Offset(66, 46), 18, c);
+        circle(const Offset(134, 46), 18, c);
+        circle(const Offset(100, 88), 46, c);
       default:
         break;
     }
@@ -581,6 +599,27 @@ class _DollArtist {
         circle(const Offset(144, 102), 6, tieColor);
       case ItemShape.hairBun:
         oval(const Offset(100, 50), 22, 7, tieColor);
+      case ItemShape.hairPonytail:
+        circle(const Offset(134, 52), 6.5, tieColor);
+      case ItemShape.hairSpaceBuns:
+        // Little curls in each bun and a tie under them
+        stroke(
+          Path()
+            ..addArc(
+              Rect.fromCircle(center: const Offset(66, 44), radius: 8),
+              0.5,
+              4,
+            )
+            ..addArc(
+              Rect.fromCircle(center: const Offset(134, 44), radius: 8),
+              -1.4,
+              4,
+            ),
+          outlineOf(c),
+          1.6,
+        );
+        circle(const Offset(74, 60), 5, tieColor);
+        circle(const Offset(126, 60), 5, tieColor);
       case ItemShape.hairCurly:
         for (final p in const [
           Offset(66, 72),
@@ -815,34 +854,176 @@ class _DollArtist {
           ),
           darken(c, 0.1),
         );
+      case ItemShape.dressMermaid:
+        // Snug down to the knees, then a wavy tail-fin hem.
+        final skirt = Path()
+          ..moveTo(81, 204)
+          ..lineTo(119, 204)
+          ..quadraticBezierTo(126, 262, 113, 300)
+          ..quadraticBezierTo(128, 318, 142, 340);
+        const n = 6;
+        const step = 80 / n;
+        for (var i = 0; i < n; i++) {
+          final x1 = 140 - (i + 1) * step;
+          skirt.quadraticBezierTo(x1 + step / 2, 352, x1, 340);
+        }
+        skirt
+          ..quadraticBezierTo(72, 318, 87, 300)
+          ..quadraticBezierTo(74, 262, 81, 204)
+          ..close();
+        garment(skirt, c, pat);
+        // Fin lines and a scale pattern
+        final fin = outlineOf(c).withValues(alpha: 0.6);
+        for (var x = 76.0; x <= 124; x += 12) {
+          stroke(
+            Path()
+              ..moveTo(100 + (x - 100) * 0.4, 304)
+              ..lineTo(x, 340),
+            fin,
+            1.2,
+          );
+        }
+        canvas.save();
+        canvas.clipPath(skirt);
+        final scale = contrastOn(c).withValues(alpha: 0.7);
+        var row = 0;
+        for (var y = 214.0; y < 298; y += 9, row++) {
+          for (var x = 78.0 + (row.isOdd ? 5 : 0); x < 124; x += 10) {
+            stroke(
+              Path()..addArc(
+                Rect.fromCircle(center: Offset(x, y), radius: 5),
+                0,
+                3.14,
+              ),
+              scale,
+              1.2,
+            );
+          }
+        }
+        canvas.restore();
+        garment(_torsoPath(212, neck: 164, straps: true), c, pat);
+        fill(
+          Path()..addRRect(
+            RRect.fromLTRBR(79, 202, 121, 210, const Radius.circular(4)),
+          ),
+          lighten(c, 0.5),
+        );
+        circle(const Offset(100, 206), 3.5, const Color(0xFFFFFFFF));
+      case ItemShape.dressFairy:
+        // Pointy petal skirt in two layers
+        Path petals(double hem, double half, int n) {
+          final p = Path()
+            ..moveTo(81, 204)
+            ..lineTo(119, 204)
+            ..lineTo(100 + half * 0.8, hem - 12);
+          final step = half * 2 / n;
+          for (var i = 0; i < n; i++) {
+            final x0 = 100 + half - i * step;
+            p
+              ..lineTo(x0 - step / 2, hem)
+              ..lineTo(x0 - step, hem - 12);
+          }
+          return p
+            ..lineTo(81, 204)
+            ..close();
+        }
+
+        fill(petals(268, 46, 5), lighten(c, 0.4));
+        garment(petals(258, 40, 4), c, pat);
+        garment(_torsoPath(212, neck: 162, straps: true), c, pat);
+        fill(
+          Path()..addRRect(
+            RRect.fromLTRBR(79, 202, 121, 210, const Radius.circular(4)),
+          ),
+          darken(c, 0.12),
+        );
+        fill(
+          starPath(const Offset(100, 206), 6),
+          const Color(0xFFFFE066),
+          width: 1,
+        );
+      case ItemShape.dressParty:
+        // Puffy "bubble" skirt with a big bow
+        final skirt = Path()
+          ..moveTo(81, 204)
+          ..lineTo(119, 204)
+          ..cubicTo(152, 214, 152, 258, 124, 264)
+          ..quadraticBezierTo(100, 272, 76, 264)
+          ..cubicTo(48, 258, 48, 214, 81, 204)
+          ..close();
+        garment(skirt, c, pat);
+        stroke(
+          Path()
+            ..moveTo(70, 254)
+            ..quadraticBezierTo(100, 266, 130, 254),
+          outlineOf(c).withValues(alpha: 0.5),
+          1.4,
+        );
+        garment(_torsoPath(212), c, pat);
+        _waistBow(lighten(c, 0.6), size: 1.5);
       default:
         break;
     }
   }
 
-  void _waistBow(Color c) {
+  /// Parts of a dress that are behind the body (fairy wings).
+  void dressBack(WornItem w) {
+    if (w.item.shape != ItemShape.dressFairy) return;
+    final wing = lighten(w.color, 0.55).withValues(alpha: 0.85);
+    for (final side in [-1.0, 1.0]) {
+      for (final (center, width, height, angle) in [
+        (const Offset(42, 168), 54.0, 74.0, -0.6),
+        (const Offset(56, 222), 36.0, 50.0, 0.5),
+      ]) {
+        canvas.save();
+        canvas.translate(100 + side * (100 - center.dx), center.dy);
+        canvas.rotate(side * -angle);
+        final p = Path()
+          ..addOval(
+            Rect.fromCenter(center: Offset.zero, width: width, height: height),
+          );
+        canvas.drawPath(p, Paint()..color = wing);
+        stroke(p, outlineOf(w.color).withValues(alpha: 0.6), 1.4);
+        canvas.drawCircle(
+          Offset(0, -height * 0.15),
+          width * 0.12,
+          Paint()..color = const Color(0x88FFFFFF),
+        );
+        canvas.restore();
+      }
+    }
+  }
+
+  void _waistBow(Color c, {double size = 1}) {
     const k = Offset(100, 208);
+    final a = 11 * size;
+    final b = 7 * size;
     fill(
       Path()
         ..moveTo(k.dx, k.dy)
-        ..lineTo(k.dx - 11, k.dy - 7)
-        ..lineTo(k.dx - 11, k.dy + 7)
+        ..lineTo(k.dx - a, k.dy - b)
+        ..lineTo(k.dx - a, k.dy + b)
         ..close()
         ..moveTo(k.dx, k.dy)
-        ..lineTo(k.dx + 11, k.dy - 7)
-        ..lineTo(k.dx + 11, k.dy + 7)
+        ..lineTo(k.dx + a, k.dy - b)
+        ..lineTo(k.dx + a, k.dy + b)
         ..close(),
       c,
       width: 1.2,
     );
-    circle(k, 3.5, c);
+    circle(k, 3.5 * size, c);
   }
 
   void dressSleeves(WornItem w) {
-    if (w.item.shape != ItemShape.dressPrincess) return;
-    final c = lighten(w.color, 0.15);
-    circle(_shoulderL + const Offset(-1, 2), 13, c);
-    circle(_shoulderR + const Offset(1, 2), 13, c);
+    final shape = w.item.shape;
+    if (shape == ItemShape.dressPrincess) {
+      final c = lighten(w.color, 0.15);
+      circle(_shoulderL + const Offset(-1, 2), 13, c);
+      circle(_shoulderR + const Offset(1, 2), 13, c);
+    } else if (shape == ItemShape.dressParty) {
+      circle(_shoulderL + const Offset(0, 1), 10, w.color);
+      circle(_shoulderR + const Offset(0, 1), 10, w.color);
+    }
   }
 
   // ----------------------------------------------------------- accessories

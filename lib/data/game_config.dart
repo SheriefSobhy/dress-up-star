@@ -101,6 +101,16 @@ const List<GameItem> gameItems = [
     shape: ItemShape.hairBraids,
     color: Color(0xFF5B3A29),
   ),
+  GameItem(
+    id: 'hair_ponytail',
+    shape: ItemShape.hairPonytail,
+    color: Color(0xFF5B3A29),
+  ),
+  GameItem(
+    id: 'hair_space_buns',
+    shape: ItemShape.hairSpaceBuns,
+    color: Color(0xFF5B3A29),
+  ),
 
   // Dresses
   GameItem(
@@ -131,6 +141,22 @@ const List<GameItem> gameItems = [
     shape: ItemShape.dressSun,
     color: Color(0xFF8EE08A),
     pattern: ItemPattern.stripes,
+  ),
+  GameItem(
+    id: 'dress_mermaid',
+    shape: ItemShape.dressMermaid,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'dress_fairy',
+    shape: ItemShape.dressFairy,
+    color: Color(0xFF8EE08A),
+  ),
+  GameItem(
+    id: 'dress_party',
+    shape: ItemShape.dressParty,
+    color: Color(0xFFFF6B8B),
+    pattern: ItemPattern.dots,
   ),
 
   // Tops
@@ -271,6 +297,8 @@ const List<GameItem> gameItems = [
     shape: ItemShape.bgHearts,
     color: Color(0xFFFFD1E8),
   ),
+  GameItem(id: 'bg_beach', shape: ItemShape.bgBeach, color: Color(0xFFBDE3FF)),
+  GameItem(id: 'bg_candy', shape: ItemShape.bgCandy, color: Color(0xFFFFD1E8)),
 ];
 
 // ---------------------------------------------------------------------------

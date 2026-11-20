@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../models/outfit.dart';
 import '../painting/doll_painter.dart';
+import '../services/game_audio.dart';
 import '../services/looks_storage.dart';
 import '../widgets/big_round_button.dart';
 
 /// "My Looks": every saved outfit. Tap one to wear it again.
 class GalleryScreen extends StatefulWidget {
-  const GalleryScreen({super.key, required this.storage});
+  const GalleryScreen({super.key, required this.storage, required this.audio});
 
   final LooksStorage storage;
+  final GameAudio audio;
 
   @override
   State<GalleryScreen> createState() => _GalleryScreenState();
@@ -51,7 +53,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     icon: Icons.close_rounded,
                     color: const Color(0xFF8EE08A),
                     semanticLabel: 'Keep',
-                    onTap: () => Navigator.pop(context, false),
+                    onTap: () {
+                      widget.audio.play(Sfx.tap);
+                      Navigator.pop(context, false);
+                    },
                   ),
                   BigRoundButton(
                     key: const Key('delete_yes'),
@@ -68,6 +73,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
     );
     if (yes != true) return;
+    widget.audio.play(Sfx.itemOff);
     final looks = await widget.storage.removeAt(index);
     if (mounted) setState(() => _looks = looks);
   }
@@ -89,7 +95,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     icon: Icons.arrow_back_rounded,
                     color: const Color(0xFFB79CFF),
                     semanticLabel: 'Back',
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      widget.audio.play(Sfx.tap);
+                      Navigator.pop(context);
+                    },
                   ),
                   const Spacer(),
                   const Icon(
@@ -136,7 +145,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _lookCard(Outfit look, int index) {
     return GestureDetector(
       key: Key('look_$index'),
-      onTap: () => Navigator.pop(context, look),
+      onTap: () {
+        widget.audio.play(Sfx.itemOn);
+        Navigator.pop(context, look);
+      },
       child: Stack(
         children: [
           Positioned.fill(
@@ -164,7 +176,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
             top: 6,
             child: GestureDetector(
               key: Key('delete_$index'),
-              onTap: () => _delete(index),
+              onTap: () {
+                widget.audio.play(Sfx.tap);
+                _delete(index);
+              },
               child: Container(
                 width: 40,
                 height: 40,

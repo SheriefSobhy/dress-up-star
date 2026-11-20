@@ -18,11 +18,16 @@ enum ItemShape {
   hairBun,
   hairCurly,
   hairBraids,
+  hairPonytail,
+  hairSpaceBuns,
   // Dresses
   dressPrincess,
   dressSun,
   dressTutu,
   dressLong,
+  dressMermaid,
+  dressFairy,
+  dressParty,
   // Tops
   topTshirt,
   topTank,
@@ -56,6 +61,8 @@ enum ItemShape {
   bgRainbow,
   bgCastle,
   bgHearts,
+  bgBeach,
+  bgCandy,
 }
 
 extension ItemShapeSlot on ItemShape {

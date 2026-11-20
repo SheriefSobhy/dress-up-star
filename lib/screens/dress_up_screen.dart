@@ -7,6 +7,8 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import '../painting/doll_painter.dart';
 import '../painting/sparkle_painter.dart';
+import '../services/game_audio.dart';
+import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/item_thumbnail.dart';
@@ -14,9 +16,15 @@ import 'gallery_screen.dart';
 
 /// The main game screen: the doll, the buttons and the wardrobe.
 class DressUpScreen extends StatefulWidget {
-  const DressUpScreen({super.key, required this.storage, this.random});
+  const DressUpScreen({
+    super.key,
+    required this.storage,
+    required this.audio,
+    this.random,
+  });
 
   final LooksStorage storage;
+  final GameAudio audio;
   final Random? random;
 
   @override
@@ -44,6 +52,16 @@ class _DressUpScreenState extends State<DressUpScreen>
     vsync: this,
     duration: const Duration(milliseconds: 450),
   );
+
+  /// Gently pushes the "scroll me" arrow sideways (a few times, then rests).
+  late final AnimationController _hintBounce = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 550),
+  );
+  final ScrollController _categoryScroll = ScrollController();
+  bool _showScrollHint = false;
+  late final AppLifecycleListener _lifecycle;
+
   Offset _sparkleAt = const Offset(100, 200);
   int _sparkleSeed = 0;
   late final Random _random = widget.random ?? Random();
@@ -89,14 +107,50 @@ class _DressUpScreenState extends State<DressUpScreen>
     widget.storage.load().then((looks) {
       if (mounted) setState(() => _savedCount = looks.length);
     });
+    widget.audio.load();
+    // Pause the music while the app is in the background.
+    _lifecycle = AppLifecycleListener(
+      onHide: widget.audio.pauseMusic,
+      onShow: widget.audio.resumeMusic,
+    );
+    _categoryScroll.addListener(_onCategoryScroll);
+    _maybeShowScrollHint();
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
+    _categoryScroll.dispose();
+    _hintBounce.dispose();
     _bounce.dispose();
     _sparkle.dispose();
     _flash.dispose();
     super.dispose();
+  }
+
+  // ------------------------------------------------------------ scroll hint
+
+  /// The first time the game opens, an arrow shows that the category bar
+  /// scrolls sideways. It goes away (for good) once the bar is scrolled.
+  Future<void> _maybeShowScrollHint() async {
+    if (await GameSettings.scrollHintSeen()) return;
+    if (!mounted) return;
+    // Wait for the bar to be laid out, then only show the arrow if there is
+    // actually something to scroll to.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_categoryScroll.hasClients) return;
+      if (_categoryScroll.position.maxScrollExtent <= 0) return;
+      setState(() => _showScrollHint = true);
+      _hintBounce.repeat(reverse: true, count: 10);
+    });
+  }
+
+  void _onCategoryScroll() {
+    if (_showScrollHint && _categoryScroll.offset > 12) {
+      _hintBounce.stop();
+      setState(() => _showScrollHint = false);
+      GameSettings.markScrollHintSeen();
+    }
   }
 
   // ---------------------------------------------------------------- actions
@@ -116,24 +170,37 @@ class _DressUpScreenState extends State<DressUpScreen>
       _activeSlot = item.slot;
     });
     if (!wasWearing || requiredSlots.contains(item.slot)) {
+      widget.audio.play(Sfx.itemOn);
       _celebrate(focusRectFor(item.shape).center);
     } else {
+      widget.audio.play(Sfx.itemOff);
       _bounce.forward(from: 0);
     }
   }
 
   void _tapColor(Slot slot, Color color) {
+    widget.audio.play(Sfx.tap);
     setState(() => _outfit = _outfit.recolor(slot, color));
     final worn = _outfit[slot];
     if (worn != null) _celebrate(focusRectFor(worn.item.shape).center);
   }
 
+  void _tapCategory(int index) {
+    widget.audio.play(Sfx.tap);
+    setState(() {
+      _categoryIndex = index;
+      _activeSlot = null;
+    });
+  }
+
   void _surprise() {
+    widget.audio.play(Sfx.itemOn);
     setState(() => _outfit = Outfit.random(_random));
     _celebrate(const Offset(100, 190));
   }
 
   Future<void> _takePhoto() async {
+    widget.audio.play(Sfx.camera);
     _flash.forward(from: 0);
     HapticFeedback.mediumImpact();
     final looks = await widget.storage.add(_outfit);
@@ -141,8 +208,12 @@ class _DressUpScreenState extends State<DressUpScreen>
   }
 
   Future<void> _openGallery() async {
+    widget.audio.play(Sfx.tap);
     final picked = await Navigator.of(context).push<Outfit>(
-      MaterialPageRoute(builder: (_) => GalleryScreen(storage: widget.storage)),
+      MaterialPageRoute(
+        builder: (_) =>
+            GalleryScreen(storage: widget.storage, audio: widget.audio),
+      ),
     );
     final looks = await widget.storage.load();
     if (!mounted) return;
@@ -188,6 +259,8 @@ class _DressUpScreenState extends State<DressUpScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
+        final buttonSize = size.width < 380 ? 56.0 : 64.0;
+        final gap = size.width < 360 ? 8.0 : 12.0;
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -198,7 +271,10 @@ class _DressUpScreenState extends State<DressUpScreen>
                 padding: const EdgeInsets.only(top: 76, bottom: 4),
                 child: GestureDetector(
                   key: const Key('doll'),
-                  onTap: () => _celebrate(const Offset(100, 190)),
+                  onTap: () {
+                    widget.audio.play(Sfx.tap);
+                    _celebrate(const Offset(100, 190));
+                  },
                   child: AnimatedBuilder(
                     animation: _bounce,
                     builder: (context, child) {
@@ -283,6 +359,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                         color: const Color(0xFFB79CFF),
                         semanticLabel: 'My looks',
                         badge: _savedCount,
+                        size: buttonSize,
                         onTap: _openGallery,
                       ),
                       const Spacer(),
@@ -291,15 +368,37 @@ class _DressUpScreenState extends State<DressUpScreen>
                         icon: Icons.auto_awesome_rounded,
                         color: const Color(0xFFFFB347),
                         semanticLabel: 'Surprise me',
+                        size: buttonSize,
                         onTap: _surprise,
                       ),
-                      SizedBox(width: size.width < 360 ? 10 : 16),
+                      SizedBox(width: gap),
                       BigRoundButton(
                         key: const Key('camera_button'),
                         icon: Icons.photo_camera_rounded,
                         color: const Color(0xFFFF6B8B),
                         semanticLabel: 'Save look',
+                        size: buttonSize,
                         onTap: _takePhoto,
+                      ),
+                      SizedBox(width: gap),
+                      // Mute / unmute all sounds (top-right).
+                      ListenableBuilder(
+                        listenable: widget.audio,
+                        builder: (context, _) {
+                          final muted = widget.audio.muted;
+                          return BigRoundButton(
+                            key: const Key('mute_button'),
+                            icon: muted
+                                ? Icons.music_off_rounded
+                                : Icons.music_note_rounded,
+                            color: muted
+                                ? const Color(0xFFB8AEC4)
+                                : const Color(0xFF4CC9C9),
+                            semanticLabel: muted ? 'Sound off' : 'Sound on',
+                            size: buttonSize,
+                            onTap: widget.audio.toggleMuted,
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -507,9 +606,63 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   Widget _categoryBar() {
     return SizedBox(
+      height: 80,
+      child: Stack(
+        children: [
+          Positioned.fill(child: _categoryList()),
+          if (_showScrollHint)
+            Positioned(right: 6, top: 0, bottom: 0, child: _scrollHint()),
+        ],
+      ),
+    );
+  }
+
+  /// A small bouncing arrow saying "this bar slides sideways".
+  Widget _scrollHint() {
+    return IgnorePointer(
+      key: const Key('scroll_hint'),
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _hintBounce,
+          builder: (context, child) => Transform.translate(
+            offset: Offset(
+              8 * Curves.easeInOut.transform(_hintBounce.value) - 8,
+              0,
+            ),
+            child: child,
+          ),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFF8FC7), width: 3),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.arrow_forward_rounded,
+              color: Color(0xFFFF6B8B),
+              size: 30,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _categoryList() {
+    return SizedBox(
       key: const Key('category_bar'),
       height: 80,
       child: ListView.separated(
+        controller: _categoryScroll,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: gameCategories.length,
@@ -522,10 +675,7 @@ class _DressUpScreenState extends State<DressUpScreen>
               : findItem(category.previewItemId!);
           return GestureDetector(
             key: Key('category_${category.id}'),
-            onTap: () => setState(() {
-              _categoryIndex = i;
-              _activeSlot = null;
-            }),
+            onTap: () => _tapCategory(i),
             child: Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),

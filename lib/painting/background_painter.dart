@@ -158,6 +158,129 @@ void paintBackground(Canvas canvas, Size size, ItemShape shape, Color c) {
         );
       }
       ground(lighten(c, 0.6), top: 0.84);
+    case ItemShape.bgBeach:
+      gradient(c, lighten(c, 0.7));
+      final m = math.min(w, h);
+      canvas.drawCircle(
+        Offset(w * 0.82, h * 0.12),
+        m * 0.08,
+        Paint()..color = const Color(0xFFFFE066),
+      );
+      clouds();
+      // Sea with little wave bumps on top
+      final seaTop = h * 0.56;
+      final sea = Path()..moveTo(0, seaTop);
+      final wave = w / 8;
+      for (var i = 0; i < 8; i++) {
+        sea.quadraticBezierTo(
+          wave * i + wave / 2,
+          seaTop - m * 0.025,
+          wave * (i + 1),
+          seaTop,
+        );
+      }
+      sea
+        ..lineTo(w, h)
+        ..lineTo(0, h)
+        ..close();
+      canvas.drawPath(sea, Paint()..color = const Color(0xFF7FD3F0));
+      canvas.drawRect(
+        Rect.fromLTRB(0, h * 0.64, w, h),
+        Paint()..color = const Color(0xFF5EC4E8),
+      );
+      // A little sailboat
+      final boat = Offset(w * 0.18, h * 0.6);
+      canvas.drawPath(
+        Path()
+          ..moveTo(boat.dx - m * 0.06, boat.dy)
+          ..lineTo(boat.dx + m * 0.06, boat.dy)
+          ..lineTo(boat.dx + m * 0.04, boat.dy + m * 0.025)
+          ..lineTo(boat.dx - m * 0.04, boat.dy + m * 0.025)
+          ..close(),
+        Paint()..color = const Color(0xFFFF8FA8),
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(boat.dx, boat.dy - m * 0.1)
+          ..lineTo(boat.dx + m * 0.05, boat.dy - m * 0.01)
+          ..lineTo(boat.dx, boat.dy - m * 0.01)
+          ..close(),
+        Paint()..color = const Color(0xFFFFFFFF),
+      );
+      ground(const Color(0xFFFFE6A8), top: 0.76);
+      final rnd = math.Random(9);
+      const shells = [Color(0xFFFFA45C), Color(0xFFFF8FC7), Color(0xFFB79CFF)];
+      for (var i = 0; i < 6; i++) {
+        final p = Offset(
+          w * (0.06 + 0.88 * i / 5) + rnd.nextDouble() * w * 0.03,
+          h * (0.86 + rnd.nextDouble() * 0.1),
+        );
+        canvas.drawPath(
+          starPath(p, m * (0.02 + rnd.nextDouble() * 0.012), inner: m * 0.012),
+          Paint()..color = shells[i % shells.length],
+        );
+      }
+    case ItemShape.bgCandy:
+      gradient(c, lighten(c, 0.7));
+      final m = math.min(w, h);
+      // Cotton-candy clouds
+      canvas.drawPath(
+        cloudPath(Offset(w * 0.2, h * 0.14), w * 0.3),
+        Paint()..color = const Color(0xCCFFC2E2),
+      );
+      canvas.drawPath(
+        cloudPath(Offset(w * 0.74, h * 0.24), w * 0.24),
+        Paint()..color = const Color(0xCCD9C6FF),
+      );
+      ground(const Color(0xFFE3D0FF), top: 0.7);
+      // Lollipops
+      void lollipop(Offset top, double r, Color color) {
+        canvas.drawLine(
+          top,
+          Offset(top.dx, h * 0.9),
+          Paint()
+            ..color = const Color(0xFFFFFFFF)
+            ..strokeWidth = r * 0.22
+            ..strokeCap = StrokeCap.round,
+        );
+        canvas.drawCircle(top, r, Paint()..color = color);
+        final swirl = Paint()
+          ..color = const Color(0xFFFFFFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = r * 0.16;
+        canvas.drawCircle(top, r * 0.62, swirl);
+        canvas.drawCircle(top, r * 0.26, swirl);
+      }
+
+      lollipop(Offset(w * 0.12, h * 0.52), m * 0.09, const Color(0xFFFF8FC7));
+      lollipop(Offset(w * 0.88, h * 0.48), m * 0.1, const Color(0xFF7CB8FF));
+      lollipop(Offset(w * 0.75, h * 0.62), m * 0.06, const Color(0xFFFFD84D));
+      ground(const Color(0xFFFFC2E2), top: 0.8);
+      // Sprinkles
+      final rnd = math.Random(4);
+      const sprinkles = [
+        Color(0xFFFF6B8B),
+        Color(0xFFFFD84D),
+        Color(0xFF8EE08A),
+        Color(0xFF7CB8FF),
+        Color(0xFFFFFFFF),
+      ];
+      for (var i = 0; i < 30; i++) {
+        final p = Offset(
+          rnd.nextDouble() * w,
+          h * (0.84 + rnd.nextDouble() * 0.15),
+        );
+        final a = rnd.nextDouble() * math.pi;
+        final d = Offset(math.cos(a), math.sin(a)) * m * 0.012;
+        canvas.drawLine(
+          p - d,
+          p + d,
+          Paint()
+            ..color = sprinkles[i % sprinkles.length]
+            ..strokeWidth = m * 0.008
+            ..strokeCap = StrokeCap.round,
+        );
+      }
     default: // bgSky and anything unknown
       gradient(c, lighten(c, 0.75));
       final sun = Offset(w * 0.84, h * 0.11);
