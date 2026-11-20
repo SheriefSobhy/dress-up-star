@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'screens/dress_up_screen.dart';
+import 'screens/title_screen.dart';
 import 'services/game_audio.dart';
 import 'services/looks_storage.dart';
 
@@ -42,6 +42,7 @@ class _DressUpStarAppState extends State<DressUpStarApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF8FC7)),
         useMaterial3: true,
+        fontFamily: 'Fredoka',
       ),
       // Browsers only allow music after the first touch, so every touch
       // gives the music a chance to start (it does nothing once playing).
@@ -50,7 +51,7 @@ class _DressUpStarAppState extends State<DressUpStarApp> {
         onPointerUp: (_) => _audio.startMusic(),
         child: child,
       ),
-      home: DressUpScreen(storage: widget.storage, audio: _audio),
+      home: TitleScreen(storage: widget.storage, audio: _audio),
     );
   }
 }

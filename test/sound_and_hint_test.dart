@@ -1,3 +1,4 @@
+import 'package:dress_up_star/art/motion.dart';
 import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/main.dart';
 import 'package:dress_up_star/models/outfit.dart';
@@ -11,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<SilentGameAudio> pumpGame(
   WidgetTester tester, {
   Size size = const Size(390, 844),
+  bool pressPlay = true,
 }) async {
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
@@ -20,12 +22,17 @@ Future<SilentGameAudio> pumpGame(
     DressUpStarApp(storage: LooksStorage(), audio: audio),
   );
   await tester.pumpAndSettle();
+  if (pressPlay) {
+    await tester.tap(find.byKey(const Key('play_button')));
+    await tester.pumpAndSettle();
+  }
   return audio;
 }
 
 Finder get hint => find.byKey(const Key('scroll_hint'));
 
 void main() {
+  GameMotion.idleAnimations = false;
   group('sounds', () {
     setUp(
       () => SharedPreferences.setMockInitialValues({
@@ -63,11 +70,14 @@ void main() {
     });
 
     testWidgets('music starts on the first touch', (tester) async {
-      final audio = await pumpGame(tester);
+      final audio = await pumpGame(tester, pressPlay: false);
+      expect(find.byKey(const Key('play_button')), findsOneWidget);
       expect(audio.musicPlaying, isFalse);
-      await tester.tap(find.byKey(const Key('doll')));
+      // The first touch is the big Play button on the title screen.
+      await tester.tap(find.byKey(const Key('play_button')));
       await tester.pumpAndSettle();
       expect(audio.musicPlaying, isTrue);
+      expect(find.byKey(const Key('doll')), findsOneWidget);
     });
 
     testWidgets('mute button silences everything and is remembered', (

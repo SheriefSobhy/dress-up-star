@@ -8,8 +8,9 @@ enum Slot { background, hair, dress, top, skirt, shoes, head, eyes, hand }
 ///
 /// To add a new item you usually only need a new entry in
 /// `lib/data/game_config.dart` that re-uses one of these shapes with a new
-/// color and/or pattern. A brand-new shape also needs drawing code in
-/// `lib/painting/doll_painter.dart`.
+/// color and/or pattern. A brand-new shape also needs its art:
+/// `assets/svg/items/<shapeName>.svg` (plus optional `_back` / `_front`
+/// layers). See `lib/art/art_library.dart` for the recolor colors.
 enum ItemShape {
   // Hair
   hairLong,

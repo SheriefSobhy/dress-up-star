@@ -9,6 +9,7 @@
 //                  in the category that shows its slot.
 //  * Patterns:     ItemPattern.none, dots, stripes, stars, hearts
 //  * Shapes:       see `ItemShape` in lib/models/game_item.dart
+//                  (each shape is drawn by assets/svg/items/<shapeName>.svg)
 // =============================================================================
 
 import 'package:flutter/material.dart';

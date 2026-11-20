@@ -7,6 +7,7 @@ no reading needed and no way to lose.
 
 ## How to play
 
+- Tap the big pink Play button on the start screen.
 - Tap a big round button at the bottom to pick a category
   (hair, hair color, dresses, tops, skirts, shoes, accessories, background).
 - Tap an item to put it on. Tap it again to take it off.
@@ -37,6 +38,22 @@ flutter test
 
 Every push to `main` builds the web version and publishes it to GitHub Pages
 (see `.github/workflows/deploy-web.yml`).
+
+## Art
+
+All the art is SVG (vector) drawings in `assets/svg/`:
+
+- `doll/` - the girl (body, arms, head and her three faces).
+- `items/` - one file per item shape, e.g. `dressPrincess.svg`. Optional
+  `_back` (behind the body) and `_front` (over the arms, like sleeves) layers.
+- `scenes/` - the cloud, sparkle and wave that move over the backgrounds.
+
+Items are drawn in five placeholder colors (`#FF00FF`, `#FF66FF`, `#FFCCFF`,
+`#CC00CC`, `#990099`) that the game swaps for the chosen color, so every item
+can be any color. Clothes mark where their pattern goes with
+`<g id="pattern"/>` inside a `<clipPath id="fabric">` outline.
+
+The title font is Fredoka (SIL Open Font License, see `assets/fonts/OFL.txt`).
 
 ## Music and sounds
 

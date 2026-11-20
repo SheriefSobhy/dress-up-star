@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dress_up_star/art/motion.dart';
 import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/main.dart';
 import 'package:dress_up_star/models/outfit.dart';
@@ -16,6 +17,9 @@ Future<void> pumpGame(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(DressUpStarApp(storage: LooksStorage()));
+  await tester.pumpAndSettle();
+  // Start on the title screen and press Play.
+  await tester.tap(find.byKey(const Key('play_button')));
   await tester.pumpAndSettle();
 }
 
@@ -48,6 +52,7 @@ Future<void> tapKey(WidgetTester tester, String key) async {
 }
 
 void main() {
+  GameMotion.idleAnimations = false;
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   testWidgets('shows the main buttons and every category', (tester) async {

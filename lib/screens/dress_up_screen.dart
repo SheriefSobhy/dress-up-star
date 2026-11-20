@@ -3,15 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../art/doll_art.dart';
 import '../data/game_config.dart';
 import '../models/outfit.dart';
-import '../painting/doll_painter.dart';
+import '../painting/confetti_painter.dart';
+import '../painting/shapes.dart';
 import '../painting/sparkle_painter.dart';
 import '../services/game_audio.dart';
 import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
+import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
-import '../widgets/item_thumbnail.dart';
+import '../widgets/doll_view.dart';
+import '../widgets/scene_background.dart';
 import 'gallery_screen.dart';
 
 /// The main game screen: the doll, the buttons and the wardrobe.
@@ -53,6 +57,17 @@ class _DressUpScreenState extends State<DressUpScreen>
     duration: const Duration(milliseconds: 450),
   );
 
+  /// While this runs the doll shows her big happy smile.
+  late final AnimationController _happy = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1300),
+  );
+  late final AnimationController _confetti = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2200),
+  );
+  int _confettiSeed = 0;
+
   /// Gently pushes the "scroll me" arrow sideways (a few times, then rests).
   late final AnimationController _hintBounce = AnimationController(
     vsync: this,
@@ -70,13 +85,13 @@ class _DressUpScreenState extends State<DressUpScreen>
     TweenSequenceItem(
       tween: Tween<double>(
         begin: 1,
-        end: 1.08,
+        end: 1.06,
       ).chain(CurveTween(curve: Curves.easeOut)),
       weight: 30,
     ),
     TweenSequenceItem(
       tween: Tween<double>(
-        begin: 1.08,
+        begin: 1.06,
         end: 1,
       ).chain(CurveTween(curve: Curves.elasticOut)),
       weight: 70,
@@ -125,6 +140,8 @@ class _DressUpScreenState extends State<DressUpScreen>
     _bounce.dispose();
     _sparkle.dispose();
     _flash.dispose();
+    _happy.dispose();
+    _confetti.dispose();
     super.dispose();
   }
 
@@ -160,7 +177,13 @@ class _DressUpScreenState extends State<DressUpScreen>
     _sparkleSeed++;
     _bounce.forward(from: 0);
     _sparkle.forward(from: 0);
+    _happy.forward(from: 0);
     HapticFeedback.lightImpact();
+  }
+
+  void _burstConfetti() {
+    _confettiSeed++;
+    _confetti.forward(from: 0);
   }
 
   void _tapItem(GameItem item) {
@@ -197,11 +220,14 @@ class _DressUpScreenState extends State<DressUpScreen>
     widget.audio.play(Sfx.itemOn);
     setState(() => _outfit = Outfit.random(_random));
     _celebrate(const Offset(100, 190));
+    _burstConfetti();
   }
 
   Future<void> _takePhoto() async {
     widget.audio.play(Sfx.camera);
     _flash.forward(from: 0);
+    _burstConfetti();
+    _happy.forward(from: 0);
     HapticFeedback.mediumImpact();
     final looks = await widget.storage.add(_outfit);
     if (mounted) setState(() => _savedCount = looks.length);
@@ -210,9 +236,26 @@ class _DressUpScreenState extends State<DressUpScreen>
   Future<void> _openGallery() async {
     widget.audio.play(Sfx.tap);
     final picked = await Navigator.of(context).push<Outfit>(
-      MaterialPageRoute(
-        builder: (_) =>
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 380),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (_, _, _) =>
             GalleryScreen(storage: widget.storage, audio: widget.audio),
+        transitionsBuilder: (_, animation, _, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutBack,
+            reverseCurve: Curves.easeIn,
+          );
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween(begin: 0.88, end: 1.0).animate(curved),
+              alignment: Alignment.topLeft,
+              child: child,
+            ),
+          );
+        },
       ),
     );
     final looks = await widget.storage.load();
@@ -245,7 +288,7 @@ class _DressUpScreenState extends State<DressUpScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5FA),
+      backgroundColor: const Color(0xFFFFF0F7),
       body: Column(
         children: [
           Expanded(child: _stage()),
@@ -264,7 +307,11 @@ class _DressUpScreenState extends State<DressUpScreen>
         return Stack(
           fit: StackFit.expand,
           children: [
-            CustomPaint(painter: DollPainter(outfit: _outfit, showDoll: false)),
+            SceneBackground(
+              scene:
+                  _outfit[Slot.background] ??
+                  Outfit.starter()[Slot.background]!,
+            ),
             SafeArea(
               bottom: false,
               child: Padding(
@@ -276,8 +323,8 @@ class _DressUpScreenState extends State<DressUpScreen>
                     _celebrate(const Offset(100, 190));
                   },
                   child: AnimatedBuilder(
-                    animation: _bounce,
-                    builder: (context, child) {
+                    animation: Listenable.merge([_bounce, _happy]),
+                    builder: (context, _) {
                       final t = _bounce.value;
                       final scale = _bounce.isAnimating
                           ? _bounceScale.transform(t)
@@ -286,21 +333,19 @@ class _DressUpScreenState extends State<DressUpScreen>
                           ? _bounceHop.transform(t)
                           : 0.0;
                       return Transform.translate(
-                        offset: Offset(0, hop * 14),
+                        offset: Offset(0, hop * 16),
                         child: Transform.scale(
                           scale: scale,
                           alignment: Alignment.bottomCenter,
-                          child: child,
+                          child: RepaintBoundary(
+                            child: DollView(
+                              outfit: _outfit,
+                              happy: _happy.isAnimating,
+                            ),
+                          ),
                         ),
                       );
                     },
-                    child: CustomPaint(
-                      size: Size.infinite,
-                      painter: DollPainter(
-                        outfit: _outfit,
-                        showBackground: false,
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -326,6 +371,20 @@ class _DressUpScreenState extends State<DressUpScreen>
                         ),
                       );
                     },
+                  ),
+                ),
+              ),
+            ),
+            // Confetti for the camera and "Surprise me"
+            IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _confetti,
+                builder: (context, _) => CustomPaint(
+                  size: Size.infinite,
+                  painter: ConfettiPainter(
+                    progress: _confetti.isAnimating ? _confetti.value : 0,
+                    origin: Offset(size.width / 2, size.height * 0.42),
+                    seed: _confettiSeed,
                   ),
                 ),
               ),
@@ -411,42 +470,106 @@ class _DressUpScreenState extends State<DressUpScreen>
     );
   }
 
+  /// Slides and fades the new row in when the category changes.
+  Widget _switcher(Widget child) => AnimatedSwitcher(
+    duration: const Duration(milliseconds: 260),
+    switchInCurve: Curves.easeOutCubic,
+    switchOutCurve: Curves.easeInCubic,
+    transitionBuilder: (child, animation) => FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween(
+          begin: const Offset(0.12, 0),
+          end: Offset.zero,
+        ).animate(animation),
+        child: child,
+      ),
+    ),
+    layoutBuilder: (current, previous) =>
+        Stack(alignment: Alignment.center, children: [...previous, ?current]),
+    child: child,
+  );
+
   Widget _wardrobe() {
     final category = _category;
     final target = _colorTarget();
     final current = target == null ? null : _outfit[target];
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, lighten(category.buttonColor, 0.75)],
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
           BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 12,
-            offset: Offset(0, -3),
+            color: Color(0x33B06FA0),
+            blurRadius: 18,
+            offset: Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 6),
+          padding: const EdgeInsets.only(top: 6, bottom: 6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: lighten(category.buttonColor, 0.2),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              const SizedBox(height: 4),
               if (category.colorOnly)
-                _colorRow(category.colors, target!, current?.color, big: true)
+                _switcher(
+                  KeyedSubtree(
+                    key: ValueKey('colors_${category.id}'),
+                    child: _colorRow(
+                      category.colors,
+                      target!,
+                      current?.color,
+                      big: true,
+                    ),
+                  ),
+                )
               else ...[
                 SizedBox(
                   height: 60,
-                  child: current == null
-                      ? const SizedBox.shrink()
-                      : _colorRow(category.colors, target!, current.color),
+                  child: _switcher(
+                    current == null
+                        ? SizedBox.shrink(key: ValueKey('none_${category.id}'))
+                        : KeyedSubtree(
+                            key: ValueKey(
+                              'colors_${category.id}_${target!.name}',
+                            ),
+                            child: _colorRow(
+                              category.colors,
+                              target,
+                              current.color,
+                            ),
+                          ),
+                  ),
                 ),
-                _itemRow(category),
+                SizedBox(
+                  key: const Key('item_row'),
+                  height: 100,
+                  child: _switcher(
+                    KeyedSubtree(
+                      key: ValueKey('items_${category.id}'),
+                      child: _itemRow(category),
+                    ),
+                  ),
+                ),
               ],
-              const SizedBox(height: 6),
+              const SizedBox(height: 2),
               _categoryBar(),
             ],
           ),
@@ -461,15 +584,15 @@ class _DressUpScreenState extends State<DressUpScreen>
     Color? selected, {
     bool big = false,
   }) {
-    final d = big ? 62.0 : 46.0;
+    final d = big ? 60.0 : 44.0;
     return SizedBox(
-      height: big ? 152 : 60,
+      height: big ? 156 : 60,
       child: Center(
         child: big
             ? Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
+                spacing: 12,
+                runSpacing: 12,
                 children: [
                   for (var i = 0; i < colors.length; i++)
                     _colorDot(colors[i], slot, selected, d, i),
@@ -496,87 +619,94 @@ class _DressUpScreenState extends State<DressUpScreen>
     int index,
   ) {
     final isSelected = selected?.toARGB32() == color.toARGB32();
-    return GestureDetector(
+    return Pressable(
       key: Key('color_$index'),
       onTap: () => _tapColor(slot, color),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        width: d,
-        height: d,
-        decoration: BoxDecoration(
+      builder: (pressed) => AnimatedScale(
+        scale: isSelected ? 1.12 : 1,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutBack,
+        child: GlossyCircle(
           color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF6B4BA8)
-                : const Color(0xFFE6DCEB),
-            width: isSelected ? 4 : 2,
-          ),
-          boxShadow: isSelected
-              ? const [
-                  BoxShadow(
-                    color: Color(0x44000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ]
+          size: d,
+          pressed: pressed,
+          rim: isSelected ? 4 : 3,
+          rimColor: isSelected ? const Color(0xFF8B5CC9) : Colors.white,
+          glow: isSelected ? lighten(color, 0.1) : null,
+          child: isSelected
+              ? Icon(
+                  Icons.favorite_rounded,
+                  color: Colors.white.withValues(alpha: 0.95),
+                  size: d * 0.42,
+                  shadows: const [
+                    Shadow(color: Color(0x55000000), blurRadius: 3),
+                  ],
+                )
               : null,
         ),
-        child: isSelected
-            ? Icon(
-                Icons.favorite_rounded,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: d * 0.42,
-              )
-            : null,
       ),
     );
   }
 
   Widget _itemRow(GameCategory category) {
     final items = itemsForCategory(category);
-    return SizedBox(
-      key: const Key('item_row'),
-      height: 92,
-      child: ListView.separated(
-        key: ValueKey('items_${category.id}'),
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 10),
-        itemBuilder: (_, i) {
-          final item = items[i];
-          final worn = _outfit[item.slot];
-          final selected = worn?.item.id == item.id;
-          return GestureDetector(
-            key: Key('item_${item.id}'),
-            onTap: () => _tapItem(item),
+    final accent = darkenForBorder(category.buttonColor);
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      itemCount: items.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 10),
+      itemBuilder: (_, i) {
+        final item = items[i];
+        final worn = _outfit[item.slot];
+        final selected = worn?.item.id == item.id;
+        return Pressable(
+          key: Key('item_${item.id}'),
+          onTap: () => _tapItem(item),
+          builder: (pressed) => AnimatedScale(
+            scale: selected ? 1.06 : 1,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutBack,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+              duration: const Duration(milliseconds: 200),
               width: 84,
               height: 84,
-              margin: EdgeInsets.only(
-                top: selected ? 0 : 4,
-                bottom: selected ? 4 : 0,
-              ),
               decoration: BoxDecoration(
-                color: Color.lerp(category.buttonColor, Colors.white, 0.6),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: selected
-                      ? darkenForBorder(category.buttonColor)
-                      : Colors.transparent,
-                  width: 4,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white,
+                    lighten(category.buttonColor, selected ? 0.35 : 0.6),
+                  ],
                 ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: selected ? accent : Colors.white,
+                  width: selected ? 3.5 : 2.5,
+                ),
+                boxShadow: [
+                  if (selected)
+                    BoxShadow(
+                      color: category.buttonColor.withValues(alpha: 0.95),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  BoxShadow(
+                    color: const Color(0x2A7A4A8A),
+                    blurRadius: pressed ? 3 : 7,
+                    offset: Offset(0, pressed ? 1 : 3),
+                  ),
+                ],
               ),
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(17),
+                      borderRadius: BorderRadius.circular(20),
                       child: Padding(
                         padding: EdgeInsets.all(
-                          item.slot == Slot.background ? 0 : 4,
+                          item.slot == Slot.background ? 0 : 3,
                         ),
                         child: ItemThumbnail(
                           item: item,
@@ -587,26 +717,32 @@ class _DressUpScreenState extends State<DressUpScreen>
                   ),
                   if (selected)
                     Positioned(
-                      right: 3,
-                      top: 3,
-                      child: Icon(
-                        Icons.check_circle_rounded,
-                        color: darkenForBorder(category.buttonColor),
-                        size: 22,
+                      right: 2,
+                      top: 2,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check_circle_rounded,
+                          color: accent,
+                          size: 22,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _categoryBar() {
     return SizedBox(
-      height: 80,
+      height: 84,
       child: Stack(
         children: [
           Positioned.fill(child: _categoryList()),
@@ -631,24 +767,12 @@ class _DressUpScreenState extends State<DressUpScreen>
             ),
             child: child,
           ),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFF8FC7), width: 3),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x33000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(
+          child: const GlossyCircle(
+            color: Color(0xFFFF8FC7),
+            size: 46,
+            child: Icon(
               Icons.arrow_forward_rounded,
-              color: Color(0xFFFF6B8B),
+              color: Colors.white,
               size: 30,
             ),
           ),
@@ -660,7 +784,7 @@ class _DressUpScreenState extends State<DressUpScreen>
   Widget _categoryList() {
     return SizedBox(
       key: const Key('category_bar'),
-      height: 80,
+      height: 84,
       child: ListView.separated(
         controller: _categoryScroll,
         scrollDirection: Axis.horizontal,
@@ -673,36 +797,27 @@ class _DressUpScreenState extends State<DressUpScreen>
           final preview = category.previewItemId == null
               ? null
               : findItem(category.previewItemId!);
-          return GestureDetector(
+          return Pressable(
             key: Key('category_${category.id}'),
             onTap: () => _tapCategory(i),
-            child: Center(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: selected ? 74 : 64,
-                height: selected ? 74 : 64,
-                decoration: BoxDecoration(
+            builder: (pressed) => Center(
+              child: AnimatedScale(
+                scale: selected ? 1.13 : 1,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutBack,
+                child: GlossyCircle(
                   color: category.buttonColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected
-                        ? darkenForBorder(category.buttonColor)
-                        : Colors.white,
-                    width: selected ? 4 : 3,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
+                  size: 64,
+                  pressed: pressed,
+                  rim: selected ? 4 : 3,
+                  rimColor: selected
+                      ? darkenForBorder(category.buttonColor)
+                      : Colors.white,
+                  glow: selected ? category.buttonColor : null,
                   child: preview != null
                       ? Padding(
                           padding: EdgeInsets.all(
-                            preview.slot == Slot.background ? 0 : 6,
+                            preview.slot == Slot.background ? 0 : 5,
                           ),
                           child: ItemThumbnail(
                             item: preview,
@@ -712,7 +827,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                       : Icon(
                           category.icon ?? Icons.star_rounded,
                           color: Colors.white,
-                          size: 36,
+                          size: 34,
                         ),
                 ),
               ),
