@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../art/doll_art.dart';
+import '../art/motion.dart';
 import '../data/game_config.dart';
 import '../models/outfit.dart';
 import '../painting/confetti_painter.dart';
@@ -16,6 +17,7 @@ import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/doll_view.dart';
 import '../widgets/scene_background.dart';
+import 'activities/activity_picker.dart';
 import 'gallery_screen.dart';
 
 /// The main game screen: the doll, the buttons and the wardrobe.
@@ -267,6 +269,24 @@ class _DressUpScreenState extends State<DressUpScreen>
     if (picked != null) _celebrate(const Offset(100, 190));
   }
 
+  /// Activities: pick one, play, and come back with the result on the doll.
+  Future<void> _openActivities() async {
+    widget.audio.play(Sfx.tap);
+    final activity = await showActivityPicker(
+      context,
+      audio: widget.audio,
+      outfit: _outfit,
+    );
+    if (activity == null || !mounted) return;
+    final result = await Navigator.of(
+      context,
+    ).push(activityRoute(activity, outfit: _outfit, audio: widget.audio));
+    if (result == null || !mounted) return;
+    setState(() => _outfit = result);
+    _celebrate(const Offset(100, 130));
+    _burstConfetti();
+  }
+
   /// Which slot the color buttons should change in the current category.
   Slot? _colorTarget() {
     final category = _category;
@@ -399,6 +419,15 @@ class _DressUpScreenState extends State<DressUpScreen>
                     color: Colors.white.withValues(alpha: v * 0.85),
                   );
                 },
+              ),
+            ),
+            // Activities (makeup, salon, nails)
+            Positioned(
+              left: 12,
+              bottom: 12,
+              child: ActivitiesButton(
+                size: size.width < 380 ? 68 : 78,
+                onTap: _openActivities,
               ),
             ),
             // Top buttons
@@ -840,3 +869,103 @@ class _DressUpScreenState extends State<DressUpScreen>
 }
 
 Color darkenForBorder(Color c) => Color.lerp(c, Colors.black, 0.3)!;
+
+/// The big glossy Activities button, with a rainbow ring and a gentle
+/// pulse so it is easy to notice.
+class ActivitiesButton extends StatefulWidget {
+  const ActivitiesButton({super.key, required this.size, required this.onTap});
+
+  final double size;
+  final VoidCallback onTap;
+
+  @override
+  State<ActivitiesButton> createState() => _ActivitiesButtonState();
+}
+
+class _ActivitiesButtonState extends State<ActivitiesButton>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    if (GameMotion.idleAnimations) {
+      _pulse = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1300),
+      )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    final button = Semantics(
+      button: true,
+      label: 'Activities',
+      child: Pressable(
+        key: const Key('activities_button'),
+        onTap: widget.onTap,
+        builder: (pressed) => Container(
+          width: s,
+          height: s,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const SweepGradient(
+              colors: [
+                Color(0xFFFF8FC7),
+                Color(0xFFFFD84D),
+                Color(0xFF8EE08A),
+                Color(0xFF7CB8FF),
+                Color(0xFFC9A8FF),
+                Color(0xFFFF8FC7),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0x66D873F0),
+                blurRadius: pressed ? 6 : 16,
+                spreadRadius: pressed ? 0 : 2,
+              ),
+            ],
+          ),
+          child: GlossyCircle(
+            color: const Color(0xFFFF6FB5),
+            size: s - 8,
+            pressed: pressed,
+            rim: 3,
+            child: Icon(
+              Icons.face_retouching_natural_rounded,
+              color: Colors.white,
+              size: s * 0.52,
+              shadows: const [
+                Shadow(
+                  color: Color(0x66A0306A),
+                  offset: Offset(0, 2),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final pulse = _pulse;
+    if (pulse == null) return button;
+    return AnimatedBuilder(
+      animation: pulse,
+      builder: (context, child) => Transform.scale(
+        scale: 1 + 0.06 * Curves.easeInOut.transform(pulse.value),
+        child: child,
+      ),
+      child: button,
+    );
+  }
+}

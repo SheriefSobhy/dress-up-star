@@ -65,6 +65,7 @@ flutter:
     - assets/svg/doll/
     - assets/svg/items/
     - assets/svg/scenes/
+    - assets/svg/tools/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

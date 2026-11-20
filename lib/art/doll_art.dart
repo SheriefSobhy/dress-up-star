@@ -7,8 +7,9 @@ import 'package:flutter/painting.dart';
 import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
+import 'beauty_art.dart';
 
-export 'art_library.dart' show ArtLayer, ArtLibrary;
+export 'art_library.dart' show ArtLayer, ArtLibrary, recordPicture;
 
 // ---------------------------------------------------------------- geometry
 
@@ -42,6 +43,9 @@ class FitTransform {
   Offset apply(Offset p) => Offset(dx + p.dx * scale, dy + p.dy * scale);
   Rect applyRect(Rect r) =>
       Rect.fromPoints(apply(r.topLeft), apply(r.bottomRight));
+
+  /// The point in the source space shown at [p] on screen.
+  Offset invert(Offset p) => Offset((p.dx - dx) / scale, (p.dy - dy) / scale);
 }
 
 /// The part of doll space that shows an item best (thumbnails, sparkles).
@@ -96,16 +100,21 @@ ArtLayer sceneLayer(WornItem bg) =>
 /// The SVG layers of a dressed doll, in drawing order, split around the
 /// parts that animate (the face and, when waving, the right arm).
 class DollRecipe {
-  DollRecipe(this.under, this.rightArm, this.over);
+  DollRecipe(this.under, this.rightArm, this.over, {this.makeup = Makeup.none});
 
   final List<ArtLayer> under;
   final List<ArtLayer> rightArm;
   final List<ArtLayer> over;
+  final Makeup makeup;
+
+  /// The face (with its makeup) for [face].
+  List<ArtLayer> face(Face face) =>
+      makeupFaceLayers(makeup, face, faceLayer(face));
 
   List<ArtLayer> flat(Face face) => [
     ...under,
     ...rightArm,
-    faceLayer(face),
+    ...this.face(face),
     ...over,
   ];
 }
@@ -154,7 +163,12 @@ Future<DollRecipe> dollRecipe(
     ...part(Slot.eyes),
     ...part(Slot.hand),
   ];
-  return DollRecipe(under, separateRightArm ? arm : const [], over);
+  return DollRecipe(
+    under,
+    separateRightArm ? arm : const [],
+    over,
+    makeup: outfit.makeup,
+  );
 }
 
 // ------------------------------------------------------------- rasterizing
@@ -285,6 +299,7 @@ final ImageCache2 lookImages = ImageCache2(30);
 String outfitKey(Outfit o) => [
   for (final e in o.worn.entries)
     '${e.key.name}:${e.value.item.id}:${e.value.color.toARGB32()}',
+  if (!o.makeup.isEmpty) 'makeup:${o.makeup.key}',
 ].join(',');
 
 /// Pixel density used for art: sharp, but capped so low-end phones stay fast.

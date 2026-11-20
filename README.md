@@ -17,6 +17,21 @@ no reading needed and no way to lose.
 - 🎵 Music button (top-right): turns all music and sounds on or off.
   In a browser the music starts after the first tap (browsers require this).
 
+## Activities
+
+The big rainbow button (bottom-left of the doll) opens the activities.
+Pick a tool at the bottom, then rub a finger on the girl: the tool follows
+the finger and only paints where it touches. The broom button takes
+everything off (tap it again to bring it back); the green check goes back
+to the doll and keeps the result. Results are saved with looks and show up
+in "Surprise me".
+
+- 💄 Makeup: lipstick, blush, eyeshadow (with glitter), eyelashes, face
+  stickers and a sponge that wipes makeup off.
+
+Activity colors live at the end of `lib/data/game_config.dart`. Tool
+pictures are SVGs in `assets/svg/tools/`.
+
 ## Adding more items and colors
 
 Everything you can choose lives in [`lib/data/game_config.dart`](lib/data/game_config.dart).
@@ -34,6 +49,12 @@ flutter run -d chrome
 ```
 flutter analyze
 flutter test
+```
+
+Screenshots of the screens at phone size (written to `build/screenshots/`):
+
+```
+flutter test tool/screenshots_test.dart --plain-name "390"
 ```
 
 Every push to `main` builds the web version and publishes it to GitHub Pages

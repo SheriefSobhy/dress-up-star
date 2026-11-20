@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E2A93B"/><stop offset="0.45" stop-color="#FFE9A3"/><stop offset="1" stop-color="#CF9126"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#B9C1D2"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#A8B0C2"/>
+    </linearGradient>
+    <linearGradient id="bullet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#CC00CC"/><stop offset="0.38" stop-color="#FF66FF"/><stop offset="1" stop-color="#FF00FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-135 50 50)">
+    <rect x="35" y="57" width="30" height="35" rx="7" fill="url(#gold)" stroke="#B07A1E" stroke-width="2.2"/>
+    <rect x="35" y="57" width="30" height="7" rx="3.5" fill="#FFF3C4" opacity="0.75"/>
+    <path d="M42 70 L42 86" stroke="#FFF6D6" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+    <rect x="38.5" y="41" width="23" height="18" rx="3" fill="url(#silver)" stroke="#8F98AC" stroke-width="2"/>
+    <path d="M41 42 L41 24 Q41 17 48 15 L59 10 L59 42 Z" fill="url(#bullet)" stroke="#990099" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M44.5 38 L44.5 25 Q44.5 21 47.5 19.5" fill="none" stroke="#FFCCFF" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  </g>
+</svg>

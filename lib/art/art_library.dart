@@ -41,6 +41,14 @@ class ArtLibrary {
       ).then((m) => m.listAssets().toSet());
 
   Future<ui.Picture> picture(ArtLayer layer) {
+    final draw = layer.draw;
+    if (draw != null) {
+      // Drawn by code from other (cached) pictures: cheap, so not cached.
+      return draw().catchError((Object e) {
+        debugPrint('Could not draw ${layer.asset}: $e');
+        return _emptyPicture();
+      });
+    }
     return _pictures.putIfAbsent(layer.key, () async {
       try {
         final raw = await _text.putIfAbsent(
@@ -70,21 +78,39 @@ ui.Picture _emptyPicture() {
   return recorder.endRecording();
 }
 
-/// One SVG drawn with one color (and maybe a pattern).
+/// One SVG drawn with one color (and maybe a pattern), or a layer drawn by
+/// code (makeup, salon hair, nail polish).
 class ArtLayer {
   const ArtLayer(
     this.asset, {
     this.color,
     this.pattern = ItemPattern.none,
     this.slot,
-  });
+  }) : draw = null;
+
+  /// A layer drawn by [draw]. [name] must change whenever the drawing does.
+  const ArtLayer.drawn(
+    String name,
+    Future<ui.Picture> Function() this.draw, {
+    this.slot,
+  }) : asset = 'drawn:$name',
+       color = null,
+       pattern = ItemPattern.none;
 
   final String asset;
   final Color? color;
   final ItemPattern pattern;
   final Slot? slot;
+  final Future<ui.Picture> Function()? draw;
 
   String get key => '$asset|${color?.toARGB32()}|${pattern.name}';
+}
+
+/// Records a picture drawn by [paint].
+ui.Picture recordPicture(void Function(Canvas canvas) paint) {
+  final recorder = ui.PictureRecorder();
+  paint(Canvas(recorder));
+  return recorder.endRecording();
 }
 
 // ---------------------------------------------------------------- colors

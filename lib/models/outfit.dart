@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:flutter/painting.dart';
 
 import '../data/game_config.dart';
+import 'beauty.dart';
+
+export 'beauty.dart';
 
 final Map<String, GameItem> _itemsById = {
   for (final item in gameItems) item.id: item,
@@ -39,7 +42,8 @@ class WornItem {
 /// Everything the doll is wearing right now. Outfits never change; every
 /// action returns a new outfit.
 class Outfit {
-  Outfit(Map<Slot, WornItem> worn) : worn = Map.unmodifiable(worn);
+  Outfit(Map<Slot, WornItem> worn, {this.makeup = Makeup.none})
+    : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
   factory Outfit.starter() {
@@ -78,10 +82,20 @@ class Outfit {
     for (final slot in [Slot.head, Slot.eyes, Slot.hand]) {
       if (rnd.nextInt(3) == 0) wearRandom(slot, accessoryColors);
     }
-    return Outfit(worn);
+    return Outfit(
+      worn,
+      makeup: rnd.nextInt(3) > 0 ? Makeup.random(rnd) : Makeup.none,
+    );
   }
 
   final Map<Slot, WornItem> worn;
+
+  /// What the Makeup activity put on her face.
+  final Makeup makeup;
+
+  /// The same outfit with other clothes and/or activity results.
+  Outfit copyWith({Map<Slot, WornItem>? worn, Makeup? makeup}) =>
+      Outfit(worn ?? this.worn, makeup: makeup ?? this.makeup);
 
   WornItem? operator [](Slot slot) => worn[slot];
 
@@ -109,15 +123,15 @@ class Outfit {
       item,
       color ?? (keepColor ? previous.color : item.color),
     );
-    return Outfit(next);
+    return copyWith(worn: next);
   }
 
-  Outfit remove(Slot slot) => Outfit(Map.of(worn)..remove(slot));
+  Outfit remove(Slot slot) => copyWith(worn: Map.of(worn)..remove(slot));
 
   Outfit recolor(Slot slot, Color color) {
     final current = worn[slot];
     if (current == null) return this;
-    return Outfit(Map.of(worn)..[slot] = WornItem(current.item, color));
+    return copyWith(worn: Map.of(worn)..[slot] = WornItem(current.item, color));
   }
 
   Map<String, dynamic> toJson() => {
@@ -126,6 +140,7 @@ class Outfit {
         'id': entry.value.item.id,
         'color': entry.value.color.toARGB32(),
       },
+    if (!makeup.isEmpty) 'makeup': makeup.toJson(),
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -146,12 +161,13 @@ class Outfit {
       final fallback = starter.worn[slot];
       if (!worn.containsKey(slot) && fallback != null) worn[slot] = fallback;
     }
-    return Outfit(worn);
+    return Outfit(worn, makeup: Makeup.fromJson(json['makeup']));
   }
 
   @override
   bool operator ==(Object other) {
     if (other is! Outfit || other.worn.length != worn.length) return false;
+    if (other.makeup != makeup) return false;
     for (final entry in worn.entries) {
       if (other.worn[entry.key] != entry.value) return false;
     }
@@ -159,7 +175,10 @@ class Outfit {
   }
 
   @override
-  int get hashCode => Object.hashAllUnordered(
-    worn.entries.map((e) => Object.hash(e.key, e.value)),
+  int get hashCode => Object.hash(
+    Object.hashAllUnordered(
+      worn.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
+    makeup,
   );
 }

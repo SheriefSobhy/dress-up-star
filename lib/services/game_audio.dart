@@ -2,8 +2,19 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The short sound effects in the game.
-enum Sfx { tap, itemOn, itemOff, camera }
+/// The short sound effects in the game (the last six are for activities).
+enum Sfx {
+  tap,
+  itemOn,
+  itemOff,
+  camera,
+  brush,
+  sparkle,
+  snip,
+  water,
+  blow,
+  bubble,
+}
 
 /// Music and sound effects, plus the mute switch (remembered on the device).
 ///
@@ -57,6 +68,12 @@ class AudioPlayersGameAudio extends GameAudio {
     Sfx.itemOn: 'sounds/item_on.wav',
     Sfx.itemOff: 'sounds/item_off.wav',
     Sfx.camera: 'sounds/camera.wav',
+    Sfx.brush: 'sounds/brush.wav',
+    Sfx.sparkle: 'sounds/sparkle.wav',
+    Sfx.snip: 'sounds/snip.wav',
+    Sfx.water: 'sounds/water.wav',
+    Sfx.blow: 'sounds/blow.wav',
+    Sfx.bubble: 'sounds/bubble.wav',
   };
   static const _musicFile = 'sounds/music.wav';
   static const _musicVolume = 0.35;

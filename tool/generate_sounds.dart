@@ -95,6 +95,30 @@ class Mix {
     }
   }
 
+  /// Soft, smoothed noise that swells in and fades out (whoosh, water).
+  /// [smooth] near 1 gives a deep rumble, near 0 a bright hiss.
+  void softNoise({
+    required double start,
+    required double dur,
+    double vol = 0.3,
+    double smooth = 0.9,
+    double attack = 0.05,
+    double release = 0.15,
+    double wobble = 0,
+  }) {
+    final n = (dur * sampleRate).round();
+    final s0 = (start * sampleRate).round();
+    var low = 0.0;
+    for (var i = 0; i < n; i++) {
+      final t = i / sampleRate;
+      low = low * smooth + (_random.nextDouble() * 2 - 1) * (1 - smooth);
+      final env =
+          math.min(1.0, t / attack) * math.min(1.0, (dur - t) / release);
+      final w = 1 + wobble * math.sin(2 * math.pi * 7 * t);
+      _add(s0 + i, low * env * vol * w * 4);
+    }
+  }
+
   /// 16-bit mono WAV bytes, normalized so the loudest point is [peak].
   Uint8List toWav({double peak = 0.8}) {
     var max = 0.0;
@@ -305,6 +329,88 @@ Mix camera() => Mix(0.85)
   ..note(0.2, 91, 0.55, vol: 0.3, decay: 5, harmonics: _bell)
   ..note(0.3, 96, 0.55, vol: 0.3, decay: 5, harmonics: _bell);
 
+/// A soft twinkle while a brush, lipstick or polish paints.
+Mix brush() => Mix(0.3)
+  ..softNoise(start: 0, dur: 0.16, vol: 0.12, smooth: 0.55, attack: 0.03)
+  ..note(0.02, 96, 0.22, vol: 0.18, decay: 14, harmonics: _bell)
+  ..note(0.07, 100, 0.2, vol: 0.13, decay: 16, harmonics: _bell);
+
+/// A magic "ta-da" shimmer when something is finished.
+Mix sparkle() {
+  final mix = Mix(1.0);
+  const notes = [79, 84, 88, 91, 96, 100];
+  for (var i = 0; i < notes.length; i++) {
+    mix.note(i * 0.05, notes[i], 0.6, vol: 0.24, decay: 5, harmonics: _bell);
+  }
+  for (var i = 0; i < 6; i++) {
+    mix.note(
+      0.3 + i * 0.07,
+      103 - (i.isEven ? 0 : 3),
+      0.3,
+      vol: 0.07,
+      decay: 10,
+      harmonics: _bell,
+    );
+  }
+  return mix;
+}
+
+/// Scissors: two quick metal clicks.
+Mix snip() => Mix(0.3)
+  ..noise(start: 0, dur: 0.03, vol: 0.35, decay: 140)
+  ..tone(start: 0, freq: 3200, freqEnd: 2600, dur: 0.05, vol: 0.18, decay: 70)
+  ..noise(start: 0.09, dur: 0.03, vol: 0.3, decay: 150)
+  ..tone(
+    start: 0.09,
+    freq: 3600,
+    freqEnd: 3000,
+    dur: 0.05,
+    vol: 0.16,
+    decay: 80,
+  );
+
+/// Splashy shower water with a few bubbly bloops.
+Mix water() {
+  final mix = Mix(0.6)
+    ..softNoise(start: 0, dur: 0.55, vol: 0.22, smooth: 0.35, wobble: 0.35);
+  const blips = [0.04, 0.16, 0.27, 0.39];
+  for (var i = 0; i < blips.length; i++) {
+    mix.tone(
+      start: blips[i],
+      freq: 380 + i * 90,
+      freqEnd: 900 + i * 120,
+      dur: 0.07,
+      vol: 0.2,
+      decay: 30,
+    );
+  }
+  return mix;
+}
+
+/// A warm whoosh of air (hair dryer, nail dryer).
+Mix blow() => Mix(0.6)
+  ..softNoise(
+    start: 0,
+    dur: 0.58,
+    vol: 0.3,
+    smooth: 0.82,
+    attack: 0.12,
+    release: 0.25,
+    wobble: 0.15,
+  );
+
+/// A bubble popping.
+Mix bubble() => Mix(0.16)
+  ..tone(start: 0, freq: 320, freqEnd: 1100, dur: 0.07, vol: 0.4, decay: 25)
+  ..tone(
+    start: 0.06,
+    freq: 900,
+    freqEnd: 1500,
+    dur: 0.06,
+    vol: 0.18,
+    decay: 40,
+  );
+
 void main() {
   final dir = Directory('assets/sounds')..createSync(recursive: true);
   final files = <String, (Mix, double)>{
@@ -313,6 +419,12 @@ void main() {
     'item_on.wav': (itemOn(), 0.8),
     'item_off.wav': (itemOff(), 0.75),
     'camera.wav': (camera(), 0.8),
+    'brush.wav': (brush(), 0.5),
+    'sparkle.wav': (sparkle(), 0.75),
+    'snip.wav': (snip(), 0.65),
+    'water.wav': (water(), 0.55),
+    'blow.wav': (blow(), 0.5),
+    'bubble.wav': (bubble(), 0.6),
   };
   for (final entry in files.entries) {
     final bytes = entry.value.$1.toWav(peak: entry.value.$2);

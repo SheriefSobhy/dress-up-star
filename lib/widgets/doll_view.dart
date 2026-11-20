@@ -101,7 +101,8 @@ class _DollViewState extends State<DollView>
         separateRightArm: widget.waving,
       );
       final faceKey =
-          '${facePixels.width.round()}x${facePixels.height.round()}';
+          '${facePixels.width.round()}x${facePixels.height.round()}'
+          '|${widget.outfit.makeup.key}';
       final results = await Future.wait([
         rasterizeDoll(recipe.under, kDollFrame, pixels),
         rasterizeDoll(recipe.over, kDollFrame, pixels),
@@ -109,7 +110,7 @@ class _DollViewState extends State<DollView>
         for (final face in Face.values)
           artImages.get(
             'face|${face.name}|$faceKey',
-            () => rasterizeDoll([faceLayer(face)], kFaceRect, facePixels),
+            () => rasterizeDoll(recipe.face(face), kFaceRect, facePixels),
           ),
       ]);
       if (!mounted || key != _wantedKey) return;

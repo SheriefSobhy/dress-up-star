@@ -136,3 +136,16 @@ class GameCategory {
   /// item in `slots.first` (used for "Hair color").
   final bool colorOnly;
 }
+
+/// A color button in an activity (makeup, hair dye, nail polish).
+class ToolColor {
+  const ToolColor(this.color, {this.glitter = false, this.rainbow = false});
+
+  final Color color;
+
+  /// Sparkly: tiny glitter dots are drawn on top.
+  final bool glitter;
+
+  /// Paints a rainbow (only used for hair dye).
+  final bool rainbow;
+}

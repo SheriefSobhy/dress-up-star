@@ -389,3 +389,77 @@ const Set<Slot> keepColorWhenSwitching = {Slot.hair};
 
 /// How many looks the "My Looks" gallery keeps (newest first).
 const int maxSavedLooks = 100;
+
+// ---------------------------------------------------------------------------
+// Activities (Makeup, Hair Salon, Nails)
+//
+// The order of these lists is saved with looks: add new colors at the END.
+// ---------------------------------------------------------------------------
+
+const List<ToolColor> lipstickColors = [
+  ToolColor(Color(0xFFFF5C9A)), // pink
+  ToolColor(Color(0xFFE8384F)), // cherry red
+  ToolColor(Color(0xFFFF8A65)), // coral
+  ToolColor(Color(0xFFB0397A)), // berry
+  ToolColor(Color(0xFF9B5DE5)), // purple
+  ToolColor(Color(0xFFFFA3B8)), // soft rose
+];
+
+const List<ToolColor> blushColors = [
+  ToolColor(Color(0xFFFF7FA8)), // pink
+  ToolColor(Color(0xFFFF9F6E)), // peach
+  ToolColor(Color(0xFFFF4F7E)), // raspberry
+  ToolColor(Color(0xFFC08CFF)), // lilac
+];
+
+const List<ToolColor> eyeshadowColors = [
+  ToolColor(Color(0xFFB98CFF)), // lavender
+  ToolColor(Color(0xFF6FBDFF)), // sky blue
+  ToolColor(Color(0xFF6EDCA8)), // mint
+  ToolColor(Color(0xFFFFC94D)), // gold
+  ToolColor(Color(0xFFFF8FC7)), // pink
+  ToolColor(Color(0xFFF2B8FF), glitter: true), // glitter
+];
+
+/// Eyelash styles (0 means no extra lashes).
+const int lashStyleCount = 3;
+
+const List<ToolColor> hairDyeColors = [
+  ToolColor(Color(0xFFFF6FB5)), // pink
+  ToolColor(Color(0xFFB47CFF)), // purple
+  ToolColor(Color(0xFF58A8FF)), // blue
+  ToolColor(Color(0xFF3FD5C8)), // teal
+  ToolColor(Color(0xFF7EDB6A)), // green
+  ToolColor(Color(0xFFFFD84D)), // yellow
+  ToolColor(Color(0xFFFF9A3C)), // orange
+  ToolColor(Color(0xFFFF6FB5), rainbow: true), // rainbow
+];
+
+/// The bands of the rainbow hair dye, top to bottom.
+const List<Color> rainbowColors = [
+  Color(0xFFFF5F6D), // red
+  Color(0xFFFFA24C), // orange
+  Color(0xFFFFE066), // yellow
+  Color(0xFF7EDB6A), // green
+  Color(0xFF5CB8FF), // blue
+  Color(0xFFB57CFF), // purple
+];
+
+const List<ToolColor> nailColors = [
+  ToolColor(Color(0xFFF2405C)), // red
+  ToolColor(Color(0xFFFF7EB6)), // pink
+  ToolColor(Color(0xFFFF8A5C)), // coral
+  ToolColor(Color(0xFFFFD84D)), // yellow
+  ToolColor(Color(0xFF6EE0A8)), // mint
+  ToolColor(Color(0xFF3CCFD6)), // turquoise
+  ToolColor(Color(0xFF6AA8FF)), // blue
+  ToolColor(Color(0xFFA57CFF)), // purple
+  ToolColor(Color(0xFFFFFFFF)), // white
+  ToolColor(Color(0xFFF6B8FF), glitter: true), // glitter
+];
+
+/// The hair style the Hair Salon works on (other styles replace salon hair).
+const String salonHairId = 'hair_long';
+
+/// The most stickers the face can have (the oldest goes when adding more).
+const int maxFaceStickers = 8;
