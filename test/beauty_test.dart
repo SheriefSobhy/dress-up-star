@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:dress_up_star/art/beauty_art.dart';
 import 'package:dress_up_star/art/doll_art.dart';
+import 'package:dress_up_star/art/nails_art.dart';
 import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/models/outfit.dart';
 import 'package:flutter/material.dart';
@@ -263,6 +264,90 @@ void main() {
         wetHair: SpotGrid('a'),
       );
       expect(wet.over.first.asset, startsWith('drawn:salon_front'));
+    });
+  });
+
+  group('nails', () {
+    final done = NailSet(
+      polish: SpotGrid.none
+          .set(nailZone.regions[0], 9)
+          .set(nailZone.regions[2], 3),
+      deco: SpotGrid('..b'),
+      shine: SpotGrid('a.a'),
+      filed: SpotGrid('aaaaa'),
+    );
+
+    test('every nail has its own spots, on the nail', () {
+      expect(nailZone.regionCount, kFingers.length);
+      for (var n = 0; n < kFingers.length; n++) {
+        final f = kFingers[n];
+        expect(nailAt(f.nailCenter), n);
+        for (final i in nailZone.regions[n]) {
+          expect(
+            (nailZone.spots[i] - f.nailCenter).distance,
+            lessThan(f.nailLength),
+          );
+        }
+      }
+      expect(nailAt(const Offset(150, 300)), isNull); // back of the hand
+    });
+
+    test('each nail can be a different color', () {
+      expect(done.colorOf(0), 9);
+      expect(done.colorOf(1), isNull);
+      expect(done.colorOf(2), 3);
+    });
+
+    test('json round trip, empty nails are not saved', () {
+      expect(NailSet.fromJson(done.toJson()), done);
+      expect(NailSet.none.toJson(), isEmpty);
+      final o = Outfit.starter().copyWith(nails: done);
+      expect(Outfit.fromJson(o.toJson()), o);
+      expect(o.wear(findItem('hair_bob')!).nails, done);
+      expect(outfitKey(o), contains('nails:'));
+    });
+
+    test('broken nails json is skipped', () {
+      final n = NailSet.fromJson({
+        'polish': 'zz',
+        'deco': 'abcdefg',
+        'shine': 'b',
+      });
+      expect(n, NailSet.none);
+    });
+
+    test('surprise me sometimes paints the nails', () {
+      final rnd = Random(9);
+      final looks = [for (var i = 0; i < 40; i++) Outfit.random(rnd)];
+      expect(looks.where((o) => !o.nails.isEmpty), isNotEmpty);
+      for (final o in looks) {
+        expect(Outfit.fromJson(o.toJson()), o);
+      }
+    });
+
+    test('painted nails show on both doll hands', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final recipe = await dollRecipe(Outfit.starter().copyWith(nails: done));
+      final names = recipe.under.map((l) => l.asset).toList();
+      expect(names.where((a) => a.startsWith('drawn:nails|')), hasLength(2));
+      final bare = await dollRecipe(Outfit.starter());
+      expect(
+        bare.under.where((l) => l.asset.startsWith('drawn:nails')),
+        isEmpty,
+      );
+    });
+
+    test('the hand and nails draw without errors', () {
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      paintHand(canvas);
+      paintNails(canvas, done);
+      paintNails(canvas, NailSet.none);
+      for (final d in NailDeco.values) {
+        paintNailDeco(canvas, d, const Offset(50, 50), 20);
+      }
+      paintDollNails(canvas, done, right: true);
+      recorder.endRecording().dispose();
     });
   });
 }

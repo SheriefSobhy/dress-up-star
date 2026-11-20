@@ -46,6 +46,7 @@ class Outfit {
     Map<Slot, WornItem> worn, {
     this.makeup = Makeup.none,
     this.salon = SalonHair.natural,
+    this.nails = NailSet.none,
   }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
@@ -96,6 +97,7 @@ class Outfit {
       worn,
       makeup: rnd.nextInt(3) > 0 ? Makeup.random(rnd) : Makeup.none,
       salon: salon,
+      nails: rnd.nextBool() ? NailSet.random(rnd) : NailSet.none,
     );
   }
 
@@ -107,6 +109,9 @@ class Outfit {
   /// What the Hair Salon did (only shown with the salon's long hair).
   final SalonHair salon;
 
+  /// What the Nails activity did.
+  final NailSet nails;
+
   /// True when her hair comes from the Hair Salon.
   bool get hasSalonHair =>
       !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
@@ -116,10 +121,12 @@ class Outfit {
     Map<Slot, WornItem>? worn,
     Makeup? makeup,
     SalonHair? salon,
+    NailSet? nails,
   }) => Outfit(
     worn ?? this.worn,
     makeup: makeup ?? this.makeup,
     salon: salon ?? this.salon,
+    nails: nails ?? this.nails,
   );
 
   WornItem? operator [](Slot slot) => worn[slot];
@@ -169,6 +176,7 @@ class Outfit {
       },
     if (!makeup.isEmpty) 'makeup': makeup.toJson(),
     if (hasSalonHair) 'salon': salon.toJson(),
+    if (!nails.isEmpty) 'nails': nails.toJson(),
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -192,13 +200,19 @@ class Outfit {
     final salon = worn[Slot.hair]?.item.id == salonHairId
         ? SalonHair.fromJson(json['salon'])
         : SalonHair.natural;
-    return Outfit(worn, makeup: Makeup.fromJson(json['makeup']), salon: salon);
+    return Outfit(
+      worn,
+      makeup: Makeup.fromJson(json['makeup']),
+      salon: salon,
+      nails: NailSet.fromJson(json['nails']),
+    );
   }
 
   @override
   bool operator ==(Object other) {
     if (other is! Outfit || other.worn.length != worn.length) return false;
     if (other.makeup != makeup || other.salon != salon) return false;
+    if (other.nails != nails) return false;
     for (final entry in worn.entries) {
       if (other.worn[entry.key] != entry.value) return false;
     }
@@ -212,5 +226,6 @@ class Outfit {
     ),
     makeup,
     salon,
+    nails,
   );
 }

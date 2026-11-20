@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8FCFF"/><stop offset="0.5" stop-color="#7FDDF0"/><stop offset="1" stop-color="#3FAEDB"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE3F1"/><stop offset="0.5" stop-color="#FF8FC7"/><stop offset="1" stop-color="#E0457E"/>
+    </linearGradient>
+  </defs>
+  <path d="M14 38 L26 22 L54 22 L66 38 L40 72 Z" fill="url(#gem)" stroke="#2C8DB8" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M14 38 L66 38 M30 38 L40 72 L50 38 M26 22 L30 38 M54 22 L50 38" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.8"/>
+  <path d="M60 64 L68 54 L84 54 L92 64 L76 86 Z" fill="url(#pink)" stroke="#B5306A" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M60 64 L92 64 M70 64 L76 86 L82 64" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.8"/>
+  <path d="M78 16 L81 25 L90 28 L81 31 L78 40 L75 31 L66 28 L75 25 Z" fill="#FFD84D" stroke="#C98A12" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M24 78 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6 Z" fill="#FF8FC7"/>
+</svg>

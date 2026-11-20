@@ -8,6 +8,7 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
 import 'beauty_art.dart';
+import 'nails_art.dart';
 import 'salon_art.dart';
 
 export 'art_library.dart' show ArtLayer, ArtLibrary, recordPicture;
@@ -146,7 +147,7 @@ Future<DollRecipe> dollRecipe(
       ? salonHairLayers(outfit.salon, hair.color, wet: wetHair)
       : null;
   final hasDress = outfit[Slot.dress] != null;
-  final arm = [doll('arm_right')];
+  final arm = [doll('arm_right'), ...dollNailLayers(outfit.nails, right: true)];
 
   final under = <ArtLayer>[
     ...part(Slot.dress, '_back'),
@@ -160,6 +161,7 @@ Future<DollRecipe> dollRecipe(
       ...part(Slot.skirt),
     ],
     doll('arm_left'),
+    ...dollNailLayers(outfit.nails, right: false),
     if (!separateRightArm) ...arm,
     if (hasDress)
       ...part(Slot.dress, '_front')
@@ -311,6 +313,7 @@ String outfitKey(Outfit o) => [
     '${e.key.name}:${e.value.item.id}:${e.value.color.toARGB32()}',
   if (!o.makeup.isEmpty) 'makeup:${o.makeup.key}',
   if (o.hasSalonHair) 'salon:${o.salon.key}',
+  if (!o.nails.isEmpty) 'nails:${o.nails.key}',
 ].join(',');
 
 /// Pixel density used for art: sharp, but capped so low-end phones stay fast.

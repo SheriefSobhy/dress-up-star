@@ -257,5 +257,64 @@ void main() {
       await tap(tester, 'activities_button');
       await shot(tester, '${tag}_16_picker');
     });
+
+    testWidgets('nails screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await tap(tester, 'activities_button');
+      await shot(tester, '${tag}_20_picker');
+      await tap(tester, 'activity_nails');
+      await shot(tester, '${tag}_21_nails_empty');
+
+      const frame = Rect.fromLTRB(28, 46, 300, 374);
+      const nails = [
+        Offset(83, 140),
+        Offset(123, 103),
+        Offset(166, 88),
+        Offset(211, 108),
+        Offset(264, 211),
+      ];
+      // Soak two fingers.
+      await stroke(tester, frame, const [Offset(80, 150), Offset(124, 112)]);
+      // File three nails.
+      await tap(tester, 'tool_file');
+      for (final n in nails.take(3)) {
+        await stroke(tester, frame, [
+          n + const Offset(-8, -12),
+          n + const Offset(8, -12),
+          n + const Offset(-8, -12),
+          n + const Offset(8, -12),
+        ]);
+      }
+      await shot(tester, '${tag}_22_nails_soak_file');
+      // Every nail its own color, one only half painted.
+      await tap(tester, 'tool_polish');
+      for (var i = 0; i < nails.length; i++) {
+        await tap(tester, 'option_${[1, 7, 9, 5, 0][i]}');
+        final n = nails[i];
+        await stroke(
+          tester,
+          frame,
+          i == 4
+              ? [n + const Offset(-6, 0), n + const Offset(6, -4)]
+              : scribble(Rect.fromCenter(center: n, width: 18, height: 24)),
+        );
+      }
+      await shot(tester, '${tag}_23_nails_painted');
+      // Decorations and drying.
+      await tap(tester, 'tool_deco');
+      await stroke(tester, frame, [const Offset(160, 250), nails[2]]);
+      await tap(tester, 'option_2');
+      await stroke(tester, frame, [const Offset(160, 250), nails[1]]);
+      await tap(tester, 'option_3');
+      await stroke(tester, frame, [const Offset(160, 250), nails[3]]);
+      await tap(tester, 'tool_dryer');
+      await stroke(tester, frame, [
+        for (final n in nails) n + const Offset(0, 10),
+      ]);
+      await shot(tester, '${tag}_24_nails_done');
+      await tap(tester, 'done_button');
+      await tester.pump(const Duration(seconds: 2));
+      await shot(tester, '${tag}_25_main_with_nails');
+    });
   }
 }

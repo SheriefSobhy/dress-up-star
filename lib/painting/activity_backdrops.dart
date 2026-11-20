@@ -258,3 +258,66 @@ class SalonBackdrop extends CustomPainter {
   @override
   bool shouldRepaint(SalonBackdrop oldDelegate) => false;
 }
+
+/// A peachy nail spa: soft wall, and a fluffy striped towel to rest the
+/// hand on.
+class NailsBackdrop extends CustomPainter {
+  const NailsBackdrop();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _bokeh(canvas, size, 13, const [
+      Color(0xFFFFFFFF),
+      Color(0xFFFFD6C2),
+      Color(0xFFFFE3F1),
+    ]);
+    final towel = RRect.fromLTRBR(
+      size.width * 0.04,
+      size.height * 0.34,
+      size.width * 0.96,
+      size.height * 1.05,
+      Radius.circular(size.width * 0.12),
+    );
+    canvas.drawRRect(
+      towel.shift(const Offset(0, 6)),
+      Paint()
+        ..color = const Color(0x33C0705A)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
+    canvas.drawRRect(towel, Paint()..color = const Color(0xFFFFFFFF));
+    canvas.save();
+    canvas.clipRRect(towel);
+    final stripe = Paint()..color = const Color(0xFFFFE0EC);
+    for (var i = 0; i < 3; i++) {
+      final y = towel.top + towel.height * (0.12 + i * 0.07);
+      canvas.drawRect(
+        Rect.fromLTWH(towel.left, y, towel.width, towel.height * 0.03),
+        stripe,
+      );
+    }
+    // Fluffy texture.
+    final rnd = math.Random(4);
+    final fluff = Paint()..color = const Color(0x14C07090);
+    for (var i = 0; i < 60; i++) {
+      canvas.drawCircle(
+        Offset(
+          towel.left + rnd.nextDouble() * towel.width,
+          towel.top + rnd.nextDouble() * towel.height,
+        ),
+        2 + rnd.nextDouble() * 3,
+        fluff,
+      );
+    }
+    canvas.restore();
+    canvas.drawRRect(
+      towel,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = const Color(0xFFFFD0E2),
+    );
+  }
+
+  @override
+  bool shouldRepaint(NailsBackdrop oldDelegate) => false;
+}

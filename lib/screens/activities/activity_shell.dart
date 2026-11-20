@@ -147,7 +147,9 @@ class ActivityShell extends StatefulWidget {
   /// Paints the room behind the girl (stage-sized, in screen space).
   final CustomPainter? backdrop;
   final List<Color> wallColors;
-  final Widget? topCenter;
+
+  /// Something in the middle of the top bar (gets the girl's mood).
+  final Widget Function(BuildContext context, StageInfo info)? topCenter;
   final List<Widget> extraButtons;
   final void Function(int tool)? onToolChanged;
 
@@ -349,7 +351,14 @@ class ActivityShellState extends State<ActivityShell>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              ?widget.topCenter,
+              ?widget.topCenter?.call(
+                context,
+                StageInfo(
+                  happy: _react.isAnimating,
+                  bounce: _bounce,
+                  touching: _pointer != null,
+                ),
+              ),
               Row(
                 children: [
                   BigRoundButton(

@@ -34,6 +34,10 @@ in "Surprise me".
   spray paint the hair (8 colors including rainbow). The magic wand button
   grows the long hair back. The salon works on the long hair; picking
   another hairstyle in the wardrobe replaces the salon hairdo.
+- 💅 Nails: soak in the bubble bowl, file, paint (10 colors including
+  glitter, every nail can be a different color), drop on decorations
+  (gems, hearts, stars, flowers) and use the dryer to make painted nails
+  shine. Her face at the top smiles along.
 
 Activity colors live at the end of `lib/data/game_config.dart`. Tool
 pictures are SVGs in `assets/svg/tools/`.

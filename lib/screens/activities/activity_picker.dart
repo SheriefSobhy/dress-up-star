@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../art/doll_art.dart';
+import '../../art/nails_art.dart';
 import '../../data/game_config.dart';
 import '../../models/outfit.dart';
 import '../../painting/shapes.dart';
@@ -8,10 +9,11 @@ import '../../services/game_audio.dart';
 import '../../widgets/art_image.dart';
 import '../../widgets/big_round_button.dart';
 import 'makeup_screen.dart';
+import 'nails_screen.dart';
 import 'salon_screen.dart';
 
 /// The activities that can be opened from the main screen.
-enum Activity { makeup, salon }
+enum Activity { makeup, salon, nails }
 
 /// The screen for [activity]. It returns the outfit with the result.
 Route<Outfit> activityRoute(
@@ -25,6 +27,7 @@ Route<Outfit> activityRoute(
     pageBuilder: (_, _, _) => switch (activity) {
       Activity.makeup => MakeupScreen(outfit: outfit, audio: audio),
       Activity.salon => SalonScreen(outfit: outfit, audio: audio),
+      Activity.nails => NailsScreen(outfit: outfit, audio: audio),
     },
     transitionsBuilder: (_, animation, _, child) => FadeTransition(
       opacity: animation,
@@ -157,6 +160,10 @@ class _Picker extends StatelessWidget {
         const [Color(0xFFA8EBD8), Color(0xFF5CCB9E)],
         const ['scissors', 'dryer'],
       ),
+      Activity.nails => (
+        const [Color(0xFFFFD2BE), Color(0xFFFF9F7A)],
+        const ['polish', 'gems'],
+      ),
     };
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -275,8 +282,24 @@ class _Portrait extends StatelessWidget {
             shine: SpotGrid.filled(hairZone.length, 0),
           ),
         );
+      case Activity.nails:
+        return o;
     }
   }
+
+  static final NailSet _sampleNails = () {
+    var polish = SpotGrid.none;
+    const colors = [1, 7, 9, 5, 0];
+    for (var n = 0; n < kFingers.length; n++) {
+      polish = polish.set(nailZone.regions[n], colors[n]);
+    }
+    return NailSet(
+      polish: polish,
+      deco: SpotGrid('..a.b'),
+      shine: SpotGrid('aaaaa'),
+      filed: SpotGrid('aaaaa'),
+    );
+  }();
 
   @override
   Widget build(BuildContext context) {
@@ -304,6 +327,25 @@ class _Portrait extends StatelessWidget {
           child: ArtImage(
             cacheKey: 'portrait|${activity.name}|${outfitKey(look)}',
             draw: (pixels) async {
+              if (activity == Activity.nails) {
+                // A polished hand.
+                final fit = FitTransform(
+                  const Rect.fromLTRB(40, 50, 300, 300),
+                  pixels,
+                );
+                final picture = recordPicture((canvas) {
+                  canvas.translate(fit.dx, fit.dy);
+                  canvas.scale(fit.scale);
+                  paintHand(canvas);
+                  paintNails(canvas, _sampleNails);
+                });
+                final image = await picture.toImage(
+                  pixels.width.round().clamp(1, 4096),
+                  pixels.height.round().clamp(1, 4096),
+                );
+                picture.dispose();
+                return image;
+              }
               final recipe = await dollRecipe(look);
               return rasterizeDoll(
                 recipe.flat(Face.happy),

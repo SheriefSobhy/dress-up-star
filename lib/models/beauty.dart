@@ -679,3 +679,204 @@ class SalonHair {
   int get hashCode =>
       Object.hash(cutLeft, cutRight, curlLeft, curlRight, dye, shine);
 }
+
+// ------------------------------------------------------------------ nails
+//
+// The Nails close-up shows one big hand in its own "hand space"
+// (300 x 360, wrist at the bottom, back of the hand towards us).
+
+/// One finger: from its base to its round tip.
+class Finger {
+  const Finger(this.base, this.tip, this.width);
+
+  final Offset base;
+  final Offset tip;
+  final double width;
+
+  Offset get direction {
+    final d = tip - base;
+    return d / d.distance;
+  }
+
+  /// Turns the finger's own "up" (0, -1) into [direction].
+  double get angle => atan2(direction.dx, -direction.dy);
+
+  /// Nail size: [nailWidth] across, [nailLength] along the finger.
+  double get nailWidth => width * 0.66;
+  double get nailLength => width * 0.84;
+
+  /// The middle of the nail.
+  Offset get nailCenter => tip - direction * (width * 0.56 + 1);
+
+  /// Turns a point on the nail (x across, y along, negative towards the
+  /// tip) into hand space.
+  Offset nailPoint(Offset local) {
+    final a = angle;
+    final c = cos(a), s = sin(a);
+    return nailCenter +
+        Offset(local.dx * c - local.dy * s, local.dx * s + local.dy * c);
+  }
+}
+
+/// Pinky, ring, middle, index finger and thumb.
+const List<Finger> kFingers = [
+  Finger(Offset(98, 222), Offset(80, 128), 31),
+  Finger(Offset(130, 206), Offset(121, 90), 34),
+  Finger(Offset(165, 202), Offset(166, 74), 35),
+  Finger(Offset(200, 208), Offset(213, 94), 34),
+  Finger(Offset(222, 270), Offset(276, 196), 37),
+];
+
+/// The hand as shown on the Nails screen.
+const Rect kHandSpace = Rect.fromLTRB(0, 0, 300, 360);
+
+/// Spots on every nail (region = which nail).
+final SpotZone nailZone = () {
+  final spots = <Offset>[];
+  final regions = <int>[];
+  for (var n = 0; n < kFingers.length; n++) {
+    final f = kFingers[n];
+    const cols = 3, rows = 4;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        spots.add(
+          f.nailPoint(
+            Offset(
+              (c - 1) * f.nailWidth / cols,
+              (r + 0.5) / rows * f.nailLength - f.nailLength / 2,
+            ),
+          ),
+        );
+        regions.add(n);
+      }
+    }
+  }
+  return SpotZone(spots, regions, kFingers[0].nailWidth / 3);
+}();
+
+/// The nail under [p], or null.
+int? nailAt(Offset p, {double slack = 1}) {
+  int? best;
+  var bestDistance = double.infinity;
+  for (var i = 0; i < kFingers.length; i++) {
+    final f = kFingers[i];
+    final d = (p - f.nailCenter).distance;
+    if (d < f.width * 0.75 * slack && d < bestDistance) {
+      best = i;
+      bestDistance = d;
+    }
+  }
+  return best;
+}
+
+/// Decorations for nails.
+enum NailDeco { gem, heart, star, flower }
+
+/// The Nails result: polish spots, and per nail a decoration, shine and
+/// whether it was filed.
+class NailSet {
+  const NailSet({
+    this.polish = SpotGrid.none,
+    this.deco = SpotGrid.none,
+    this.shine = SpotGrid.none,
+    this.filed = SpotGrid.none,
+  });
+
+  static const NailSet none = NailSet();
+
+  /// [nailZone] spots, indexes into [nailColors].
+  final SpotGrid polish;
+
+  /// One spot per nail: a [NailDeco] index.
+  final SpotGrid deco;
+
+  /// One spot per nail: 0 when the dryer made it shine.
+  final SpotGrid shine;
+
+  /// One spot per nail: 0 when it was filed.
+  final SpotGrid filed;
+
+  bool get isEmpty => this == none;
+
+  /// The main polish color of nail [n], or null.
+  int? colorOf(int n) => polish.mainColor(nailZone.regions[n]);
+
+  NailSet copyWith({
+    SpotGrid? polish,
+    SpotGrid? deco,
+    SpotGrid? shine,
+    SpotGrid? filed,
+  }) => NailSet(
+    polish: polish ?? this.polish,
+    deco: deco ?? this.deco,
+    shine: shine ?? this.shine,
+    filed: filed ?? this.filed,
+  );
+
+  String get key => isEmpty
+      ? ''
+      : '${polish.cells}/${deco.cells}/${shine.cells}/${filed.cells}';
+
+  Map<String, dynamic> toJson() => {
+    if (!polish.isEmpty) 'polish': polish.cells,
+    if (!deco.isEmpty) 'deco': deco.cells,
+    if (!shine.isEmpty) 'shine': shine.cells,
+    if (!filed.isEmpty) 'filed': filed.cells,
+  };
+
+  factory NailSet.fromJson(Object? json) {
+    if (json is! Map) return none;
+    final n = kFingers.length;
+    return NailSet(
+      polish: SpotGrid.read(
+        json['polish'],
+        nailZone.length,
+        maxColor: nailColors.length - 1,
+      ),
+      deco: SpotGrid.read(
+        json['deco'],
+        n,
+        maxColor: NailDeco.values.length - 1,
+      ),
+      shine: SpotGrid.read(json['shine'], n, maxColor: 0),
+      filed: SpotGrid.read(json['filed'], n, maxColor: 0),
+    );
+  }
+
+  /// Random pretty nails for "Surprise me".
+  factory NailSet.random(Random rnd) {
+    final n = kFingers.length;
+    final same = rnd.nextBool();
+    final first = rnd.nextInt(nailColors.length);
+    var polish = SpotGrid.none;
+    for (var i = 0; i < n; i++) {
+      polish = polish.set(
+        nailZone.regions[i],
+        same ? first : rnd.nextInt(nailColors.length),
+      );
+    }
+    var deco = SpotGrid.none;
+    if (rnd.nextBool()) {
+      final kind = rnd.nextInt(NailDeco.values.length);
+      deco = deco.set([2], kind);
+      if (rnd.nextBool()) deco = deco.set([4], kind);
+    }
+    return NailSet(
+      polish: polish,
+      deco: deco,
+      shine: rnd.nextBool() ? SpotGrid.filled(n, 0) : SpotGrid.none,
+      filed: SpotGrid.filled(n, 0),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is NailSet &&
+      other.polish == polish &&
+      other.deco == deco &&
+      other.shine == shine &&
+      other.filed == filed;
+
+  @override
+  int get hashCode => Object.hash(polish, deco, shine, filed);
+}
