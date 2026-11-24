@@ -411,16 +411,16 @@ void _paintPeaceFingers(Canvas canvas, ArmBones b, double peace) {
   final outline = Paint()
     ..color = _skinLine
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 6.4
+    ..strokeWidth = 7
     ..strokeCap = StrokeCap.round;
   final fill = Paint()
     ..color = _skin
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 3.8
+    ..strokeWidth = 4.4
     ..strokeCap = StrokeCap.round;
   for (final side in const [-1.0, 1.0]) {
     final from = c + u * 3 + n * (side * 2);
-    final to = c + u * (3 + 12 * peace) + n * (side * (2 + 4 * peace));
+    final to = c + u * (3 + 14 * peace) + n * (side * (2 + 5 * peace));
     canvas.drawLine(from, to, outline);
     canvas.drawLine(from, to, fill);
   }

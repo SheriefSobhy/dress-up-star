@@ -579,6 +579,22 @@ const Set<ItemShape> shinyShapes = {
 };
 
 // ---------------------------------------------------------------------------
+// Poses and dancing
+// ---------------------------------------------------------------------------
+
+/// Each tap on the Pose button does the next pose in this list.
+const List<DollPose> poseButtonOrder = [
+  DollPose.wave,
+  DollPose.twirl,
+  DollPose.peace,
+  DollPose.hips,
+  DollPose.curtsy,
+  DollPose.jump,
+];
+
+/// How long she dances after the Dance button.
+const Duration danceTime = Duration(seconds: 10);
+// ---------------------------------------------------------------------------
 // Activities (Makeup, Hair Salon, Nails)
 //
 // The order of these lists is saved with looks: add new colors at the END.

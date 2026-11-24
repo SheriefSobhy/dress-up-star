@@ -8,6 +8,8 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
 import 'beauty_art.dart';
+import 'doll_parts.dart';
+import 'doll_pose.dart';
 import 'nails_art.dart';
 import 'salon_art.dart';
 
@@ -255,17 +257,13 @@ Future<ui.Image> rasterizeScene(
   canvas.drawPicture(picture);
   canvas.restore();
   if (doll != null) {
-    final recipe = await dollRecipe(doll);
-    final pictures = await Future.wait(
-      recipe.flat(Face.open).map(ArtLibrary.instance.picture),
-    );
+    // In the pose she was saved in.
+    final paintDoll = await posedDollPainter(doll, heldPoseFrame(doll.pose));
     final area = dollArea ?? Offset.zero & pixels;
     final fit = FitTransform(kDollFrame, area.size);
     canvas.translate(area.left + fit.dx, area.top + fit.dy);
     canvas.scale(fit.scale);
-    for (final p in pictures) {
-      canvas.drawPicture(p);
-    }
+    paintDoll(canvas);
   }
   return _finish(recorder, pixels);
 }

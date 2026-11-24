@@ -46,6 +46,17 @@ Activity colors live at the end of `lib/data/game_config.dart`. Tool
 pictures are SVGs in `assets/svg/tools/`.
 
 
+
+## Poses and dancing
+
+- The big orange Pose button (bottom-right): each tap does the next pose -
+  wave, twirl, peace sign, hands on hips, curtsy, jump. The pose is saved
+  with the look (camera) and shows in "My Looks".
+- The purple Dance button above it: she dances in time with the music for
+  10 seconds with confetti. Tap it again (or Pose) to stop.
+- The pose order and dance time are at `poseButtonOrder` / `danceTime` in
+  `lib/data/game_config.dart`; the poses themselves are in
+  `lib/art/doll_pose.dart` (where her hands go, and how her body moves).
 ## Sparkles and swinging
 
 - Jewelry, crowns, tiaras, the wand, sunglasses and glitter nails (or nail

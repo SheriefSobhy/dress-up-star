@@ -17,6 +17,7 @@ import 'package:dress_up_star/models/outfit.dart';
 import 'package:dress_up_star/services/game_audio.dart';
 import 'package:dress_up_star/services/game_settings.dart';
 import 'package:dress_up_star/services/looks_storage.dart';
+import 'package:dress_up_star/widgets/doll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -377,6 +378,64 @@ void main() {
       );
     });
 
+    testWidgets('pose and dance screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await tapInRow(tester, 'category_dresses', 'category_bar');
+      await tapInRow(tester, 'item_dress_party', 'item_row');
+      await tapInRow(tester, 'category_accessories', 'category_bar');
+      await tapInRow(tester, 'item_hand_bag', 'item_row');
+      await tapInRow(tester, 'category_jewelry', 'category_bar');
+      await tapInRow(tester, 'item_wrist_charm', 'item_row');
+      await shot(tester, '${tag}_50_pose_buttons');
+      final crop = Rect.fromLTWH(0, 30, size.width, size.height * 0.62);
+      // Each pose, after the move ends.
+      final held = <ui.Image>[];
+      for (var i = 0; i < poseButtonOrder.length; i++) {
+        await tap(tester, 'pose_button');
+        await tester.pump(const Duration(seconds: 2));
+        held.add(await captureScreen(tester));
+      }
+      await saveStrip(tester, '${tag}_51_poses', held, crop);
+      await shot(tester, '${tag}_52_pose_jump');
+      // The moves themselves: a twirl (pose 2) and a jump (pose 6).
+      for (final pose in [DollPose.twirl, DollPose.jump]) {
+        while (true) {
+          await tap(tester, 'pose_button');
+          await tester.pump(const Duration(seconds: 2));
+          final doll = tester.widget<DollView>(find.byType(DollView));
+          if (doll.outfit.pose ==
+              poseButtonOrder[(poseButtonOrder.indexOf(pose) - 1) %
+                  poseButtonOrder.length]) {
+            break;
+          }
+        }
+        await tester.tap(find.byKey(const Key('pose_button')));
+        await tester.pump();
+        final frames = <ui.Image>[];
+        for (var i = 0; i < 8; i++) {
+          await tester.pump(const Duration(milliseconds: 140));
+          frames.add(await captureScreen(tester));
+        }
+        await saveStrip(tester, '${tag}_53_move_${pose.name}', frames, crop);
+        await tester.pump(const Duration(seconds: 2));
+      }
+      // Dancing.
+      await tester.tap(find.byKey(const Key('dance_button')));
+      await tester.pump();
+      final dance = <ui.Image>[];
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 214));
+        dance.add(await captureScreen(tester));
+      }
+      await saveStrip(tester, '${tag}_54_dance', dance, crop);
+      await snap(tester, '${tag}_55_dancing');
+      await tester.pump(const Duration(seconds: 12));
+      // Saved with the look: the gallery shows her pose.
+      await tap(tester, 'camera_button');
+      await tester.pump(const Duration(seconds: 2));
+      await tap(tester, 'gallery_button');
+      await shot(tester, '${tag}_56_gallery_pose');
+    });
     testWidgets('title screen $tag', (tester) async {
       tester.view.physicalSize = size * 3;
       tester.view.devicePixelRatio = 3;
@@ -453,6 +512,33 @@ Future<void> grid(
 }
 
 void accessoryMain() {
+  testWidgets('pose grids', (tester) async {
+    Outfit look(List<String> ids) =>
+        ids.fold(Outfit.starter(), (o, id) => o.wear(findItem(id)!));
+    await poseGrid(tester, 'grid_poses_a', [
+      Outfit.starter(),
+      look(['top_sweater', 'skirt_long', 'hand_wand', 'wrist_bangle']),
+      look(['dress_princess', 'hair_pigtails', 'hand_balloon', 'head_crown']),
+      look(['top_tshirt', 'skirt_tutu', 'hand_bag', 'hair_curly']),
+    ]);
+    await poseGrid(
+      tester,
+      'grid_poses_zoom',
+      [
+        look(['top_sweater', 'skirt_long', 'hand_wand', 'wrist_bangle']),
+        look(['dress_princess', 'hair_pigtails']),
+      ],
+      cell: 300,
+      frame: const Rect.fromLTRB(20, 60, 200, 270),
+    );
+    await poseGrid(tester, 'grid_poses_b', [
+      look(['dress_party', 'hair_bun', 'wrist_charm']),
+      look(['dress_fairy', 'hair_ponytail', 'eyes_sun_heart']),
+      look(['dress_mermaid', 'hair_braids', 'neck_pearl']),
+      look(['dress_long', 'hair_space_buns', 'shoes_boots']),
+    ]);
+  });
+
   testWidgets('sparkle strips', (tester) async {
     final look = Outfit.starter()
         .wear(findItem('hair_bun')!)
@@ -645,6 +731,100 @@ Future<void> sparkleStrip(
     }
     final image = await recorder.endRecording().toImage(
       (cell * times.length).round(),
+      h.round(),
+    );
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory(outDir).createSync(recursive: true);
+    File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+  });
+}
+
+/// Draws every pose for each of [looks] (one row per look) and saves it.
+Future<void> poseGrid(
+  WidgetTester tester,
+  String name,
+  List<Outfit> looks, {
+  double cell = 150,
+  Rect frame = const Rect.fromLTRB(-10, -40, 210, 380),
+}) async {
+  await tester.runAsync(() async {
+    final poses = DollPose.values;
+    final h = cell * frame.height / frame.width;
+    final size = Size(cell * poses.length, h * looks.length);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFFDDEEFF),
+    );
+    for (var row = 0; row < looks.length; row++) {
+      for (var col = 0; col < poses.length; col++) {
+        final paint = await posedDollPainter(
+          looks[row],
+          heldPoseFrame(poses[col]),
+        );
+        canvas.save();
+        canvas.clipRect(Rect.fromLTWH(col * cell, row * h, cell, h));
+        final fit = FitTransform(frame, Size(cell, h));
+        canvas.translate(col * cell + fit.dx, row * h + fit.dy);
+        canvas.scale(fit.scale);
+        paint(canvas);
+        canvas.restore();
+      }
+    }
+    final image = await recorder.endRecording().toImage(
+      size.width.round(),
+      size.height.round(),
+    );
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory(outDir).createSync(recursive: true);
+    File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+  });
+}
+
+/// A picture of the whole screen right now.
+Future<ui.Image> captureScreen(WidgetTester tester) async {
+  final element = find.byKey(rootKey).evaluate().single;
+  final image = await tester.runAsync(() => captureImage(element));
+  return image!;
+}
+
+/// Saves [frames] (whole-screen captures) side by side, cut to [crop].
+Future<void> saveStrip(
+  WidgetTester tester,
+  String name,
+  List<ui.Image> frames,
+  Rect crop, {
+  double scale = 1,
+}) async {
+  await tester.runAsync(() async {
+    final ratio =
+        frames.first.width /
+        (tester.view.physicalSize.width / tester.view.devicePixelRatio);
+    final src = Rect.fromLTRB(
+      crop.left * ratio,
+      crop.top * ratio,
+      crop.right * ratio,
+      crop.bottom * ratio,
+    );
+    final w = crop.width * scale, h = crop.height * scale;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    for (var i = 0; i < frames.length; i++) {
+      canvas.drawImageRect(
+        frames[i],
+        src,
+        Rect.fromLTWH(i * w, 0, w, h),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      canvas.drawLine(
+        Offset(i * w, 0),
+        Offset(i * w, h),
+        Paint()..color = const Color(0xFF888888),
+      );
+    }
+    final image = await recorder.endRecording().toImage(
+      (w * frames.length).round(),
       h.round(),
     );
     final data = await image.toByteData(format: ui.ImageByteFormat.png);

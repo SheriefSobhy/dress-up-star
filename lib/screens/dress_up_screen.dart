@@ -73,6 +73,16 @@ class _DressUpScreenState extends State<DressUpScreen>
   );
   int _confettiSeed = 0;
 
+  /// Runs while she dances (confetti pops every couple of seconds).
+  late final AnimationController _dance =
+      AnimationController(vsync: this, duration: danceTime)
+        ..addListener(_onDanceTick)
+        ..addStatusListener((status) {
+          if (status == AnimationStatus.completed) _stopDance();
+        });
+  bool _dancing = false;
+  int _danceBursts = 0;
+
   /// Gently pushes the "scroll me" arrow sideways (a few times, then rests).
   late final AnimationController _hintBounce = AnimationController(
     vsync: this,
@@ -147,6 +157,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     _flash.dispose();
     _happy.dispose();
     _confetti.dispose();
+    _dance.dispose();
     super.dispose();
   }
 
@@ -221,6 +232,48 @@ class _DressUpScreenState extends State<DressUpScreen>
       _categoryIndex = index;
       _activeSlot = null;
     });
+  }
+
+  /// Each tap: the next pose (it is saved with the look).
+  void _nextPose() {
+    widget.audio.play(Sfx.itemOn);
+    _stopDance();
+    final next =
+        poseButtonOrder[(poseButtonOrder.indexOf(_outfit.pose) + 1) %
+            poseButtonOrder.length];
+    setState(() => _outfit = _outfit.copyWith(pose: next));
+    _happy.forward(from: 0);
+    HapticFeedback.lightImpact();
+  }
+
+  void _toggleDance() {
+    if (_dancing) {
+      widget.audio.play(Sfx.tap);
+      _stopDance();
+      return;
+    }
+    widget.audio.play(Sfx.sparkle);
+    // She dances to the music (if the sound is on).
+    widget.audio.startMusic();
+    _danceBursts = 0;
+    setState(() => _dancing = true);
+    _dance.forward(from: 0);
+    HapticFeedback.mediumImpact();
+  }
+
+  void _onDanceTick() {
+    final seconds = _dance.value * danceTime.inMilliseconds / 1000;
+    if (seconds >= _danceBursts * 2.4) {
+      _danceBursts++;
+      _burstConfetti();
+    }
+  }
+
+  void _stopDance() {
+    if (!_dancing) return;
+    _dance.stop();
+    setState(() => _dancing = false);
+    _happy.forward(from: 0);
   }
 
   void _surprise() {
@@ -348,7 +401,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                     _celebrate(const Offset(100, 190));
                   },
                   child: AnimatedBuilder(
-                    animation: Listenable.merge([_bounce, _happy]),
+                    animation: Listenable.merge([_bounce, _happy, _dance]),
                     builder: (context, _) {
                       final t = _bounce.value;
                       final scale = _bounce.isAnimating
@@ -365,7 +418,8 @@ class _DressUpScreenState extends State<DressUpScreen>
                           child: RepaintBoundary(
                             child: DollView(
                               outfit: _outfit,
-                              happy: _happy.isAnimating,
+                              happy: _happy.isAnimating || _dancing,
+                              dancing: _dancing,
                               nudge: _nudge,
                             ),
                           ),
@@ -434,6 +488,43 @@ class _DressUpScreenState extends State<DressUpScreen>
               child: ActivitiesButton(
                 size: size.width < 380 ? 68 : 78,
                 onTap: _openActivities,
+              ),
+            ),
+            // Dance and Pose
+            Positioned(
+              right: 12,
+              bottom: 12,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BigRoundButton(
+                    key: const Key('dance_button'),
+                    icon: Icons.celebration_rounded,
+                    color: _dancing
+                        ? const Color(0xFFFF5FA2)
+                        : const Color(0xFFB079F2),
+                    semanticLabel: 'Dance',
+                    size: buttonSize,
+                    onTap: _toggleDance,
+                  ),
+                  SizedBox(height: gap),
+                  RingButton(
+                    buttonKey: const Key('pose_button'),
+                    label: 'Pose',
+                    icon: Icons.emoji_people_rounded,
+                    color: const Color(0xFFFFA63D),
+                    ringColors: const [
+                      Color(0xFFFFE066),
+                      Color(0xFFFF8FC7),
+                      Color(0xFFFFB347),
+                      Color(0xFFFFF3B0),
+                      Color(0xFFFFE066),
+                    ],
+                    size: size.width < 380 ? 68 : 78,
+                    pulse: false,
+                    onTap: _nextPose,
+                  ),
+                ],
               ),
             ),
             // Top buttons
@@ -883,24 +974,74 @@ Color darkenForBorder(Color c) => Color.lerp(c, Colors.black, 0.3)!;
 
 /// The big glossy Activities button, with a rainbow ring and a gentle
 /// pulse so it is easy to notice.
-class ActivitiesButton extends StatefulWidget {
+class ActivitiesButton extends StatelessWidget {
   const ActivitiesButton({super.key, required this.size, required this.onTap});
 
   final double size;
   final VoidCallback onTap;
 
   @override
-  State<ActivitiesButton> createState() => _ActivitiesButtonState();
+  Widget build(BuildContext context) => RingButton(
+    buttonKey: const Key('activities_button'),
+    label: 'Activities',
+    glow: const Color(0x66D873F0),
+    icon: Icons.face_retouching_natural_rounded,
+    color: const Color(0xFFFF6FB5),
+    ringColors: const [
+      Color(0xFFFF8FC7),
+      Color(0xFFFFD84D),
+      Color(0xFF8EE08A),
+      Color(0xFF7CB8FF),
+      Color(0xFFC9A8FF),
+      Color(0xFFFF8FC7),
+    ],
+    size: size,
+    onTap: onTap,
+  );
 }
 
-class _ActivitiesButtonState extends State<ActivitiesButton>
+/// A big glossy round button inside a colorful ring (Activities, Pose).
+class RingButton extends StatefulWidget {
+  const RingButton({
+    super.key,
+    required this.buttonKey,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.ringColors,
+    required this.size,
+    required this.onTap,
+    this.pulse = true,
+    this.glow,
+  });
+
+  /// The key of the part that is tapped (used by tests).
+  final Key buttonKey;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final List<Color> ringColors;
+  final double size;
+  final VoidCallback onTap;
+
+  /// Gently grows and shrinks, so it is easy to notice.
+  final bool pulse;
+
+  /// The soft light around the ring (a see-through [color] if not set).
+  final Color? glow;
+
+  @override
+  State<RingButton> createState() => _RingButtonState();
+}
+
+class _RingButtonState extends State<RingButton>
     with SingleTickerProviderStateMixin {
   AnimationController? _pulse;
 
   @override
   void initState() {
     super.initState();
-    if (GameMotion.idleAnimations) {
+    if (GameMotion.idleAnimations && widget.pulse) {
       _pulse = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 1300),
@@ -919,9 +1060,9 @@ class _ActivitiesButtonState extends State<ActivitiesButton>
     final s = widget.size;
     final button = Semantics(
       button: true,
-      label: 'Activities',
+      label: widget.label,
       child: Pressable(
-        key: const Key('activities_button'),
+        key: widget.buttonKey,
         onTap: widget.onTap,
         builder: (pressed) => Container(
           width: s,
@@ -929,37 +1070,28 @@ class _ActivitiesButtonState extends State<ActivitiesButton>
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const SweepGradient(
-              colors: [
-                Color(0xFFFF8FC7),
-                Color(0xFFFFD84D),
-                Color(0xFF8EE08A),
-                Color(0xFF7CB8FF),
-                Color(0xFFC9A8FF),
-                Color(0xFFFF8FC7),
-              ],
-            ),
+            gradient: SweepGradient(colors: widget.ringColors),
             boxShadow: [
               BoxShadow(
-                color: const Color(0x66D873F0),
+                color: widget.glow ?? widget.color.withValues(alpha: 0.4),
                 blurRadius: pressed ? 6 : 16,
                 spreadRadius: pressed ? 0 : 2,
               ),
             ],
           ),
           child: GlossyCircle(
-            color: const Color(0xFFFF6FB5),
+            color: widget.color,
             size: s - 8,
             pressed: pressed,
             rim: 3,
             child: Icon(
-              Icons.face_retouching_natural_rounded,
+              widget.icon,
               color: Colors.white,
               size: s * 0.52,
-              shadows: const [
+              shadows: [
                 Shadow(
-                  color: Color(0x66A0306A),
-                  offset: Offset(0, 2),
+                  color: darken(widget.color, 0.4).withValues(alpha: 0.5),
+                  offset: const Offset(0, 2),
                   blurRadius: 3,
                 ),
               ],

@@ -112,7 +112,7 @@ class LookPicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ArtImage(
-      cacheKey: 'look|${outfitKey(look)}',
+      cacheKey: 'look|${outfitKey(look)}|${look.pose.name}',
       cache: lookImages,
       draw: (pixels) {
         final bg = look[Slot.background] ?? Outfit.starter()[Slot.background]!;

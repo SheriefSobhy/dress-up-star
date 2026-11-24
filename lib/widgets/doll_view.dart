@@ -25,8 +25,11 @@ class DollView extends StatefulWidget {
     this.happy = false,
     this.waving = false,
     this.nudge = 0,
+    this.dancing = false,
   });
 
+  /// What she wears, and her pose: when the pose changes she moves into
+  /// the new one.
   final Outfit outfit;
   final bool happy;
   final bool waving;
@@ -34,6 +37,9 @@ class DollView extends StatefulWidget {
   /// Change this number to give her a little push: her hair and skirt
   /// swing and settle again (when she is tapped or hops).
   final int nudge;
+
+  /// She dances (in time with the music) while this is true.
+  final bool dancing;
 
   @override
   State<DollView> createState() => _DollViewState();
@@ -145,7 +151,13 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(DollView old) {
     super.didUpdateWidget(old);
-    if (old.waving != widget.waving) _startHeldPose();
+    if (old.dancing != widget.dancing) {
+      widget.dancing ? _startDance() : _moveToHeldPose();
+    } else if (old.waving != widget.waving) {
+      _startHeldPose();
+    } else if (old.outfit.pose != widget.outfit.pose && !widget.dancing) {
+      _moveToHeldPose();
+    }
     if (old.nudge != widget.nudge) _kick();
   }
 
@@ -163,16 +175,30 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
 
   /// Her pose when she is not doing anything.
   PoseFrame get _heldFrame =>
-      widget.waving ? wavingFrame(0.18) : PoseFrame.rest;
+      widget.waving ? wavingFrame(0.18) : heldPoseFrame(widget.outfit.pose);
 
   void _startHeldPose() {
-    if (widget.waving && GameMotion.idleAnimations) {
+    if (widget.dancing) {
+      _startDance();
+    } else if (widget.waving && GameMotion.idleAnimations) {
       _play(_Move(wavingFrame, double.infinity));
     } else {
       _move = null;
       _frame = _heldFrame;
       _repaint.ping();
     }
+  }
+
+  /// Moves from wherever she is now into her held pose.
+  void _moveToHeldPose() {
+    if (widget.waving) return _startHeldPose();
+    final keys = poseMove(widget.outfit.pose, _frame);
+    _play(_Move((t) => samplePoseKeys(keys, t), keys.last.time));
+  }
+
+  void _startDance() {
+    final from = _frame;
+    _play(_Move(danceMove(from, from, double.infinity), double.infinity));
   }
 
   void _play(_Move move) {
@@ -195,7 +221,7 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
   }
 
   void _tick(Duration elapsed) {
-    final dt = ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05);
+    final dt = math.max(0.0, (elapsed - _lastTick).inMicroseconds / 1e6);
     _lastTick = elapsed;
     _time += dt;
     final move = _move;
@@ -208,7 +234,8 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
         _frame = move.sample(t);
       }
     }
-    _sway.step(dt, _frame);
+    // A late frame should not throw the hair around.
+    _sway.step(math.min(dt, 0.1), _frame);
     if (_move == null && _sway.still) {
       _ticker?.stop();
       _sway.reset();

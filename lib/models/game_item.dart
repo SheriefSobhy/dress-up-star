@@ -199,3 +199,6 @@ class ToolColor {
   /// Paints a rainbow (only used for hair dye).
   final bool rainbow;
 }
+
+/// How the doll stands. Saved with looks, so a photo keeps her pose.
+enum DollPose { stand, wave, twirl, peace, hips, curtsy, jump }

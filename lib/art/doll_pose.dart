@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import '../models/game_item.dart' show DollPose;
+
 // All positions are in doll space (the 200 x 400 drawing space of the art).
 
 const Offset kLeftShoulder = Offset(79, 177);
@@ -86,18 +88,23 @@ class PoseFrame {
     squash: squash ?? this.squash,
   );
 
+  /// [spin], but never thinner than a sliver of her (a flat drawing seen
+  /// edge-on would vanish mid-twirl).
+  double get _turn =>
+      spin.isNegative ? math.min(spin, -0.2) : math.max(spin, 0.2);
+
   /// Moves [canvas] (doll space) so the whole body is posed.
   void applyBody(Canvas canvas) {
     if (tilt == 0 && lift == 0 && spin == 1 && squash == 0) return;
     canvas.translate(kFeetPivot.dx, kFeetPivot.dy - lift);
     canvas.rotate(tilt);
-    canvas.scale(spin * (1 + squash * 0.6), 1 - squash);
+    canvas.scale(_turn * (1 + squash * 0.6), 1 - squash);
     canvas.translate(-kFeetPivot.dx, -kFeetPivot.dy);
   }
 
   /// Where the doll-space point [p] ends up after [applyBody].
   Offset bodyPoint(Offset p) {
-    final x = (p.dx - kFeetPivot.dx) * spin * (1 + squash * 0.6);
+    final x = (p.dx - kFeetPivot.dx) * _turn * (1 + squash * 0.6);
     final y = (p.dy - kFeetPivot.dy) * (1 - squash);
     final c = math.cos(tilt), s = math.sin(tilt);
     return Offset(
@@ -336,4 +343,170 @@ class SwayPhysics {
     _headV = null;
     _lastSpin = 1;
   }
+}
+
+// ------------------------------------------------------------------ poses
+
+const PoseFrame _waveHeld = PoseFrame(
+  rightHand: Offset(153, 118),
+  tilt: -0.015,
+);
+const PoseFrame _armsOut = PoseFrame(
+  leftHand: Offset(26, 196),
+  rightHand: Offset(174, 196),
+);
+const PoseFrame _twirlHeld = PoseFrame(
+  leftHand: Offset(30, 206),
+  rightHand: Offset(170, 206),
+);
+const PoseFrame _peaceHeld = PoseFrame(
+  leftHand: Offset(76, 214),
+  rightHand: Offset(150, 124),
+  rightPeace: 1,
+  tilt: 0.025,
+);
+const PoseFrame _hipsHeld = PoseFrame(
+  leftHand: Offset(76, 214),
+  rightHand: Offset(124, 214),
+);
+const PoseFrame _skirtHold = PoseFrame(
+  leftHand: Offset(42, 238),
+  rightHand: Offset(158, 238),
+);
+const PoseFrame _cheer = PoseFrame(
+  leftHand: Offset(50, 112),
+  rightHand: Offset(150, 112),
+);
+
+/// How she stands after doing [pose].
+PoseFrame heldPoseFrame(DollPose pose) => switch (pose) {
+  DollPose.stand => PoseFrame.rest,
+  DollPose.wave => _waveHeld,
+  DollPose.twirl => _twirlHeld,
+  DollPose.peace => _peaceHeld,
+  DollPose.hips => _hipsHeld,
+  DollPose.curtsy => _skirtHold.copyWith(tilt: 0.02),
+  DollPose.jump => _cheer,
+};
+
+/// The move into [pose], starting from [from]. It ends in
+/// [heldPoseFrame].
+List<PoseKey> poseMove(DollPose pose, PoseFrame from) {
+  final held = heldPoseFrame(pose);
+  PoseKey k(double t, PoseFrame f) => PoseKey(t, f);
+  final keys = switch (pose) {
+    DollPose.stand => [k(0.5, held)],
+    DollPose.wave => [
+      for (var i = 0; i < 5; i++)
+        k(
+          0.35 + i * 0.25,
+          held.copyWith(
+            rightHand: i.isEven
+                ? const Offset(160, 114)
+                : const Offset(144, 121),
+            tilt: i.isEven ? -0.025 : -0.005,
+          ),
+        ),
+      k(1.6, held),
+    ],
+    DollPose.twirl => [
+      k(0.25, _armsOut.copyWith(squash: 0.04)),
+      k(0.6, _armsOut.copyWith(spin: -1, lift: 10, squash: -0.03)),
+      k(0.95, _armsOut.copyWith(spin: 1, lift: 0)),
+      k(1.3, held),
+    ],
+    DollPose.peace => [
+      k(0.3, from.lerp(held, 0.5).copyWith(lift: 7, squash: -0.03)),
+      k(0.6, held.copyWith(squash: 0.04)),
+      k(1.0, held),
+    ],
+    DollPose.hips => [
+      k(0.35, held.copyWith(squash: 0.045)),
+      k(0.6, held.copyWith(lift: 5, squash: -0.025)),
+      k(0.9, held),
+    ],
+    DollPose.curtsy => [
+      k(0.35, _skirtHold),
+      k(0.8, _skirtHold.copyWith(squash: 0.075, lift: -1)),
+      k(1.2, _skirtHold),
+      k(1.6, held),
+    ],
+    DollPose.jump => [
+      k(0.2, from.copyWith(squash: 0.07)),
+      k(0.45, _cheer.copyWith(lift: 36, squash: -0.05)),
+      k(0.7, _cheer.copyWith(squash: 0.06)),
+      k(0.9, _cheer.copyWith(squash: -0.02)),
+      k(1.1, held),
+    ],
+  };
+  return [PoseKey(0, from), ...keys];
+}
+
+/// Seconds the move into a pose takes.
+double poseMoveSeconds(DollPose pose) =>
+    poseMove(pose, PoseFrame.rest).last.time;
+
+// ------------------------------------------------------------------ dance
+
+/// The music's speed (beats per minute), so she dances in time.
+const double danceBpm = 140;
+const double _beat = 60 / danceBpm;
+
+/// 16 beats of dancing, one key pose every half beat; it repeats.
+final List<PoseKey> _danceKeys = () {
+  final up = [
+    // Sway side to side, waving one arm up then the other.
+    PoseFrame(rightHand: const Offset(162, 104), tilt: 0.07),
+    PoseFrame(leftHand: const Offset(38, 104), tilt: -0.07),
+    PoseFrame(rightHand: const Offset(162, 104), tilt: 0.07),
+    PoseFrame(leftHand: const Offset(38, 104), tilt: -0.07),
+    // Hands on hips, bounce bounce.
+    _hipsHeld.copyWith(squash: 0.05),
+    _hipsHeld.copyWith(lift: 6, squash: -0.03),
+    // Twirl!
+    _armsOut.copyWith(spin: -1, lift: 6),
+    _armsOut,
+    // Point up to the sky, one side then the other.
+    _hipsHeld.copyWith(rightHand: const Offset(172, 96), tilt: 0.06),
+    _hipsHeld.copyWith(leftHand: const Offset(28, 96), tilt: -0.06),
+    _hipsHeld.copyWith(rightHand: const Offset(172, 96), tilt: 0.06),
+    _hipsHeld.copyWith(leftHand: const Offset(28, 96), tilt: -0.06),
+    // Jump and cheer.
+    _cheer.copyWith(squash: 0.06),
+    _cheer.copyWith(lift: 30, squash: -0.04),
+    // Clap clap.
+    const PoseFrame(leftHand: Offset(94, 200), rightHand: Offset(106, 200)),
+    const PoseFrame(leftHand: Offset(70, 204), rightHand: Offset(130, 204)),
+  ];
+  return [
+    for (var i = 0; i <= up.length; i++) PoseKey(i * _beat, up[i % up.length]),
+  ];
+}();
+
+/// Dancing, [t] seconds in. She bounces on every beat.
+PoseFrame danceFrame(double t) {
+  final loop = _danceKeys.last.time;
+  final frame = samplePoseKeys(_danceKeys, t % loop);
+  final bounce = math.sin(math.pi * (t / _beat)).abs();
+  return frame.copyWith(lift: frame.lift + bounce * 3);
+}
+
+/// A dance of [seconds], starting from [from] and ending in [held].
+PoseFrame Function(double t) danceMove(
+  PoseFrame from,
+  PoseFrame held,
+  double seconds,
+) {
+  const blend = 0.35;
+  return (t) {
+    if (t < blend) return from.lerp(danceFrame(t), easeInOut(t / blend));
+    final end = seconds - t;
+    if (end < blend * 1.5) {
+      return held.lerp(
+        danceFrame(t),
+        easeInOut((end / (blend * 1.5)).clamp(0, 1)),
+      );
+    }
+    return danceFrame(t);
+  };
 }

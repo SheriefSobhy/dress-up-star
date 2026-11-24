@@ -47,6 +47,7 @@ class Outfit {
     this.makeup = Makeup.none,
     this.salon = SalonHair.natural,
     this.nails = NailSet.none,
+    this.pose = DollPose.stand,
   }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
@@ -116,6 +117,9 @@ class Outfit {
   /// What the Nails activity did.
   final NailSet nails;
 
+  /// How she stands (from the Pose button).
+  final DollPose pose;
+
   /// True when her hair comes from the Hair Salon.
   bool get hasSalonHair =>
       !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
@@ -126,11 +130,13 @@ class Outfit {
     Makeup? makeup,
     SalonHair? salon,
     NailSet? nails,
+    DollPose? pose,
   }) => Outfit(
     worn ?? this.worn,
     makeup: makeup ?? this.makeup,
     salon: salon ?? this.salon,
     nails: nails ?? this.nails,
+    pose: pose ?? this.pose,
   );
 
   WornItem? operator [](Slot slot) => worn[slot];
@@ -181,6 +187,7 @@ class Outfit {
     if (!makeup.isEmpty) 'makeup': makeup.toJson(),
     if (hasSalonHair) 'salon': salon.toJson(),
     if (!nails.isEmpty) 'nails': nails.toJson(),
+    if (pose != DollPose.stand) 'pose': pose.name,
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -209,6 +216,7 @@ class Outfit {
       makeup: Makeup.fromJson(json['makeup']),
       salon: salon,
       nails: NailSet.fromJson(json['nails']),
+      pose: DollPose.values.asNameMap()[json['pose']] ?? DollPose.stand,
     );
   }
 
@@ -216,7 +224,7 @@ class Outfit {
   bool operator ==(Object other) {
     if (other is! Outfit || other.worn.length != worn.length) return false;
     if (other.makeup != makeup || other.salon != salon) return false;
-    if (other.nails != nails) return false;
+    if (other.nails != nails || other.pose != pose) return false;
     for (final entry in worn.entries) {
       if (other.worn[entry.key] != entry.value) return false;
     }
@@ -231,5 +239,6 @@ class Outfit {
     makeup,
     salon,
     nails,
+    pose,
   );
 }
