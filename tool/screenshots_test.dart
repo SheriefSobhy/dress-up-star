@@ -10,6 +10,7 @@ import 'dart:ui' as ui;
 
 import 'package:dress_up_star/art/doll_art.dart';
 import 'package:dress_up_star/art/motion.dart';
+import 'package:dress_up_star/art/shine.dart';
 import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/main.dart';
 import 'package:dress_up_star/models/outfit.dart';
@@ -345,6 +346,52 @@ void main() {
       await tapInRow(tester, 'item_eyes_sun_heart', 'item_row');
       await shot(tester, '${tag}_32_sunglasses');
     });
+
+    testWidgets('shine and sway screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await tapInRow(tester, 'category_dresses', 'category_bar');
+      await tapInRow(tester, 'item_dress_tutu', 'item_row');
+      await tapInRow(tester, 'category_accessories', 'category_bar');
+      await tapInRow(tester, 'item_head_crown', 'item_row');
+      await tapInRow(tester, 'category_jewelry', 'category_bar');
+      await tapInRow(tester, 'item_neck_crystal', 'item_row');
+      await tapInRow(tester, 'item_ears_gem', 'item_row');
+      await tapInRow(tester, 'category_glasses', 'category_bar');
+      await tapInRow(tester, 'item_eyes_sun_star', 'item_row');
+      await shot(tester, '${tag}_40_shine');
+      // Tap her and catch the hair and skirt mid-swing.
+      await tester.tap(find.byKey(const Key('doll')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 180));
+      await filmStrip(
+        tester,
+        '${tag}_41_swing',
+        crop: Rect.fromLTWH(
+          size.width * 0.2,
+          40,
+          size.width * 0.6,
+          size.height * 0.62,
+        ),
+        count: 7,
+        step: const Duration(milliseconds: 130),
+      );
+    });
+
+    testWidgets('title screen $tag', (tester) async {
+      tester.view.physicalSize = size * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: rootKey,
+          child: DressUpStarApp(
+            storage: LooksStorage(),
+            audio: SilentGameAudio(),
+          ),
+        ),
+      );
+      await shot(tester, '${tag}_00_title');
+    });
   }
 }
 
@@ -406,6 +453,38 @@ Future<void> grid(
 }
 
 void accessoryMain() {
+  testWidgets('sparkle strips', (tester) async {
+    final look = Outfit.starter()
+        .wear(findItem('hair_bun')!)
+        .wear(findItem('head_crown')!)
+        .wear(findItem('eyes_sun_heart')!)
+        .wear(findItem('neck_crystal')!)
+        .wear(findItem('ears_gem')!)
+        .wear(findItem('wrist_bangle')!)
+        .wear(findItem('dress_party')!);
+    await sparkleStrip(
+      tester,
+      'sparkle_head',
+      look,
+      const Rect.fromLTRB(30, 0, 170, 220),
+    );
+    await sparkleStrip(
+      tester,
+      'sparkle_wrist',
+      look,
+      const Rect.fromLTRB(30, 200, 100, 280),
+    );
+    // ignore: invalid_use_of_visible_for_testing_member
+    Shine.forceFallback = true;
+    await sparkleStrip(
+      tester,
+      'sparkle_head_fallback',
+      look,
+      const Rect.fromLTRB(30, 0, 170, 220),
+    );
+    // ignore: invalid_use_of_visible_for_testing_member
+    Shine.forceFallback = false;
+  });
   testWidgets('accessory grids', (tester) async {
     final hairs = itemsForSlot(Slot.hair);
     final glasses = itemsForSlot(Slot.eyes);
@@ -446,5 +525,130 @@ void accessoryMain() {
       const Rect.fromLTRB(10, 40, 190, 280),
       columns: 4,
     );
+  });
+}
+
+/// Saves a picture of the screen right now (for things in motion).
+Future<void> snap(WidgetTester tester, String name) async {
+  final element = find.byKey(rootKey).evaluate().single;
+  final bytes = await tester.runAsync(() async {
+    final image = await captureImage(element);
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    return data!.buffer.asUint8List();
+  });
+  Directory(outDir).createSync(recursive: true);
+  File('$outDir/$name.png').writeAsBytesSync(bytes!);
+}
+
+/// Captures [count] frames, [step] apart, of the [crop] area (logical
+/// pixels) and saves them side by side, to see things move.
+Future<void> filmStrip(
+  WidgetTester tester,
+  String name, {
+  required Rect crop,
+  int count = 6,
+  Duration step = const Duration(milliseconds: 150),
+  double scale = 1,
+}) async {
+  final element = find.byKey(rootKey).evaluate().single;
+  final frames = <ui.Image>[];
+  for (var i = 0; i < count; i++) {
+    final image = await tester.runAsync(() => captureImage(element));
+    frames.add(image!);
+    await tester.pump(step);
+  }
+  await tester.runAsync(() async {
+    final ratio =
+        frames.first.width /
+        (tester.view.physicalSize.width / tester.view.devicePixelRatio);
+    final src = Rect.fromLTRB(
+      crop.left * ratio,
+      crop.top * ratio,
+      crop.right * ratio,
+      crop.bottom * ratio,
+    );
+    final w = crop.width * scale, h = crop.height * scale;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, w * count, h),
+      Paint()..color = const Color(0xFFFFFFFF),
+    );
+    for (var i = 0; i < count; i++) {
+      canvas.drawImageRect(
+        frames[i],
+        src,
+        Rect.fromLTWH(i * w, 0, w, h),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      canvas.drawLine(
+        Offset(i * w, 0),
+        Offset(i * w, h),
+        Paint()..color = const Color(0xFF888888),
+      );
+    }
+    final image = await recorder.endRecording().toImage(
+      (w * count).round(),
+      h.round(),
+    );
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory(outDir).createSync(recursive: true);
+    File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+  });
+}
+
+/// Draws [outfit] with its sparkles at several moments (zoomed on [frame]).
+Future<void> sparkleStrip(
+  WidgetTester tester,
+  String name,
+  Outfit outfit,
+  Rect frame, {
+  List<double> times = const [0, 0.35, 0.7, 1.05, 1.4, 1.75],
+  double cell = 260,
+}) async {
+  await tester.runAsync(() async {
+    final doll = await dollParts(outfit);
+    final pictures = await Future.wait([
+      for (final part in doll.parts)
+        Future.wait(part.layers.map(ArtLibrary.instance.picture)),
+    ]);
+    final face = await Future.wait(
+      doll.face(Face.open).map(ArtLibrary.instance.picture),
+    );
+    final h = cell * frame.height / frame.width;
+    final ppu = cell / frame.width;
+    final shines = [
+      for (final part in doll.parts)
+        part.kind == PartKind.face ? null : await PartShine.build(part, ppu),
+    ];
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, cell * times.length, h),
+      Paint()..color = const Color(0xFFBDE3FF),
+    );
+    for (var i = 0; i < times.length; i++) {
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(i * cell, 0, cell, h));
+      final fit = FitTransform(frame, Size(cell, h));
+      canvas.translate(i * cell + fit.dx, fit.dy);
+      canvas.scale(fit.scale);
+      paintPosedDoll(
+        canvas,
+        doll,
+        PoseFrame.rest,
+        drawPart: (c, p) => pictures[p].forEach(c.drawPicture),
+        drawFace: (c) => face.forEach(c.drawPicture),
+        drawShine: (c, p) => shines[p]?.paint(c, times[i]),
+      );
+      canvas.restore();
+    }
+    final image = await recorder.endRecording().toImage(
+      (cell * times.length).round(),
+      h.round(),
+    );
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory(outDir).createSync(recursive: true);
+    File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
   });
 }

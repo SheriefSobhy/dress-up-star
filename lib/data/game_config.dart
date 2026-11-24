@@ -548,6 +548,36 @@ const Set<Slot> keepColorWhenSwitching = {Slot.hair};
 /// How many looks the "My Looks" gallery keeps (newest first).
 const int maxSavedLooks = 100;
 
+/// Things that sparkle with moving glints when she wears them. Glitter nail
+/// polish and nail gems sparkle too.
+const Set<ItemShape> shinyShapes = {
+  ItemShape.headCrown,
+  ItemShape.headTiara,
+  ItemShape.handWand,
+  ItemShape.eyesSunAviator,
+  ItemShape.eyesSunHeart,
+  ItemShape.eyesSunStar,
+  ItemShape.eyesSunBig,
+  ItemShape.eyesSunSport,
+  ItemShape.neckPearl,
+  ItemShape.neckHeart,
+  ItemShape.neckStar,
+  ItemShape.neckGold,
+  ItemShape.neckRainbow,
+  ItemShape.neckChoker,
+  ItemShape.neckCrystal,
+  ItemShape.neckButterfly,
+  ItemShape.earsStud,
+  ItemShape.earsHoop,
+  ItemShape.earsHeart,
+  ItemShape.earsStar,
+  ItemShape.earsGem,
+  ItemShape.wristBeads,
+  ItemShape.wristBangle,
+  ItemShape.wristCharm,
+  ItemShape.wristFriendship,
+};
+
 // ---------------------------------------------------------------------------
 // Activities (Makeup, Hair Salon, Nails)
 //

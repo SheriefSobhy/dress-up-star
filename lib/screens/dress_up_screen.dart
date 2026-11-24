@@ -46,6 +46,9 @@ class _DressUpScreenState extends State<DressUpScreen>
   Slot? _activeSlot;
   int _savedCount = 0;
 
+  /// Goes up each time the doll gets a little push (hair and skirt swing).
+  int _nudge = 0;
+
   late final AnimationController _bounce = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 650),
@@ -178,6 +181,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     _sparkleAt = dollPoint;
     _sparkleSeed++;
     _bounce.forward(from: 0);
+    _nudge++;
     _sparkle.forward(from: 0);
     _happy.forward(from: 0);
     HapticFeedback.lightImpact();
@@ -200,6 +204,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     } else {
       widget.audio.play(Sfx.itemOff);
       _bounce.forward(from: 0);
+      setState(() => _nudge++);
     }
   }
 
@@ -361,6 +366,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                             child: DollView(
                               outfit: _outfit,
                               happy: _happy.isAnimating,
+                              nudge: _nudge,
                             ),
                           ),
                         ),

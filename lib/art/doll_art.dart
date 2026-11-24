@@ -12,6 +12,8 @@ import 'nails_art.dart';
 import 'salon_art.dart';
 
 export 'art_library.dart' show ArtLayer, ArtLibrary, recordPicture;
+export 'doll_parts.dart';
+export 'doll_pose.dart';
 
 // ---------------------------------------------------------------- geometry
 
@@ -25,7 +27,6 @@ const Rect kFaceRect = Rect.fromLTRB(46, 82, 154, 158);
 /// Backgrounds are drawn on a 480 x 800 canvas.
 const Size kSceneSize = Size(480, 800);
 
-const Offset kRightShoulder = Offset(121, 177);
 const Offset kFeet = Offset(100, 362);
 
 /// Scales and centers a rectangle of doll space into a widget of [size].

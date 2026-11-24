@@ -45,6 +45,19 @@ in "Surprise me".
 Activity colors live at the end of `lib/data/game_config.dart`. Tool
 pictures are SVGs in `assets/svg/tools/`.
 
+
+## Sparkles and swinging
+
+- Jewelry, crowns, tiaras, the wand, sunglasses and glitter nails (or nail
+  gems) sparkle with moving glints. Which items sparkle is the
+  `shinyShapes` list in `lib/data/game_config.dart`.
+- The sparkle is a fragment shader (`shaders/shine.frag`). If a phone or
+  browser can't run shaders, little twinkling stars are drawn instead.
+- Hair and skirts swing when she hops, moves or is tapped, then settle
+  (`SwayPhysics` in `lib/art/doll_pose.dart`).
+- The doll is split into moving parts (hair, skirt, arms, held things) in
+  `lib/art/doll_parts.dart`; each part is turned into a picture once per
+  outfit, so every frame only moves ready-made pictures.
 ## Adding more items and colors
 
 Everything you can choose lives in [`lib/data/game_config.dart`](lib/data/game_config.dart).
