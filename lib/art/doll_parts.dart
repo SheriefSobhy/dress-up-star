@@ -203,7 +203,8 @@ Future<DollParts> dollParts(Outfit outfit) async {
   const skirtBend = 206.0;
   const armsRect = 140.0;
 
-  // Behind her body.
+  // Behind her body (wings first).
+  add(PartKind.body, [item(Slot.back)]);
   add(PartKind.skirt, [item(Slot.dress, '_back')], bendTop: skirtBend);
   add(PartKind.hair, [
     if (salon != null) plain(salon.first) else item(Slot.hair, '_back'),

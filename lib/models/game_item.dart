@@ -15,6 +15,9 @@ enum Slot {
   neck,
   ears,
   wrist,
+
+  /// Worn on her back, behind her (wings).
+  back,
 }
 
 /// How an item is drawn. Every shape belongs to exactly one [Slot].
@@ -106,6 +109,19 @@ enum ItemShape {
   bgHearts,
   bgBeach,
   bgCandy,
+  // Star Shop specials
+  dressGown,
+  dressRainbow,
+  dressBallerina,
+  shoesSparkly,
+  headUnicorn,
+  eyesSunRainbow,
+  neckDiamond,
+  handKitten,
+  handPuppy,
+  backButterfly,
+  bgBallroom,
+  bgUnicorn,
 }
 
 extension ItemShapeSlot on ItemShape {
@@ -122,6 +138,7 @@ extension ItemShapeSlot on ItemShape {
     if (n.startsWith('neck')) return Slot.neck;
     if (n.startsWith('ears')) return Slot.ears;
     if (n.startsWith('wrist')) return Slot.wrist;
+    if (n.startsWith('back')) return Slot.back;
     return Slot.background;
   }
 }
@@ -137,6 +154,7 @@ class GameItem {
     required this.color,
     this.pattern = ItemPattern.none,
     this.themes = const {},
+    this.price = 0,
   });
 
   /// Unique name, used when saving looks. Never reuse or rename an id that
@@ -150,6 +168,12 @@ class GameItem {
 
   /// Challenge themes this item fits (more matching items, more stars).
   final Set<ChallengeTheme> themes;
+
+  /// Stars needed to unlock it in the Star Shop (0: free from the start).
+  final int price;
+
+  /// A Star Shop item (locked until bought with stars).
+  bool get isSpecial => price > 0;
 
   Slot get slot => shape.slot;
 }

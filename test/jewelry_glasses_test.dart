@@ -21,6 +21,11 @@ GameCategory category(String id) =>
 List<String> idsIn(String categoryId) =>
     itemsForCategory(category(categoryId)).map((i) => i.id).toList();
 
+/// The ids in a category that are free from the start (not Star Shop items).
+List<String> freeIdsIn(String categoryId) => itemsForCategory(
+  category(categoryId),
+).where((i) => !i.isSpecial).map((i) => i.id).toList();
+
 /// A look saved by the game before Jewelry and Glasses existed.
 const Map<String, dynamic> oldLook = {
   'background': {'id': 'bg_garden', 'color': 0xFFBDE3FF},
@@ -133,8 +138,9 @@ void main() {
           if (worn != null) seen.add(worn.item.id);
         }
       }
-      expect(seen, containsAll(idsIn('jewelry')));
-      expect(seen, containsAll(idsIn('glasses')));
+      // Star Shop items only show up once they are unlocked.
+      expect(seen, containsAll(freeIdsIn('jewelry')));
+      expect(seen, containsAll(freeIdsIn('glasses')));
     });
   });
 

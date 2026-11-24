@@ -18,6 +18,7 @@ import 'package:dress_up_star/models/outfit.dart';
 import 'package:dress_up_star/services/game_audio.dart';
 import 'package:dress_up_star/services/game_settings.dart';
 import 'package:dress_up_star/services/looks_storage.dart';
+import 'package:dress_up_star/services/rewards.dart';
 import 'package:dress_up_star/widgets/doll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -464,6 +465,105 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
       await shot(tester, '${tag}_65_after_result');
     });
+
+    testWidgets('star shop screens $tag', (tester) async {
+      // ignore: invalid_use_of_visible_for_testing_member
+      SharedPreferences.setMockInitialValues({
+        GameSettings.scrollHintSeenKey: true,
+        Rewards.dailyStarKey: '2026-11-24',
+        GameSettings.challengeStarsKey: 26,
+      });
+      // ignore: invalid_use_of_visible_for_testing_member
+      Rewards.now = () => DateTime(2026, 11, 24);
+      await pumpApp(tester, size);
+      await shot(tester, '${tag}_70_main_shop_button');
+      await tapInRow(tester, 'category_dresses', 'category_bar');
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('item_shop_gown_ice')),
+        80,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('item_row')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await shot(tester, '${tag}_71_locked_in_wardrobe');
+      await tester.tap(find.byKey(const Key('item_shop_gown_ice')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settleArt(tester);
+      await snap(tester, '${tag}_72_unlock_in_wardrobe');
+      await tester.pump(const Duration(seconds: 3));
+      await tap(tester, 'shop_button');
+      await shot(tester, '${tag}_73_shop');
+      await revealInShop(tester, 'shop_item_shop_pet_kitten');
+      await tester.tap(find.byKey(const Key('shop_item_shop_pet_kitten')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 500));
+      await settleArt(tester);
+      await snap(tester, '${tag}_74_unlock_in_shop');
+      await tester.pump(const Duration(seconds: 3));
+      await shot(tester, '${tag}_75_shop_after');
+      await revealInShop(tester, 'shop_item_shop_pet_kitten');
+      await tap(tester, 'shop_item_shop_pet_kitten');
+      await tester.pump(const Duration(seconds: 1));
+      await shot(tester, '${tag}_76_main_with_kitten');
+      // 4 stars left: the princess gown (10) is not yet.
+      await tapInRow(tester, 'category_dresses', 'category_bar');
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('item_shop_gown_princess')),
+        80,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('item_row')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const Key('item_shop_gown_princess')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settleArt(tester);
+      await snap(tester, '${tag}_77_need_stars');
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('daily gift $tag', (tester) async {
+      // ignore: invalid_use_of_visible_for_testing_member
+      SharedPreferences.setMockInitialValues({
+        GameSettings.scrollHintSeenKey: true,
+      });
+      tester.view.physicalSize = size * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: rootKey,
+          child: DressUpStarApp(
+            storage: LooksStorage(),
+            audio: SilentGameAudio(),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+      final frames = <ui.Image>[];
+      for (var i = 0; i < 6; i++) {
+        await settleArt(tester);
+        await tester.pump(const Duration(milliseconds: 380));
+        frames.add(await captureScreen(tester));
+      }
+      await saveStrip(
+        tester,
+        '${tag}_80_daily_gift',
+        frames,
+        Rect.fromLTWH(0, 0, size.width, size.height * 0.68),
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await shot(tester, '${tag}_81_after_gift');
+    });
     testWidgets('title screen $tag', (tester) async {
       tester.view.physicalSize = size * 3;
       tester.view.devicePixelRatio = 3;
@@ -601,6 +701,40 @@ void accessoryMain() {
       File(
         '$outDir/theme_pictures.png',
       ).writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  });
+
+  testWidgets('shop item grids', (tester) async {
+    final shop = gameItems.where((i) => i.isSpecial).toList();
+    await grid(tester, 'grid_shop_items', [
+      for (final item in shop.where((i) => i.slot != Slot.background))
+        Outfit.starter().wear(findItem('hair_bun')!).wear(item),
+    ], const Rect.fromLTRB(0, -6, 200, 374));
+    Outfit look(List<String> ids) =>
+        ids.fold(Outfit.starter(), (o, id) => o.wear(findItem(id)!));
+    await poseGrid(tester, 'grid_shop_poses', [
+      look(['shop_gown_princess', 'shop_unicorn_headband', 'shop_pet_kitten']),
+      look(['shop_dress_ballerina', 'shop_wings_butterfly', 'hair_bun']),
+      look([
+        'shop_dress_rainbow',
+        'shop_pet_puppy',
+        'shop_boots_sparkly',
+        'shop_sunglasses_rainbow',
+      ]),
+    ]);
+    await tester.runAsync(() async {
+      for (final id in ['shop_bg_ballroom', 'shop_bg_unicorn']) {
+        final bg = findItem(id)!;
+        final image = await rasterizeScene(
+          sceneLayer(WornItem(bg, bg.color)),
+          const Size(390, 650),
+          doll: look(['shop_gown_ice', 'shop_necklace_diamond', 'head_tiara']),
+          dollArea: const Rect.fromLTWH(60, 120, 270, 520),
+        );
+        final data = await image.toByteData(format: ui.ImageByteFormat.png);
+        Directory(outDir).createSync(recursive: true);
+        File('$outDir/bg_$id.png').writeAsBytesSync(data!.buffer.asUint8List());
+      }
     });
   });
 
@@ -896,4 +1030,28 @@ Future<void> saveStrip(
     Directory(outDir).createSync(recursive: true);
     File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
   });
+}
+
+/// Lets pictures that load in the background finish.
+Future<void> settleArt(WidgetTester tester) async {
+  for (var i = 0; i < 4; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 80)),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+}
+
+/// Scrolls the Star Shop until [key] is on screen.
+Future<void> revealInShop(WidgetTester tester, String key) async {
+  final scrollable = find.descendant(
+    of: find.byKey(const Key('shop_grid')),
+    matching: find.byType(Scrollable),
+  );
+  await tester.dragUntilVisible(
+    find.byKey(Key(key)),
+    scrollable,
+    const Offset(0, -120),
+  );
+  await tester.pump(const Duration(milliseconds: 400));
 }

@@ -83,11 +83,16 @@ Rect focusRectFor(ItemShape shape) {
       switch (shape) {
         case ItemShape.handWand:
           return const Rect.fromLTRB(18, 166, 94, 268);
+        case ItemShape.handKitten:
+        case ItemShape.handPuppy:
+          return const Rect.fromLTRB(110, 206, 186, 296);
         case ItemShape.handBalloon:
           return const Rect.fromLTRB(110, 76, 200, 262);
         default:
           return const Rect.fromLTRB(108, 222, 172, 302);
       }
+    case Slot.back:
+      return const Rect.fromLTRB(4, 110, 196, 300);
     case Slot.background:
       return kDollFrame;
   }
@@ -160,6 +165,8 @@ Future<DollRecipe> dollRecipe(
   final arm = [doll('arm_right'), ...dollNailLayers(outfit.nails, right: true)];
 
   final under = <ArtLayer>[
+    // Wings behind everything.
+    ...part(Slot.back),
     ...part(Slot.dress, '_back'),
     if (salon != null) salon.first else ...part(Slot.hair, '_back'),
     doll('body'),

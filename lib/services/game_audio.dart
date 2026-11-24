@@ -2,7 +2,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The short sound effects in the game (the last six are for activities).
+/// The short sound effects in the game (brush to bubble are for activities;
+/// unlock and notYet are for the Star Shop).
 enum Sfx {
   tap,
   itemOn,
@@ -14,6 +15,8 @@ enum Sfx {
   water,
   blow,
   bubble,
+  unlock,
+  notYet,
 }
 
 /// Music and sound effects, plus the mute switch (remembered on the device).
@@ -74,6 +77,8 @@ class AudioPlayersGameAudio extends GameAudio {
     Sfx.water: 'sounds/water.wav',
     Sfx.blow: 'sounds/blow.wav',
     Sfx.bubble: 'sounds/bubble.wav',
+    Sfx.unlock: 'sounds/unlock.wav',
+    Sfx.notYet: 'sounds/not_yet.wav',
   };
   static const _musicFile = 'sounds/music.wav';
   static const _musicVolume = 0.35;

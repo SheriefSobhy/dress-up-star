@@ -556,6 +556,124 @@ const List<GameItem> gameItems = [
     shape: ItemShape.bgCandy,
     color: Color(0xFFFFD1E8),
   ),
+
+  // -------------------------------------------------------------------------
+  // Star Shop specials: locked until bought with stars (`price`, 3 to 15).
+  // -------------------------------------------------------------------------
+  GameItem(
+    id: 'shop_gown_princess',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.dressGown,
+    color: Color(0xFFFF8FC7),
+    pattern: ItemPattern.stars,
+    price: 10,
+  ),
+  GameItem(
+    id: 'shop_gown_ice',
+    themes: {ChallengeTheme.ball, ChallengeTheme.snow},
+    shape: ItemShape.dressGown,
+    color: Color(0xFF9FD8FF),
+    pattern: ItemPattern.stars,
+    price: 12,
+  ),
+  GameItem(
+    id: 'shop_dress_rainbow',
+    themes: {ChallengeTheme.party, ChallengeTheme.garden},
+    shape: ItemShape.dressRainbow,
+    color: Color(0xFFFF8FC7),
+    price: 9,
+  ),
+  GameItem(
+    id: 'shop_dress_ballerina',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.dressBallerina,
+    color: Color(0xFFFFA3C8),
+    price: 7,
+  ),
+  GameItem(
+    id: 'shop_wings_butterfly',
+    themes: {ChallengeTheme.garden, ChallengeTheme.party},
+    shape: ItemShape.backButterfly,
+    color: Color(0xFFB79CFF),
+    price: 8,
+  ),
+  GameItem(
+    id: 'shop_wings_fairy',
+    themes: {ChallengeTheme.garden, ChallengeTheme.bedtime},
+    shape: ItemShape.backButterfly,
+    color: Color(0xFF5CD6D6),
+    price: 6,
+  ),
+  GameItem(
+    id: 'shop_unicorn_headband',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
+    shape: ItemShape.headUnicorn,
+    color: Color(0xFFD873F0),
+    price: 7,
+  ),
+  GameItem(
+    id: 'shop_boots_sparkly',
+    themes: {ChallengeTheme.snow, ChallengeTheme.party},
+    shape: ItemShape.shoesSparkly,
+    color: Color(0xFFB79CFF),
+    price: 5,
+  ),
+  GameItem(
+    id: 'shop_boots_gold',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.shoesSparkly,
+    color: Color(0xFFFFD84D),
+    price: 3,
+  ),
+  GameItem(
+    id: 'shop_necklace_diamond',
+    themes: {ChallengeTheme.ball, ChallengeTheme.snow},
+    shape: ItemShape.neckDiamond,
+    color: Color(0xFF7CB8FF),
+    price: 11,
+  ),
+  GameItem(
+    id: 'shop_sunglasses_rainbow',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
+    shape: ItemShape.eyesSunRainbow,
+    color: Color(0xFFFFFFFF),
+    price: 6,
+  ),
+  GameItem(
+    id: 'shop_pet_kitten',
+    themes: {ChallengeTheme.garden, ChallengeTheme.bedtime},
+    shape: ItemShape.handKitten,
+    color: Color(0xFFFFA45C),
+    price: 10,
+  ),
+  GameItem(
+    id: 'shop_pet_kitten_gray',
+    themes: {ChallengeTheme.snow, ChallengeTheme.bedtime},
+    shape: ItemShape.handKitten,
+    color: Color(0xFFB8B4C8),
+    price: 8,
+  ),
+  GameItem(
+    id: 'shop_pet_puppy',
+    themes: {ChallengeTheme.garden, ChallengeTheme.beach},
+    shape: ItemShape.handPuppy,
+    color: Color(0xFFD9A066),
+    price: 10,
+  ),
+  GameItem(
+    id: 'shop_bg_ballroom',
+    themes: {ChallengeTheme.ball},
+    shape: ItemShape.bgBallroom,
+    color: Color(0xFFFFD1E8),
+    price: 15,
+  ),
+  GameItem(
+    id: 'shop_bg_unicorn',
+    themes: {ChallengeTheme.party, ChallengeTheme.garden},
+    shape: ItemShape.bgUnicorn,
+    color: Color(0xFFE3D4FF),
+    price: 15,
+  ),
 ];
 
 // ---------------------------------------------------------------------------
@@ -608,7 +726,7 @@ const List<GameCategory> gameCategories = [
   ),
   GameCategory(
     id: 'accessories',
-    slots: [Slot.head, Slot.hand],
+    slots: [Slot.head, Slot.hand, Slot.back],
     buttonColor: Color(0xFFFFDAC1),
     colors: accessoryColors,
     previewItemId: 'head_crown',
@@ -688,6 +806,10 @@ const Set<ItemShape> shinyShapes = {
   ItemShape.wristBangle,
   ItemShape.wristCharm,
   ItemShape.wristFriendship,
+  ItemShape.headUnicorn,
+  ItemShape.eyesSunRainbow,
+  ItemShape.neckDiamond,
+  ItemShape.shoesSparkly,
 };
 
 // ---------------------------------------------------------------------------

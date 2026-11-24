@@ -60,14 +60,19 @@ class Outfit {
     return Outfit(worn);
   }
 
-  /// A random outfit for the "Surprise me" button.
-  factory Outfit.random([Random? random]) {
+  /// A random outfit for the "Surprise me" button, using only items that
+  /// are [allowed] (by default the free ones, not Star Shop items).
+  factory Outfit.random([
+    Random? random,
+    bool Function(GameItem item)? allowed,
+  ]) {
+    final ok = allowed ?? (GameItem item) => !item.isSpecial;
     final rnd = random ?? Random();
     T pick<T>(List<T> list) => list[rnd.nextInt(list.length)];
     final worn = <Slot, WornItem>{};
 
     void wearRandom(Slot slot, List<Color> colors, {Color? color}) {
-      final options = itemsForSlot(slot);
+      final options = itemsForSlot(slot).where(ok).toList();
       if (options.isEmpty) return;
       final item = pick(options);
       // Half of the time keep the item's own color, otherwise surprise!
@@ -88,6 +93,9 @@ class Outfit {
       if (rnd.nextInt(3) == 0) wearRandom(slot, accessoryColors);
     }
     if (rnd.nextInt(3) == 0) wearRandom(Slot.eyes, glassesColors);
+    if (itemsForSlot(Slot.back).any(ok) && rnd.nextInt(4) == 0) {
+      wearRandom(Slot.back, accessoryColors);
+    }
     for (final slot in [Slot.neck, Slot.ears, Slot.wrist]) {
       if (rnd.nextInt(5) < 2) wearRandom(slot, jewelryColors);
     }

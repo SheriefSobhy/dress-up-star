@@ -142,7 +142,7 @@ void main() {
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getStringList(LooksStorage.storageKey), hasLength(1));
-    expect(find.text('1'), findsOneWidget); // badge on the gallery button
+    expect(galleryBadge('1'), findsOneWidget); // badge on the gallery button
 
     // Take the top off, then wear the saved look again from the gallery.
     await tapKey(tester, 'item_top_tshirt');
@@ -178,6 +178,12 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await tester.runAsync(() => LooksStorage().add(Outfit.random(Random(1))));
     await pumpGame(tester);
-    expect(find.text('1'), findsOneWidget);
+    expect(galleryBadge('1'), findsOneWidget);
   });
 }
+
+/// The number on the gallery button (the Star Shop button has one too).
+Finder galleryBadge(String text) => find.descendant(
+  of: find.byKey(const Key('gallery_button')),
+  matching: find.text(text),
+);

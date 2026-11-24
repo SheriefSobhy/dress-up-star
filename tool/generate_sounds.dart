@@ -411,6 +411,34 @@ Mix bubble() => Mix(0.16)
     decay: 40,
   );
 
+/// A happy "ta-da!" when a Star Shop item is unlocked (and the daily gift).
+Mix unlock() {
+  final mix = Mix(1.3);
+  const run = [72, 76, 79, 84, 88];
+  for (var i = 0; i < run.length; i++) {
+    mix.note(i * 0.07, run[i], 0.3, vol: 0.22, decay: 8, harmonics: _bell);
+  }
+  for (final n in [84, 88, 91, 96]) {
+    mix.note(0.38, n, 0.85, vol: 0.16, decay: 3.2, harmonics: _bell);
+  }
+  for (var i = 0; i < 5; i++) {
+    mix.note(
+      0.5 + i * 0.09,
+      100 + (i.isEven ? 0 : 3),
+      0.25,
+      vol: 0.06,
+      decay: 10,
+      harmonics: _bell,
+    );
+  }
+  return mix;
+}
+
+/// A soft, friendly "not yet" (two gentle notes, never a buzzer).
+Mix notYet() => Mix(0.5)
+  ..note(0, 79, 0.22, vol: 0.26, decay: 9, harmonics: const [1, 0.3])
+  ..note(0.16, 76, 0.3, vol: 0.24, decay: 7, harmonics: const [1, 0.3]);
+
 void main() {
   final dir = Directory('assets/sounds')..createSync(recursive: true);
   final files = <String, (Mix, double)>{
@@ -425,6 +453,8 @@ void main() {
     'water.wav': (water(), 0.55),
     'blow.wav': (blow(), 0.5),
     'bubble.wav': (bubble(), 0.6),
+    'unlock.wav': (unlock(), 0.8),
+    'not_yet.wav': (notYet(), 0.55),
   };
   for (final entry in files.entries) {
     final bytes = entry.value.$1.toWav(peak: entry.value.$2);

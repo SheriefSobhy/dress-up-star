@@ -358,18 +358,16 @@ class _StarPainter extends CustomPainter {
 }
 
 /// The Challenge button: a gold trophy, or the picture of the theme while
-/// a challenge is on. The gold pill shows all the stars won.
+/// a challenge is on.
 class ChallengeButton extends StatelessWidget {
   const ChallengeButton({
     super.key,
     required this.theme,
-    required this.stars,
     required this.size,
     required this.onTap,
   });
 
   final ChallengeTheme? theme;
-  final int stars;
   final double size;
   final VoidCallback onTap;
 
@@ -430,11 +428,6 @@ class ChallengeButton extends StatelessWidget {
                   ),
                   child: ThemePicture(t),
                 ),
-              Positioned(
-                right: -10,
-                bottom: -8,
-                child: StarCount(stars: stars),
-              ),
             ],
           ),
         ),

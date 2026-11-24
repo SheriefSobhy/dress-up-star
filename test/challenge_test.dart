@@ -8,6 +8,7 @@ import 'package:dress_up_star/models/outfit.dart';
 import 'package:dress_up_star/services/game_audio.dart';
 import 'package:dress_up_star/services/game_settings.dart';
 import 'package:dress_up_star/services/looks_storage.dart';
+import 'package:dress_up_star/services/rewards.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,7 +82,13 @@ String _starTotal(WidgetTester tester) =>
 
 void main() {
   GameMotion.idleAnimations = false;
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  // Today's daily star was already given, so only challenge stars count.
+  setUp(() {
+    Rewards.now = () => DateTime(2026, 11, 24);
+    SharedPreferences.setMockInitialValues({
+      Rewards.dailyStarKey: '2026-11-24',
+    });
+  });
 
   group('star scoring', () {
     test('every item has at least one theme', () {
@@ -253,6 +260,7 @@ void main() {
     testWidgets('stars won earlier show on the main screen', (tester) async {
       SharedPreferences.setMockInitialValues({
         GameSettings.challengeStarsKey: 12,
+        Rewards.dailyStarKey: '2026-11-24',
       });
       await _start(tester);
       expect(_starTotal(tester), '12');

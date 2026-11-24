@@ -17,6 +17,7 @@ no reading needed and no way to lose.
 - Tap a round color button to change the item's color.
 - ✨ Surprise me: a random outfit.
 - 📷 Camera: saves the look to the "My Looks" gallery (top-left button).
+- 🎁 Star Shop (right side): special items to unlock with stars.
 - 🎵 Music button (top-right): turns all music and sounds on or off.
   In a browser the music starts after the first tap (browsers require this).
 
@@ -48,6 +49,26 @@ pictures are SVGs in `assets/svg/tools/`.
 
 
 
+
+## Star Shop and stars
+
+- Stars come from challenges, plus one star a day the first time the game
+  is opened (a little gift box pops open). No real money, no ads.
+- The pink gift button (right, top of the column) shows the stars and opens
+  the Star Shop: 16 special items for 3 to 15 stars - princess and ice
+  gowns, rainbow dress, ballerina tutu, butterfly and fairy wings (worn on
+  her back, in Accessories), unicorn headband, sparkly and gold boots,
+  diamond necklace, rainbow sunglasses, a kitten, a gray kitten and a puppy
+  to hold, the castle ballroom and unicorn land.
+- Locked items also show in their normal category with a lock and their
+  price. Enough stars: tap to unlock (light rays, confetti, a "ta-da").
+  Not enough: a gentle shake and a bubble with gold stars (have) and pale
+  stars (still needed).
+- Saved on the device: every star earned, and every unlocked item with the
+  stars paid, so stars and items are never lost. Surprise me only uses
+  unlocked items.
+- Shop items are the entries with `price:` in `lib/data/game_config.dart`.
+  Their pictures are in `assets/svg/items/` (wings use the new `back` slot).
 ## Challenges
 
 - The gold trophy button (left, above Activities) shows a picture card:

@@ -14,13 +14,16 @@ import '../painting/sparkle_painter.dart';
 import '../services/game_audio.dart';
 import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
+import '../services/rewards.dart';
 import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/challenge_widgets.dart';
 import '../widgets/doll_view.dart';
+import '../widgets/reward_widgets.dart';
 import '../widgets/scene_background.dart';
 import 'activities/activity_picker.dart';
 import 'gallery_screen.dart';
+import 'star_shop_screen.dart';
 
 /// The main game screen: the doll, the buttons and the wardrobe.
 class DressUpScreen extends StatefulWidget {
@@ -89,8 +92,28 @@ class _DressUpScreenState extends State<DressUpScreen>
   ChallengeTheme? _challenge;
   ChallengeTheme? _lastTheme;
 
-  /// All the stars won in challenges.
-  int _stars = 0;
+  /// Stars and Star Shop items (saved on the device).
+  final Rewards _rewards = Rewards();
+
+  /// The unlock celebration, the "not enough stars yet" bubble and the
+  /// daily gift (pictures on top of the stage).
+  late final AnimationController _unlockShow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1900),
+  );
+  late final AnimationController _needShow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2000),
+  );
+  late final AnimationController _giftShow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  );
+  GameItem? _unlockedItem;
+  GameItem? _neededItem;
+
+  /// Goes up each time a locked item is tapped without enough stars.
+  final Map<String, int> _shakes = {};
 
   /// Gently pushes the "scroll me" arrow sideways (a few times, then rests).
   late final AnimationController _hintBounce = AnimationController(
@@ -146,9 +169,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     widget.storage.load().then((looks) {
       if (mounted) setState(() => _savedCount = looks.length);
     });
-    GameSettings.challengeStars().then((stars) {
-      if (mounted) setState(() => _stars = stars);
-    });
+    _loadRewards();
     widget.audio.load();
     // Pause the music while the app is in the background.
     _lifecycle = AppLifecycleListener(
@@ -159,8 +180,24 @@ class _DressUpScreenState extends State<DressUpScreen>
     _maybeShowScrollHint();
   }
 
+  /// Loads the stars, then gives the daily star (with the gift animation)
+  /// the first time the game is opened today.
+  Future<void> _loadRewards() async {
+    await _rewards.load();
+    if (!mounted) return;
+    setState(() {});
+    if (await _rewards.claimDailyStar() && mounted) {
+      widget.audio.play(Sfx.unlock);
+      _giftShow.forward(from: 0);
+    }
+  }
+
   @override
   void dispose() {
+    _rewards.dispose();
+    _unlockShow.dispose();
+    _needShow.dispose();
+    _giftShow.dispose();
     _lifecycle.dispose();
     _categoryScroll.dispose();
     _hintBounce.dispose();
@@ -216,6 +253,10 @@ class _DressUpScreenState extends State<DressUpScreen>
   }
 
   void _tapItem(GameItem item) {
+    if (!_rewards.isUnlocked(item)) {
+      _tapLocked(item);
+      return;
+    }
     final wasWearing = _outfit.isWearing(item);
     setState(() {
       _outfit = _outfit.toggle(item);
@@ -229,6 +270,78 @@ class _DressUpScreenState extends State<DressUpScreen>
       _bounce.forward(from: 0);
       setState(() => _nudge++);
     }
+  }
+
+  /// A locked Star Shop item: unlock it if she has the stars (and put it
+  /// on), otherwise a gentle shake and the stars still needed.
+  Future<void> _tapLocked(GameItem item) async {
+    if (await _rewards.unlock(item)) {
+      if (!mounted) return;
+      _showUnlocked(item);
+      setState(() {
+        _outfit = _outfit.wear(item);
+        _activeSlot = item.slot;
+      });
+      _celebrate(focusRectFor(item.shape).center);
+    } else {
+      widget.audio.play(Sfx.notYet);
+      HapticFeedback.lightImpact();
+      setState(() {
+        _neededItem = item;
+        _shakes[item.id] = (_shakes[item.id] ?? 0) + 1;
+      });
+      _needShow.forward(from: 0);
+    }
+  }
+
+  void _showUnlocked(GameItem item) {
+    widget.audio.play(Sfx.unlock);
+    HapticFeedback.mediumImpact();
+    setState(() => _unlockedItem = item);
+    _unlockShow.forward(from: 0);
+    _burstConfetti();
+  }
+
+  Future<void> _openShop() async {
+    widget.audio.play(Sfx.tap);
+    final picked = await Navigator.of(context).push<GameItem>(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 380),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (_, _, _) => StarShopScreen(
+          rewards: _rewards,
+          audio: widget.audio,
+          outfit: _outfit,
+        ),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.88, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutBack,
+                reverseCurve: Curves.easeIn,
+              ),
+            ),
+            alignment: Alignment.topRight,
+            child: child,
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
+    if (picked == null) return;
+    // Put on what she picked, and show its category.
+    final index = gameCategories.indexWhere(
+      (c) => !c.colorOnly && c.slots.contains(picked.slot),
+    );
+    setState(() {
+      _outfit = _outfit.wear(picked);
+      _activeSlot = picked.slot;
+      if (index >= 0) _categoryIndex = index;
+    });
+    _celebrate(focusRectFor(picked.shape).center);
   }
 
   void _tapColor(Slot slot, Color color) {
@@ -318,7 +431,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     _celebrate(const Offset(100, 190));
     _burstConfetti();
     HapticFeedback.mediumImpact();
-    final total = await GameSettings.addChallengeStars(stars);
+    await _rewards.addStars(stars);
     if (!mounted) return;
     await showChallengeResult(
       context,
@@ -327,13 +440,13 @@ class _DressUpScreenState extends State<DressUpScreen>
       audio: widget.audio,
     );
     if (!mounted) return;
-    setState(() => _stars = total);
+    setState(() {});
     _happy.forward(from: 0);
   }
 
   void _surprise() {
     widget.audio.play(Sfx.itemOn);
-    setState(() => _outfit = Outfit.random(_random));
+    setState(() => _outfit = Outfit.random(_random, _rewards.isUnlocked));
     _celebrate(const Offset(100, 190));
     _burstConfetti();
   }
@@ -524,6 +637,39 @@ class _DressUpScreenState extends State<DressUpScreen>
                 ),
               ),
             ),
+            // Star Shop pictures: unlocking, stars still needed, daily gift.
+            AnimatedBuilder(
+              animation: Listenable.merge([_unlockShow, _needShow, _giftShow]),
+              builder: (context, _) => Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (_unlockedItem != null && _unlockShow.isAnimating)
+                    UnlockCelebration(
+                      item: _unlockedItem!,
+                      progress: _unlockShow.value,
+                    ),
+                  if (_neededItem != null && _needShow.isAnimating)
+                    Align(
+                      alignment: const Alignment(0, 0.35),
+                      child: NeedStars(
+                        item: _neededItem!,
+                        have: _rewards.stars,
+                        progress: _needShow.value,
+                      ),
+                    ),
+                  if (_giftShow.isAnimating)
+                    Align(
+                      alignment: const Alignment(0, 0.72),
+                      child: SizedBox(
+                        height: min(230.0, size.height * 0.42),
+                        child: FittedBox(
+                          child: DailyGift(progress: _giftShow.value),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
             // Camera flash
             IgnorePointer(
               child: AnimatedBuilder(
@@ -569,7 +715,6 @@ class _DressUpScreenState extends State<DressUpScreen>
                   ),
                   ChallengeButton(
                     theme: _challenge,
-                    stars: _stars,
                     size: buttonSize,
                     onTap: _openChallenge,
                   ),
@@ -581,13 +726,22 @@ class _DressUpScreenState extends State<DressUpScreen>
                 ],
               ),
             ),
-            // Dance and Pose
+            // Star Shop, Dance and Pose
             Positioned(
               right: 12,
               bottom: 12,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  ListenableBuilder(
+                    listenable: _rewards,
+                    builder: (context, _) => StarShopButton(
+                      stars: _rewards.stars,
+                      size: buttonSize,
+                      onTap: _openShop,
+                    ),
+                  ),
+                  SizedBox(height: gap + 4),
                   BigRoundButton(
                     key: const Key('dance_button'),
                     icon: Icons.celebration_rounded,
@@ -877,78 +1031,99 @@ class _DressUpScreenState extends State<DressUpScreen>
         final item = items[i];
         final worn = _outfit[item.slot];
         final selected = worn?.item.id == item.id;
-        return Pressable(
-          key: Key('item_${item.id}'),
-          onTap: () => _tapItem(item),
-          builder: (pressed) => AnimatedScale(
-            scale: selected ? 1.06 : 1,
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutBack,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white,
-                    lighten(category.buttonColor, selected ? 0.35 : 0.6),
+        final locked = !_rewards.isUnlocked(item);
+        final affordable = locked && _rewards.canAfford(item);
+        return Shake(
+          trigger: _shakes[item.id] ?? 0,
+          child: Pressable(
+            key: Key('item_${item.id}'),
+            onTap: () => _tapItem(item),
+            builder: (pressed) => AnimatedScale(
+              scale: selected ? 1.06 : 1,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutBack,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white,
+                      lighten(category.buttonColor, selected ? 0.35 : 0.6),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: selected ? accent : Colors.white,
+                    width: selected ? 3.5 : 2.5,
+                  ),
+                  boxShadow: [
+                    if (selected)
+                      BoxShadow(
+                        color: category.buttonColor.withValues(alpha: 0.95),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    BoxShadow(
+                      color: const Color(0x2A7A4A8A),
+                      blurRadius: pressed ? 3 : 7,
+                      offset: Offset(0, pressed ? 1 : 3),
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: selected ? accent : Colors.white,
-                  width: selected ? 3.5 : 2.5,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            item.slot == Slot.background ? 0 : 3,
+                          ),
+                          child: Opacity(
+                            opacity: locked && !affordable ? 0.6 : 1,
+                            child: ItemThumbnail(
+                              item: item,
+                              color: selected ? worn!.color : item.color,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (locked) ...[
+                      Positioned(
+                        right: 2,
+                        top: 2,
+                        child: LockBadge(key: Key('lock_${item.id}'), size: 24),
+                      ),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 2,
+                        child: Center(child: PricePill(price: item.price)),
+                      ),
+                    ],
+                    if (selected)
+                      Positioned(
+                        right: 2,
+                        top: 2,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            color: accent,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                boxShadow: [
-                  if (selected)
-                    BoxShadow(
-                      color: category.buttonColor.withValues(alpha: 0.95),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                  BoxShadow(
-                    color: const Color(0x2A7A4A8A),
-                    blurRadius: pressed ? 3 : 7,
-                    offset: Offset(0, pressed ? 1 : 3),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Padding(
-                        padding: EdgeInsets.all(
-                          item.slot == Slot.background ? 0 : 3,
-                        ),
-                        child: ItemThumbnail(
-                          item: item,
-                          color: selected ? worn!.color : item.color,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (selected)
-                    Positioned(
-                      right: 2,
-                      top: 2,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          color: accent,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                ],
               ),
             ),
           ),

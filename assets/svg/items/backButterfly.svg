@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="400" viewBox="0 0 200 400"><defs><radialGradient id="upper" cx="0.75" cy="0.75" r="0.9"><stop offset="0" stop-color="#FFCCFF"/><stop offset="0.5" stop-color="#FF66FF"/><stop offset="1" stop-color="#FF00FF"/></radialGradient><radialGradient id="lower" cx="0.7" cy="0.2" r="0.9"><stop offset="0" stop-color="#FFCCFF"/><stop offset="0.55" stop-color="#FF66FF"/><stop offset="1" stop-color="#CC00CC"/></radialGradient></defs>
+<g id="wings">
+<path d="M98 196 C80 160 48 122 22 126 C6 130 6 160 20 186 C32 206 64 214 98 206 Z" fill="url(#upper)" stroke="#990099" stroke-width="2" stroke-linejoin="round" opacity="0.95"/>
+<path d="M98 206 C72 212 46 226 42 252 C40 272 58 280 72 270 C86 260 94 236 99 212 Z" fill="url(#lower)" stroke="#990099" stroke-width="2" stroke-linejoin="round" opacity="0.95"/>
+<path d="M96 200 Q66 170 30 142 M96 202 Q62 196 22 170 M96 208 Q72 236 54 264" fill="none" stroke="#CC00CC" stroke-width="1.6" opacity="0.6" stroke-linecap="round"/>
+<path d="M28 140 Q40 132 54 136" fill="none" stroke="#FFFFFF" stroke-width="2.4" opacity="0.7" stroke-linecap="round"/>
+<g fill="#FFFFFF" opacity="0.9"><circle cx="30" cy="158" r="5"/><circle cx="44" cy="140" r="3.2"/><circle cx="26" cy="178" r="2.6"/><circle cx="56" cy="252" r="4"/><circle cx="66" cy="236" r="2.4"/></g>
+<g fill="#CC00CC" opacity="0.55"><circle cx="58" cy="180" r="3"/><circle cx="48" cy="198" r="2.2"/></g>
+</g>
+<use href="#wings" transform="translate(200 0) scale(-1 1)"/>
+<path d="M30 158 m0 -3 l0.8 2.2 2.2 0.8 -2.2 0.8 -0.8 2.2 -0.8 -2.2 -2.2 -0.8 2.2 -0.8 Z" fill="#FFFFFF"/>
+</svg>
