@@ -1,4 +1,4 @@
-package com.dressupstar.dress_up_star
+package com.sheriefsobhy.dressupstar
 
 import io.flutter.embedding.android.FlutterActivity
 

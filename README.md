@@ -115,6 +115,23 @@ flutter pub get
 flutter run -d chrome
 ```
 
+## Android app
+
+Built on this computer (not on GitHub):
+
+```
+flutter build apk --release        # build/app/outputs/flutter-apk/app-release.apk
+flutter build appbundle --release  # build/app/outputs/bundle/release/app-release.aab (Google Play)
+```
+
+The app id is `com.sheriefsobhy.dressupstar`. Release builds are signed with
+the key named in `android/key.properties`. That file and the key are kept out
+of git. Without it, the release is signed with the debug key, which cannot
+update the real app.
+
+The app icon and splash picture are drawn from the doll's face by
+`flutter test tool/generate_app_icon_test.dart`.
+
 ## Checks
 
 ```

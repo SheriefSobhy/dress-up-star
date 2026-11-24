@@ -33,6 +33,23 @@ class DressUpStarApp extends StatefulWidget {
 
 class _DressUpStarAppState extends State<DressUpStarApp> {
   late final GameAudio _audio = widget.audio ?? SilentGameAudio();
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pause the music while the app is in the background (on every screen).
+    _lifecycle = AppLifecycleListener(
+      onHide: _audio.pauseMusic,
+      onShow: _audio.resumeMusic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -80,6 +80,45 @@ void main() {
       expect(find.byKey(const Key('doll')), findsOneWidget);
     });
 
+    testWidgets('music pauses in the background on every screen', (
+      tester,
+    ) async {
+      // The phone goes through the states one by one.
+      const order = [
+        AppLifecycleState.resumed,
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+      ];
+      var now = 0;
+      Future<void> goTo(AppLifecycleState state) async {
+        final target = order.indexOf(state);
+        while (now != target) {
+          now += target > now ? 1 : -1;
+          tester.binding.handleAppLifecycleStateChanged(order[now]);
+          await tester.pump();
+        }
+      }
+
+      final audio = await pumpGame(tester, pressPlay: false);
+      // The title screen: music started by a touch.
+      audio.startMusic();
+      await goTo(AppLifecycleState.paused);
+      expect(audio.musicPlaying, isFalse);
+      await goTo(AppLifecycleState.resumed);
+      expect(audio.musicPlaying, isTrue);
+
+      // A screen opened on top of the game (the gallery).
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('gallery_button')));
+      await tester.pumpAndSettle();
+      await goTo(AppLifecycleState.paused);
+      expect(audio.musicPlaying, isFalse);
+      await goTo(AppLifecycleState.resumed);
+      expect(audio.musicPlaying, isTrue);
+    });
+
     testWidgets('mute button silences everything and is remembered', (
       tester,
     ) async {

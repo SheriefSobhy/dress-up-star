@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pastel pink behind the doll's face on the app icon. -->
+    <color name="ic_launcher_background">#FFFFD6EA</color>
+    <!-- Pastel pink of the splash screen. -->
+    <color name="splash_background">#FFFFE6F2</color>
+</resources>

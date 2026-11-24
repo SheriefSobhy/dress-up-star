@@ -122,7 +122,6 @@ class _DressUpScreenState extends State<DressUpScreen>
   );
   final ScrollController _categoryScroll = ScrollController();
   bool _showScrollHint = false;
-  late final AppLifecycleListener _lifecycle;
 
   Offset _sparkleAt = const Offset(100, 200);
   int _sparkleSeed = 0;
@@ -171,11 +170,6 @@ class _DressUpScreenState extends State<DressUpScreen>
     });
     _loadRewards();
     widget.audio.load();
-    // Pause the music while the app is in the background.
-    _lifecycle = AppLifecycleListener(
-      onHide: widget.audio.pauseMusic,
-      onShow: widget.audio.resumeMusic,
-    );
     _categoryScroll.addListener(_onCategoryScroll);
     _maybeShowScrollHint();
   }
@@ -198,7 +192,6 @@ class _DressUpScreenState extends State<DressUpScreen>
     _unlockShow.dispose();
     _needShow.dispose();
     _giftShow.dispose();
-    _lifecycle.dispose();
     _categoryScroll.dispose();
     _hintBounce.dispose();
     _bounce.dispose();
