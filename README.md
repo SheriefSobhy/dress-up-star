@@ -47,6 +47,19 @@ pictures are SVGs in `assets/svg/tools/`.
 
 
 
+
+## Challenges
+
+- The gold trophy button (left, above Activities) shows a picture card:
+  beach, snow, party, princess ball, garden or bedtime. Three little item
+  pictures on the card give ideas. Green play button: start; purple
+  shuffle button: another card.
+- Dress her up, then tap the green check. More items that fit the theme
+  give more stars (1 to 3 - there is always at least one star, and always
+  a celebration). The gold pill on the trophy shows all stars collected.
+- Each item's themes are the `themes:` tags in `lib/data/game_config.dart`;
+  how many matching items give 2 or 3 stars is `matchesForTwoStars` /
+  `matchesForThreeStars` there. Theme pictures are in `assets/svg/themes/`.
 ## Poses and dancing
 
 - The big orange Pose button (bottom-right): each tap does the next pose -

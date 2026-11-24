@@ -136,6 +136,7 @@ class GameItem {
     required this.shape,
     required this.color,
     this.pattern = ItemPattern.none,
+    this.themes = const {},
   });
 
   /// Unique name, used when saving looks. Never reuse or rename an id that
@@ -146,6 +147,9 @@ class GameItem {
   /// The color the item has when it is first put on.
   final Color color;
   final ItemPattern pattern;
+
+  /// Challenge themes this item fits (more matching items, more stars).
+  final Set<ChallengeTheme> themes;
 
   Slot get slot => shape.slot;
 }
@@ -202,3 +206,6 @@ class ToolColor {
 
 /// How the doll stands. Saved with looks, so a photo keeps her pose.
 enum DollPose { stand, wave, twirl, peace, hips, curtsy, jump }
+
+/// The picture cards of the Challenge button: dress her for the theme.
+enum ChallengeTheme { beach, snow, party, ball, garden, bedtime }

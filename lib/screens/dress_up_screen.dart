@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../art/doll_art.dart';
 import '../art/motion.dart';
 import '../data/game_config.dart';
+import '../models/challenge.dart';
 import '../models/outfit.dart';
 import '../painting/confetti_painter.dart';
 import '../painting/shapes.dart';
@@ -15,6 +16,7 @@ import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
 import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
+import '../widgets/challenge_widgets.dart';
 import '../widgets/doll_view.dart';
 import '../widgets/scene_background.dart';
 import 'activities/activity_picker.dart';
@@ -83,6 +85,13 @@ class _DressUpScreenState extends State<DressUpScreen>
   bool _dancing = false;
   int _danceBursts = 0;
 
+  /// The theme card she is being dressed for (null: no challenge).
+  ChallengeTheme? _challenge;
+  ChallengeTheme? _lastTheme;
+
+  /// All the stars won in challenges.
+  int _stars = 0;
+
   /// Gently pushes the "scroll me" arrow sideways (a few times, then rests).
   late final AnimationController _hintBounce = AnimationController(
     vsync: this,
@@ -136,6 +145,9 @@ class _DressUpScreenState extends State<DressUpScreen>
     super.initState();
     widget.storage.load().then((looks) {
       if (mounted) setState(() => _savedCount = looks.length);
+    });
+    GameSettings.challengeStars().then((stars) {
+      if (mounted) setState(() => _stars = stars);
     });
     widget.audio.load();
     // Pause the music while the app is in the background.
@@ -273,6 +285,49 @@ class _DressUpScreenState extends State<DressUpScreen>
     if (!_dancing) return;
     _dance.stop();
     setState(() => _dancing = false);
+    _happy.forward(from: 0);
+  }
+
+  /// Shows a theme card (or the current one again).
+  Future<void> _openChallenge() async {
+    widget.audio.play(Sfx.tap);
+    var theme = _challenge ?? pickTheme(_random, last: _lastTheme);
+    while (true) {
+      final choice = await showThemeCard(
+        context,
+        theme: theme,
+        audio: widget.audio,
+      );
+      if (!mounted) return;
+      if (choice != ThemeCardChoice.another) break;
+      theme = pickTheme(_random, last: theme);
+    }
+    setState(() {
+      _challenge = theme;
+      _lastTheme = theme;
+    });
+  }
+
+  /// The check button: stars for the outfit, and a happy celebration.
+  Future<void> _checkChallenge() async {
+    final theme = _challenge;
+    if (theme == null) return;
+    final stars = challengeStars(_outfit, theme);
+    widget.audio.play(Sfx.itemOn);
+    setState(() => _challenge = null);
+    _celebrate(const Offset(100, 190));
+    _burstConfetti();
+    HapticFeedback.mediumImpact();
+    final total = await GameSettings.addChallengeStars(stars);
+    if (!mounted) return;
+    await showChallengeResult(
+      context,
+      theme: theme,
+      stars: stars,
+      audio: widget.audio,
+    );
+    if (!mounted) return;
+    setState(() => _stars = total);
     _happy.forward(from: 0);
   }
 
@@ -481,13 +536,49 @@ class _DressUpScreenState extends State<DressUpScreen>
                 },
               ),
             ),
-            // Activities (makeup, salon, nails)
+            // Challenge (and its check button) and Activities
             Positioned(
               left: 12,
               bottom: 12,
-              child: ActivitiesButton(
-                size: size.width < 380 ? 68 : 78,
-                onTap: _openActivities,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutBack,
+                      ),
+                      child: child,
+                    ),
+                    child: _challenge == null
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: EdgeInsets.only(bottom: gap),
+                            child: BigRoundButton(
+                              key: const Key('challenge_check'),
+                              icon: Icons.check_rounded,
+                              color: const Color(0xFF5CCB6A),
+                              semanticLabel: 'Done',
+                              size: buttonSize,
+                              onTap: _checkChallenge,
+                            ),
+                          ),
+                  ),
+                  ChallengeButton(
+                    theme: _challenge,
+                    stars: _stars,
+                    size: buttonSize,
+                    onTap: _openChallenge,
+                  ),
+                  SizedBox(height: gap + 4),
+                  ActivitiesButton(
+                    size: size.width < 380 ? 68 : 78,
+                    onTap: _openActivities,
+                  ),
+                ],
               ),
             ),
             // Dance and Pose

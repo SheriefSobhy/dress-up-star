@@ -91,33 +91,49 @@ const List<GameItem> gameItems = [
   // Hair styles
   GameItem(
     id: 'hair_long',
+    themes: {ChallengeTheme.ball, ChallengeTheme.garden},
     shape: ItemShape.hairLong,
     color: Color(0xFF5B3A29),
   ),
-  GameItem(id: 'hair_bob', shape: ItemShape.hairBob, color: Color(0xFF5B3A29)),
+  GameItem(
+    id: 'hair_bob',
+    themes: {ChallengeTheme.party},
+    shape: ItemShape.hairBob,
+    color: Color(0xFF5B3A29),
+  ),
   GameItem(
     id: 'hair_pigtails',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
     shape: ItemShape.hairPigtails,
     color: Color(0xFF5B3A29),
   ),
-  GameItem(id: 'hair_bun', shape: ItemShape.hairBun, color: Color(0xFF5B3A29)),
+  GameItem(
+    id: 'hair_bun',
+    themes: {ChallengeTheme.ball, ChallengeTheme.bedtime},
+    shape: ItemShape.hairBun,
+    color: Color(0xFF5B3A29),
+  ),
   GameItem(
     id: 'hair_curly',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.hairCurly,
     color: Color(0xFF5B3A29),
   ),
   GameItem(
     id: 'hair_braids',
+    themes: {ChallengeTheme.snow, ChallengeTheme.garden},
     shape: ItemShape.hairBraids,
     color: Color(0xFF5B3A29),
   ),
   GameItem(
     id: 'hair_ponytail',
+    themes: {ChallengeTheme.beach, ChallengeTheme.snow},
     shape: ItemShape.hairPonytail,
     color: Color(0xFF5B3A29),
   ),
   GameItem(
     id: 'hair_space_buns',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.hairSpaceBuns,
     color: Color(0xFF5B3A29),
   ),
@@ -125,45 +141,53 @@ const List<GameItem> gameItems = [
   // Dresses
   GameItem(
     id: 'dress_princess',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.dressPrincess,
     color: Color(0xFFFF8FC7),
     pattern: ItemPattern.stars,
   ),
   GameItem(
     id: 'dress_sun',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
     shape: ItemShape.dressSun,
     color: Color(0xFFFFD84D),
     pattern: ItemPattern.dots,
   ),
   GameItem(
     id: 'dress_tutu',
+    themes: {ChallengeTheme.party, ChallengeTheme.ball},
     shape: ItemShape.dressTutu,
     color: Color(0xFFB79CFF),
   ),
   GameItem(
     id: 'dress_long',
+    themes: {ChallengeTheme.ball, ChallengeTheme.bedtime},
     shape: ItemShape.dressLong,
     color: Color(0xFF7CB8FF),
     pattern: ItemPattern.hearts,
   ),
   GameItem(
     id: 'dress_stripes',
+    themes: {ChallengeTheme.beach},
     shape: ItemShape.dressSun,
     color: Color(0xFF8EE08A),
     pattern: ItemPattern.stripes,
   ),
   GameItem(
     id: 'dress_mermaid',
+    themes: {ChallengeTheme.beach, ChallengeTheme.ball},
     shape: ItemShape.dressMermaid,
     color: Color(0xFF5CD6D6),
   ),
   GameItem(
     id: 'dress_fairy',
+    themes: {ChallengeTheme.garden},
     shape: ItemShape.dressFairy,
     color: Color(0xFF8EE08A),
   ),
   GameItem(
     id: 'dress_party',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.dressParty,
     color: Color(0xFFFF6B8B),
     pattern: ItemPattern.dots,
@@ -172,19 +196,27 @@ const List<GameItem> gameItems = [
   // Tops
   GameItem(
     id: 'top_tshirt',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
     shape: ItemShape.topTshirt,
     color: Color(0xFFFF6B8B),
     pattern: ItemPattern.hearts,
   ),
-  GameItem(id: 'top_tank', shape: ItemShape.topTank, color: Color(0xFF5CD6D6)),
+  GameItem(
+    id: 'top_tank',
+    themes: {ChallengeTheme.beach},
+    shape: ItemShape.topTank,
+    color: Color(0xFF5CD6D6),
+  ),
   GameItem(
     id: 'top_sweater',
+    themes: {ChallengeTheme.snow, ChallengeTheme.bedtime},
     shape: ItemShape.topSweater,
     color: Color(0xFFB79CFF),
     pattern: ItemPattern.stripes,
   ),
   GameItem(
     id: 'top_tshirt_stars',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
     shape: ItemShape.topTshirt,
     color: Color(0xFF7CB8FF),
     pattern: ItemPattern.stars,
@@ -193,17 +225,20 @@ const List<GameItem> gameItems = [
   // Skirts
   GameItem(
     id: 'skirt_aline',
+    themes: {ChallengeTheme.garden},
     shape: ItemShape.skirtAline,
     color: Color(0xFF7CB8FF),
     pattern: ItemPattern.dots,
   ),
   GameItem(
     id: 'skirt_tutu',
+    themes: {ChallengeTheme.party, ChallengeTheme.ball},
     shape: ItemShape.skirtTutu,
     color: Color(0xFFFF8FC7),
   ),
   GameItem(
     id: 'skirt_long',
+    themes: {ChallengeTheme.snow, ChallengeTheme.ball},
     shape: ItemShape.skirtLong,
     color: Color(0xFFD873F0),
     pattern: ItemPattern.stars,
@@ -212,21 +247,25 @@ const List<GameItem> gameItems = [
   // Shoes
   GameItem(
     id: 'shoes_sneakers',
+    themes: {ChallengeTheme.garden, ChallengeTheme.party},
     shape: ItemShape.shoesSneakers,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'shoes_boots',
+    themes: {ChallengeTheme.snow},
     shape: ItemShape.shoesBoots,
     color: Color(0xFFB79CFF),
   ),
   GameItem(
     id: 'shoes_flats',
+    themes: {ChallengeTheme.ball, ChallengeTheme.bedtime},
     shape: ItemShape.shoesFlats,
     color: Color(0xFFFF8FC7),
   ),
   GameItem(
     id: 'shoes_sandals',
+    themes: {ChallengeTheme.beach},
     shape: ItemShape.shoesSandals,
     color: Color(0xFFFFD84D),
   ),
@@ -234,17 +273,25 @@ const List<GameItem> gameItems = [
   // Accessories: crowns, bows and other head things
   GameItem(
     id: 'head_crown',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
     shape: ItemShape.headCrown,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'head_tiara',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.headTiara,
     color: Color(0xFFE6E9F0),
   ),
-  GameItem(id: 'head_bow', shape: ItemShape.headBow, color: Color(0xFFFF6B8B)),
+  GameItem(
+    id: 'head_bow',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
+    shape: ItemShape.headBow,
+    color: Color(0xFFFF6B8B),
+  ),
   GameItem(
     id: 'head_flower',
+    themes: {ChallengeTheme.garden, ChallengeTheme.beach},
     shape: ItemShape.headFlower,
     color: Color(0xFFFF8FC7),
   ),
@@ -252,64 +299,81 @@ const List<GameItem> gameItems = [
   // Glasses (in the Glasses category; the ids are older than it)
   GameItem(
     id: 'eyes_round',
+    themes: {ChallengeTheme.snow},
     shape: ItemShape.eyesRound,
     color: Color(0xFFD873F0),
   ),
   GameItem(
     id: 'eyes_heart',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.eyesHeart,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'eyes_star',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.eyesStar,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'eyes_wire',
+    themes: {ChallengeTheme.garden, ChallengeTheme.bedtime},
     shape: ItemShape.eyesWire,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'eyes_cat_eye',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.eyesCatEye,
     color: Color(0xFFFF8FC7),
   ),
   GameItem(
     id: 'eyes_heart_frame',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.eyesHeartFrame,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'eyes_star_frame',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
     shape: ItemShape.eyesStarFrame,
     color: Color(0xFFB79CFF),
   ),
-  GameItem(id: 'eyes_big', shape: ItemShape.eyesBig, color: Color(0xFF5CD6D6)),
+  GameItem(
+    id: 'eyes_big',
+    themes: {ChallengeTheme.party, ChallengeTheme.snow},
+    shape: ItemShape.eyesBig,
+    color: Color(0xFF5CD6D6),
+  ),
 
   // Sunglasses
   GameItem(
     id: 'eyes_sun_aviator',
+    themes: {ChallengeTheme.beach},
     shape: ItemShape.eyesSunAviator,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'eyes_sun_heart',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
     shape: ItemShape.eyesSunHeart,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'eyes_sun_star',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
     shape: ItemShape.eyesSunStar,
     color: Color(0xFF7CB8FF),
   ),
   GameItem(
     id: 'eyes_sun_big',
+    themes: {ChallengeTheme.beach},
     shape: ItemShape.eyesSunBig,
     color: Color(0xFF3A3550),
   ),
   GameItem(
     id: 'eyes_sun_sport',
+    themes: {ChallengeTheme.beach, ChallengeTheme.snow},
     shape: ItemShape.eyesSunSport,
     color: Color(0xFF5CD6D6),
   ),
@@ -317,41 +381,49 @@ const List<GameItem> gameItems = [
   // Jewelry: necklaces
   GameItem(
     id: 'neck_pearl',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.neckPearl,
     color: Color(0xFFFFFFFF),
   ),
   GameItem(
     id: 'neck_heart',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.neckHeart,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'neck_star',
+    themes: {ChallengeTheme.bedtime, ChallengeTheme.party},
     shape: ItemShape.neckStar,
     color: Color(0xFF7CB8FF),
   ),
   GameItem(
     id: 'neck_gold',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.neckGold,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'neck_rainbow',
+    themes: {ChallengeTheme.party, ChallengeTheme.garden},
     shape: ItemShape.neckRainbow,
     color: Color(0xFFFF8FC7),
   ),
   GameItem(
     id: 'neck_choker',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.neckChoker,
     color: Color(0xFFB79CFF),
   ),
   GameItem(
     id: 'neck_crystal',
+    themes: {ChallengeTheme.snow, ChallengeTheme.ball},
     shape: ItemShape.neckCrystal,
     color: Color(0xFF5CD6D6),
   ),
   GameItem(
     id: 'neck_butterfly',
+    themes: {ChallengeTheme.garden},
     shape: ItemShape.neckButterfly,
     color: Color(0xFFD873F0),
   ),
@@ -359,44 +431,57 @@ const List<GameItem> gameItems = [
   // Jewelry: earrings
   GameItem(
     id: 'ears_stud',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.earsStud,
     color: Color(0xFF7CB8FF),
   ),
   GameItem(
     id: 'ears_hoop',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
     shape: ItemShape.earsHoop,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'ears_heart',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.earsHeart,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'ears_star',
+    themes: {ChallengeTheme.bedtime},
     shape: ItemShape.earsStar,
     color: Color(0xFFFFD84D),
   ),
-  GameItem(id: 'ears_gem', shape: ItemShape.earsGem, color: Color(0xFFD873F0)),
+  GameItem(
+    id: 'ears_gem',
+    themes: {ChallengeTheme.ball},
+    shape: ItemShape.earsGem,
+    color: Color(0xFFD873F0),
+  ),
 
   // Jewelry: bracelets
   GameItem(
     id: 'wrist_beads',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
     shape: ItemShape.wristBeads,
     color: Color(0xFFFF8FC7),
   ),
   GameItem(
     id: 'wrist_bangle',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.wristBangle,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'wrist_charm',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.wristCharm,
     color: Color(0xFFFF6B8B),
   ),
   GameItem(
     id: 'wrist_friendship',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
     shape: ItemShape.wristFriendship,
     color: Color(0xFF5CD6D6),
   ),
@@ -404,46 +489,73 @@ const List<GameItem> gameItems = [
   // Accessories: bags) and things to hold
   GameItem(
     id: 'hand_bag',
+    themes: {ChallengeTheme.party, ChallengeTheme.garden},
     shape: ItemShape.handBag,
     color: Color(0xFFFF8FC7),
     pattern: ItemPattern.dots,
   ),
   GameItem(
     id: 'hand_wand',
+    themes: {ChallengeTheme.ball, ChallengeTheme.bedtime},
     shape: ItemShape.handWand,
     color: Color(0xFFFFD84D),
   ),
   GameItem(
     id: 'hand_balloon',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.handBalloon,
     color: Color(0xFF7CB8FF),
   ),
 
   // Backgrounds
-  GameItem(id: 'bg_sky', shape: ItemShape.bgSky, color: Color(0xFFBDE3FF)),
+  GameItem(
+    id: 'bg_sky',
+    themes: {ChallengeTheme.garden},
+    shape: ItemShape.bgSky,
+    color: Color(0xFFBDE3FF),
+  ),
   GameItem(
     id: 'bg_garden',
+    themes: {ChallengeTheme.garden},
     shape: ItemShape.bgGarden,
     color: Color(0xFFBDE3FF),
   ),
   GameItem(
     id: 'bg_castle',
+    themes: {ChallengeTheme.ball},
     shape: ItemShape.bgCastle,
     color: Color(0xFFFFD1E8),
   ),
   GameItem(
     id: 'bg_rainbow',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.bgRainbow,
     color: Color(0xFFE3D4FF),
   ),
-  GameItem(id: 'bg_night', shape: ItemShape.bgNight, color: Color(0xFFE3D4FF)),
+  GameItem(
+    id: 'bg_night',
+    themes: {ChallengeTheme.bedtime, ChallengeTheme.snow},
+    shape: ItemShape.bgNight,
+    color: Color(0xFFE3D4FF),
+  ),
   GameItem(
     id: 'bg_hearts',
+    themes: {ChallengeTheme.party},
     shape: ItemShape.bgHearts,
     color: Color(0xFFFFD1E8),
   ),
-  GameItem(id: 'bg_beach', shape: ItemShape.bgBeach, color: Color(0xFFBDE3FF)),
-  GameItem(id: 'bg_candy', shape: ItemShape.bgCandy, color: Color(0xFFFFD1E8)),
+  GameItem(
+    id: 'bg_beach',
+    themes: {ChallengeTheme.beach},
+    shape: ItemShape.bgBeach,
+    color: Color(0xFFBDE3FF),
+  ),
+  GameItem(
+    id: 'bg_candy',
+    themes: {ChallengeTheme.party},
+    shape: ItemShape.bgCandy,
+    color: Color(0xFFFFD1E8),
+  ),
 ];
 
 // ---------------------------------------------------------------------------
@@ -594,6 +706,28 @@ const List<DollPose> poseButtonOrder = [
 
 /// How long she dances after the Dance button.
 const Duration danceTime = Duration(seconds: 10);
+
+// ---------------------------------------------------------------------------
+// Dress-up challenges (the Challenge button)
+//
+// Every item lists the themes it fits (`themes:` above). Wearing more items
+// that fit the theme gives more stars. There is always at least one star.
+// ---------------------------------------------------------------------------
+
+/// Matching items needed for two stars, and for three stars.
+const int matchesForTwoStars = 2;
+const int matchesForThreeStars = 4;
+
+/// The card color of each theme (top and bottom of the card).
+const Map<ChallengeTheme, List<Color>> themeCardColors = {
+  ChallengeTheme.beach: [Color(0xFF9FE3FF), Color(0xFFFFE7A8)],
+  ChallengeTheme.snow: [Color(0xFFD6ECFF), Color(0xFFFFFFFF)],
+  ChallengeTheme.party: [Color(0xFFFFC2E2), Color(0xFFFFF0A8)],
+  ChallengeTheme.ball: [Color(0xFFE3D4FF), Color(0xFFFFD1E8)],
+  ChallengeTheme.garden: [Color(0xFFBDF2C4), Color(0xFFFFF6C9)],
+  ChallengeTheme.bedtime: [Color(0xFF6C63C9), Color(0xFFB6A6FF)],
+};
+
 // ---------------------------------------------------------------------------
 // Activities (Makeup, Hair Salon, Nails)
 //

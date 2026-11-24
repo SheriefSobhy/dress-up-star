@@ -13,6 +13,7 @@ import 'package:dress_up_star/art/motion.dart';
 import 'package:dress_up_star/art/shine.dart';
 import 'package:dress_up_star/data/game_config.dart';
 import 'package:dress_up_star/main.dart';
+import 'package:dress_up_star/models/challenge.dart';
 import 'package:dress_up_star/models/outfit.dart';
 import 'package:dress_up_star/services/game_audio.dart';
 import 'package:dress_up_star/services/game_settings.dart';
@@ -436,6 +437,33 @@ void main() {
       await tap(tester, 'gallery_button');
       await shot(tester, '${tag}_56_gallery_pose');
     });
+
+    testWidgets('challenge screens $tag', (tester) async {
+      await pumpApp(tester, size);
+      await shot(tester, '${tag}_60_main_challenge_button');
+      await tap(tester, 'challenge_button');
+      await shot(tester, '${tag}_61_theme_card');
+      await tap(tester, 'challenge_new');
+      await shot(tester, '${tag}_62_theme_card_2');
+      await tap(tester, 'challenge_go');
+      await shot(tester, '${tag}_63_challenge_on');
+      await tapInRow(tester, 'category_dresses', 'category_bar');
+      await tapInRow(tester, 'item_dress_princess', 'item_row');
+      await tapInRow(tester, 'category_accessories', 'category_bar');
+      await tapInRow(tester, 'item_head_tiara', 'item_row');
+      await tester.tap(find.byKey(const Key('challenge_check')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 80)),
+        );
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await snap(tester, '${tag}_64_result');
+      await tester.pump(const Duration(seconds: 3));
+      await shot(tester, '${tag}_65_after_result');
+    });
     testWidgets('title screen $tag', (tester) async {
       tester.view.physicalSize = size * 3;
       tester.view.devicePixelRatio = 3;
@@ -537,6 +565,43 @@ void accessoryMain() {
       look(['dress_mermaid', 'hair_braids', 'neck_pearl']),
       look(['dress_long', 'hair_space_buns', 'shoes_boots']),
     ]);
+  });
+
+  testWidgets('theme pictures', (tester) async {
+    await tester.runAsync(() async {
+      const cell = 220.0;
+      final themes = ChallengeTheme.values;
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      for (var i = 0; i < themes.length; i++) {
+        final colors = themeCardColors[themes[i]]!;
+        final r = Rect.fromLTWH(i * cell, 0, cell, cell);
+        canvas.drawRect(
+          r,
+          Paint()
+            ..shader = LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: colors,
+            ).createShader(r),
+        );
+        final image = await rasterizeArt(
+          ArtLayer(themeArt(themes[i])),
+          const Size(100, 100),
+          const Size(200, 200),
+        );
+        canvas.drawImage(image, Offset(i * cell + 10, 10), Paint());
+      }
+      final image = await recorder.endRecording().toImage(
+        (cell * themes.length).round(),
+        cell.round(),
+      );
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      Directory(outDir).createSync(recursive: true);
+      File(
+        '$outDir/theme_pictures.png',
+      ).writeAsBytesSync(data!.buffer.asUint8List());
+    });
   });
 
   testWidgets('sparkle strips', (tester) async {

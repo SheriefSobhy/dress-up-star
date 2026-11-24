@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F3E3FF"/></linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB3D9"/><stop offset="1" stop-color="#FF6FB5"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF3B0"/><stop offset="0.5" stop-color="#FFD84D"/><stop offset="1" stop-color="#E0A81E"/></linearGradient>
+  </defs>
+  <rect x="14" y="50" width="16" height="40" fill="url(#wall)" stroke="#B48ACF" stroke-width="1.6"/>
+  <rect x="70" y="50" width="16" height="40" fill="url(#wall)" stroke="#B48ACF" stroke-width="1.6"/>
+  <rect x="28" y="58" width="44" height="32" fill="url(#wall)" stroke="#B48ACF" stroke-width="1.6"/>
+  <path d="M28 58 L28 53 L33 53 L33 58 M39 58 L39 53 L44 53 L44 58 M50 58 L50 53 L55 53 L55 58 M61 58 L61 53 L66 53 L66 58" fill="url(#wall)" stroke="#B48ACF" stroke-width="1.4"/>
+  <path d="M11 51 L22 30 L33 51 Z M67 51 L78 30 L89 51 Z" fill="url(#roof)" stroke="#C9579A" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M22 30 L22 21 L29 24 L22 27 M78 30 L78 21 L85 24 L78 27" fill="#FF6FB5" stroke="#C9579A" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M42 90 L42 76 Q50 66 58 76 L58 90 Z" fill="#C9A8FF" stroke="#8A63C9" stroke-width="1.6"/>
+  <rect x="19" y="60" width="6" height="9" rx="3" fill="#C9A8FF" stroke="#8A63C9" stroke-width="1.2"/>
+  <rect x="75" y="60" width="6" height="9" rx="3" fill="#C9A8FF" stroke="#8A63C9" stroke-width="1.2"/>
+  <path d="M30 40 L34 20 L42 30 L50 12 L58 30 L66 20 L70 40 Z" fill="url(#gold)" stroke="#C48A12" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="29" y="38" width="42" height="7" rx="3" fill="url(#gold)" stroke="#C48A12" stroke-width="1.8"/>
+  <circle cx="50" cy="31" r="4" fill="#FF5C9A" stroke="#B0306A" stroke-width="1.2"/>
+  <circle cx="38" cy="34" r="2.4" fill="#5CB8FF" stroke="#2D7FC4" stroke-width="1"/>
+  <circle cx="62" cy="34" r="2.4" fill="#5CB8FF" stroke="#2D7FC4" stroke-width="1"/>
+  <circle cx="50" cy="12" r="2.6" fill="#FFFFFF" stroke="#C48A12" stroke-width="1.2"/>
+  <path d="M12 12 L13.5 16 L17.5 17.5 L13.5 19 L12 23 L10.5 19 L6.5 17.5 L10.5 16 Z M88 8 L89 11 L92 12 L89 13 L88 16 L87 13 L84 12 L87 11 Z" fill="#FFFFFF" stroke="#E0A81E" stroke-width="0.8"/>
+</svg>
