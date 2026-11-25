@@ -446,9 +446,13 @@ class _DollPainter extends CustomPainter {
       positions,
       textureCoordinates: uvs,
     );
+    // The vertices have no colors, so only the picture (the shader) is drawn
+    // and the blend mode makes no difference to the result. It must not be
+    // BlendMode.dst: Impeller (Android) then skips binding the picture and
+    // the app crashes ("bad_function_call" in Canvas::DrawVertices).
     canvas.drawVertices(
       vertices,
-      BlendMode.dst,
+      BlendMode.srcOver,
       Paint()
         ..shader = pic.shader
         ..filterQuality = FilterQuality.medium,
