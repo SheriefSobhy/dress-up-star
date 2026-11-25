@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_strings.dart';
 import '../../art/doll_art.dart';
 import '../../art/nails_art.dart';
 import '../../data/game_config.dart';
@@ -129,7 +130,7 @@ class _Picker extends StatelessWidget {
                       icon: Icons.close_rounded,
                       color: const Color(0xFFC9B8DA),
                       size: 52,
-                      semanticLabel: 'Close',
+                      semanticLabel: AppStrings.of(context).close,
                       onTap: () {
                         audio.play(Sfx.tap);
                         Navigator.pop(context);

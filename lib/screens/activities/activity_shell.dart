@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/app_strings.dart';
 import '../../art/doll_art.dart';
 import '../../art/motion.dart';
 import '../../painting/particles.dart';
@@ -370,8 +371,8 @@ class ActivityShellState extends State<ActivityShell>
                         ? const Color(0xFFFFB347)
                         : const Color(0xFFB79CFF),
                     semanticLabel: widget.undoRestores
-                        ? 'Bring it back'
-                        : 'Undo all',
+                        ? AppStrings.of(context).bringItBack
+                        : AppStrings.of(context).undoAll,
                     size: size,
                     onTap: () {
                       widget.audio.play(
@@ -390,7 +391,7 @@ class ActivityShellState extends State<ActivityShell>
                     key: const Key('done_button'),
                     icon: Icons.check_rounded,
                     color: const Color(0xFF5ED17A),
-                    semanticLabel: 'Done',
+                    semanticLabel: AppStrings.of(context).done,
                     size: size,
                     onTap: widget.onDone,
                   ),

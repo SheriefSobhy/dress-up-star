@@ -127,10 +127,23 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
       _idle = AnimationController(
         vsync: this,
         duration: const Duration(seconds: 6),
-      )..repeat();
+      );
+      if (GameMotion.idleLoops) _idle!.repeat();
+      GameMotion.lite.addListener(_onLite);
       _scheduleBlink();
     }
     _startHeldPose();
+  }
+
+  /// Lite mode: she stands still (no breathing) and the sparkles rest.
+  void _onLite() {
+    final idle = _idle;
+    if (idle == null) return;
+    if (GameMotion.idleLoops) {
+      idle.repeat();
+    } else {
+      idle.stop();
+    }
   }
 
   void _scheduleBlink() {
@@ -163,6 +176,7 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    GameMotion.lite.removeListener(_onLite);
     _blinkTimer?.cancel();
     _idle?.dispose();
     _ticker?.dispose();
@@ -323,7 +337,7 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
                 : (_blinking ? Face.blink : Face.open),
             frame: () => _frame,
             sway: _sway,
-            shineTime: () => GameMotion.idleAnimations
+            shineTime: () => GameMotion.idleLoops
                 ? _shineClock.elapsedMilliseconds / 1000
                 : 0.8,
           ),

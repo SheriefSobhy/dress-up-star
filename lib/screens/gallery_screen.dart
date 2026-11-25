@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/outfit.dart';
 import '../widgets/art_image.dart';
 import '../services/game_audio.dart';
@@ -52,7 +53,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     key: const Key('delete_no'),
                     icon: Icons.close_rounded,
                     color: const Color(0xFF8EE08A),
-                    semanticLabel: 'Keep',
+                    semanticLabel: AppStrings.of(context).keep,
                     onTap: () {
                       widget.audio.play(Sfx.tap);
                       Navigator.pop(context, false);
@@ -62,7 +63,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     key: const Key('delete_yes'),
                     icon: Icons.check_rounded,
                     color: const Color(0xFFFF6B8B),
-                    semanticLabel: 'Delete',
+                    semanticLabel: AppStrings.of(context).delete,
                     onTap: () => Navigator.pop(context, true),
                   ),
                 ],
@@ -102,7 +103,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       key: const Key('back_button'),
                       icon: Icons.arrow_back_rounded,
                       color: const Color(0xFFB79CFF),
-                      semanticLabel: 'Back',
+                      semanticLabel: AppStrings.of(context).back,
                       onTap: () {
                         widget.audio.play(Sfx.tap);
                         Navigator.pop(context);
@@ -202,7 +203,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               icon: Icons.close_rounded,
               color: const Color(0xFFC9B8DA),
               size: 40,
-              semanticLabel: 'Delete',
+              semanticLabel: AppStrings.of(context).delete,
               onTap: () {
                 widget.audio.play(Sfx.tap);
                 _delete(index);

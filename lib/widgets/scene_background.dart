@@ -131,12 +131,26 @@ class _SceneMotionLayerState extends State<_SceneMotionLayer>
   void initState() {
     super.initState();
     if (GameMotion.idleAnimations) {
-      _clock = AnimationController(vsync: this, duration: loop)..repeat();
+      _clock = AnimationController(vsync: this, duration: loop);
+      if (GameMotion.idleLoops) _clock!.repeat();
+      GameMotion.lite.addListener(_onLite);
+    }
+  }
+
+  /// Lite mode: the clouds and sparkles stop where they are.
+  void _onLite() {
+    final clock = _clock;
+    if (clock == null) return;
+    if (GameMotion.idleLoops) {
+      clock.repeat();
+    } else {
+      clock.stop();
     }
   }
 
   @override
   void dispose() {
+    GameMotion.lite.removeListener(_onLite);
     _clock?.dispose();
     super.dispose();
   }

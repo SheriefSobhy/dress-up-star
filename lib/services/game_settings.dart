@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'looks_storage.dart';
+
 /// Small things the game remembers on the device.
 class GameSettings {
   static const scrollHintSeenKey = 'scroll_hint_seen';
@@ -13,6 +15,19 @@ class GameSettings {
   static Future<void> markScrollHintSeen() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(scrollHintSeenKey, true);
+  }
+
+  static const tutorialSeenKey = 'tutorial_seen';
+
+  /// True once the first-time tutorial was finished or skipped.
+  static Future<bool> tutorialSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(tutorialSeenKey) ?? false;
+  }
+
+  static Future<void> setTutorialSeen(bool seen) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(tutorialSeenKey, seen);
   }
 
   static const challengeStarsKey = 'challenge_stars';
@@ -29,5 +44,18 @@ class GameSettings {
     final total = (prefs.getInt(challengeStarsKey) ?? 0) + stars;
     await prefs.setInt(challengeStarsKey, total);
     return total;
+  }
+
+  /// Unlocked Star Shop items (the same key as Rewards.unlockedKey).
+  static const unlockedItemsKey = 'unlocked_items';
+
+  /// Starts the game over: removes every star, every unlocked Star Shop
+  /// item and every saved look. Settings (music, sounds, language) stay,
+  /// and so does today's daily star, so it is not given again right away.
+  static Future<void> resetProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(challengeStarsKey);
+    await prefs.remove(unlockedItemsKey);
+    await prefs.remove(LooksStorage.storageKey);
   }
 }

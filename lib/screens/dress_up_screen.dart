@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../art/doll_art.dart';
 import '../art/motion.dart';
 import '../data/game_config.dart';
+import '../l10n/app_strings.dart';
 import '../models/challenge.dart';
 import '../models/outfit.dart';
 import '../painting/confetti_painter.dart';
@@ -21,6 +22,7 @@ import '../widgets/challenge_widgets.dart';
 import '../widgets/doll_view.dart';
 import '../widgets/reward_widgets.dart';
 import '../widgets/scene_background.dart';
+import '../widgets/tutorial_overlay.dart';
 import 'activities/activity_picker.dart';
 import 'gallery_screen.dart';
 import 'star_shop_screen.dart';
@@ -123,6 +125,13 @@ class _DressUpScreenState extends State<DressUpScreen>
   final ScrollController _categoryScroll = ScrollController();
   bool _showScrollHint = false;
 
+  /// The first-time tutorial step being shown (null: no tutorial).
+  TutorialStep? _tutorialStep;
+  final GlobalKey _itemRowTarget = GlobalKey();
+  final GlobalKey _barTarget = GlobalKey();
+  final GlobalKey _poseTarget = GlobalKey();
+  final GlobalKey _shopTarget = GlobalKey();
+
   Offset _sparkleAt = const Offset(100, 200);
   int _sparkleSeed = 0;
   late final Random _random = widget.random ?? Random();
@@ -182,8 +191,14 @@ class _DressUpScreenState extends State<DressUpScreen>
     setState(() {});
     if (await _rewards.claimDailyStar() && mounted) {
       widget.audio.play(Sfx.unlock);
-      _giftShow.forward(from: 0);
+      try {
+        await _giftShow.forward(from: 0).orCancel;
+      } on TickerCanceled {
+        return;
+      }
     }
+    // The tutorial waits until the gift has been opened.
+    if (mounted) _maybeStartTutorial();
   }
 
   @override
@@ -209,6 +224,8 @@ class _DressUpScreenState extends State<DressUpScreen>
   /// scrolls sideways. It goes away (for good) once the bar is scrolled.
   Future<void> _maybeShowScrollHint() async {
     if (await GameSettings.scrollHintSeen()) return;
+    // The tutorial shows the sliding itself the first time.
+    if (!await GameSettings.tutorialSeen()) return;
     if (!mounted) return;
     // Wait for the bar to be laid out, then only show the arrow if there is
     // actually something to scroll to.
@@ -221,11 +238,73 @@ class _DressUpScreenState extends State<DressUpScreen>
   }
 
   void _onCategoryScroll() {
+    if (_categoryScroll.offset > 12) {
+      _tutorialDone(TutorialStep.scrollBar);
+    }
     if (_showScrollHint && _categoryScroll.offset > 12) {
       _hintBounce.stop();
       setState(() => _showScrollHint = false);
       GameSettings.markScrollHintSeen();
     }
+  }
+
+  // --------------------------------------------------------------- tutorial
+
+  /// The first time the game opens, a pointing finger shows what to do.
+  Future<void> _maybeStartTutorial() async {
+    if (await GameSettings.tutorialSeen() || !mounted) return;
+    setState(() => _tutorialStep = TutorialStep.values.first);
+  }
+
+  /// She did [step]: on to the next one (or the end).
+  void _tutorialDone(TutorialStep step) {
+    if (_tutorialStep != step) return;
+    final next = step.index + 1;
+    if (next >= TutorialStep.values.length) {
+      _endTutorial();
+    } else {
+      setState(() => _tutorialStep = TutorialStep.values[next]);
+    }
+  }
+
+  void _endTutorial() {
+    if (_tutorialStep == null) return;
+    setState(() => _tutorialStep = null);
+    GameSettings.setTutorialSeen(true);
+  }
+
+  void _skipTutorial() {
+    widget.audio.play(Sfx.tap);
+    _endTutorial();
+  }
+
+  /// Where the finger points for [step] (global coordinates).
+  Rect? _tutorialTarget(TutorialStep step) {
+    final key = switch (step) {
+      TutorialStep.tapItem => _itemRowTarget,
+      TutorialStep.scrollBar => _barTarget,
+      TutorialStep.pose => _poseTarget,
+      TutorialStep.shop => _shopTarget,
+    };
+    // Runs while painting: a part being removed this frame is skipped.
+    final element = key.currentContext as Element?;
+    final box = element?.renderObject as RenderBox?;
+    if (box == null || !box.attached || !box.hasSize) return null;
+    final rect = box.localToGlobal(Offset.zero) & box.size;
+    if (step != TutorialStep.tapItem) return rect;
+    // The first item in the row (on the right in Arabic).
+    // (Read without listening: this runs while painting.)
+    final rtl =
+        context
+            .getInheritedWidgetOfExactType<Directionality>()
+            ?.textDirection ==
+        TextDirection.rtl;
+    final x = rtl ? rect.right - 12 - 42 : rect.left + 12 + 42;
+    return Rect.fromCenter(
+      center: Offset(x, rect.center.dy),
+      width: 84,
+      height: 84,
+    );
   }
 
   // ---------------------------------------------------------------- actions
@@ -246,6 +325,7 @@ class _DressUpScreenState extends State<DressUpScreen>
   }
 
   void _tapItem(GameItem item) {
+    _tutorialDone(TutorialStep.tapItem);
     if (!_rewards.isUnlocked(item)) {
       _tapLocked(item);
       return;
@@ -297,6 +377,7 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   Future<void> _openShop() async {
     widget.audio.play(Sfx.tap);
+    _tutorialDone(TutorialStep.shop);
     final picked = await Navigator.of(context).push<GameItem>(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 380),
@@ -339,6 +420,7 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   void _tapColor(Slot slot, Color color) {
     widget.audio.play(Sfx.tap);
+    _tutorialDone(TutorialStep.tapItem);
     setState(() => _outfit = _outfit.recolor(slot, color));
     final worn = _outfit[slot];
     if (worn != null) _celebrate(focusRectFor(worn.item.shape).center);
@@ -355,6 +437,7 @@ class _DressUpScreenState extends State<DressUpScreen>
   /// Each tap: the next pose (it is saved with the look).
   void _nextPose() {
     widget.audio.play(Sfx.itemOn);
+    _tutorialDone(TutorialStep.pose);
     _stopDance();
     final next =
         poseButtonOrder[(poseButtonOrder.indexOf(_outfit.pose) + 1) %
@@ -526,18 +609,36 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   @override
   Widget build(BuildContext context) {
+    final step = _tutorialStep;
     return Scaffold(
       backgroundColor: const Color(0xFFFFF0F7),
-      body: Column(
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          Expanded(child: _stage()),
-          _wardrobe(),
+          Column(
+            children: [
+              Expanded(child: _stage()),
+              _wardrobe(),
+            ],
+          ),
+          if (step != null)
+            TutorialOverlay(
+              step: step,
+              targetOf: _tutorialTarget,
+              onSkip: _skipTutorial,
+              skipTop:
+                  MediaQuery.paddingOf(context).top +
+                  8 +
+                  (MediaQuery.sizeOf(context).width < 380 ? 56 : 64) +
+                  14,
+            ),
         ],
       ),
     );
   }
 
   Widget _stage() {
+    final strings = AppStrings.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
@@ -700,7 +801,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                               key: const Key('challenge_check'),
                               icon: Icons.check_rounded,
                               color: const Color(0xFF5CCB6A),
-                              semanticLabel: 'Done',
+                              semanticLabel: strings.done,
                               size: buttonSize,
                               onTap: _checkChallenge,
                             ),
@@ -729,6 +830,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                   ListenableBuilder(
                     listenable: _rewards,
                     builder: (context, _) => StarShopButton(
+                      key: _shopTarget,
                       stars: _rewards.stars,
                       size: buttonSize,
                       onTap: _openShop,
@@ -741,14 +843,15 @@ class _DressUpScreenState extends State<DressUpScreen>
                     color: _dancing
                         ? const Color(0xFFFF5FA2)
                         : const Color(0xFFB079F2),
-                    semanticLabel: 'Dance',
+                    semanticLabel: strings.dance,
                     size: buttonSize,
                     onTap: _toggleDance,
                   ),
                   SizedBox(height: gap),
                   RingButton(
+                    key: _poseTarget,
                     buttonKey: const Key('pose_button'),
-                    label: 'Pose',
+                    label: strings.pose,
                     icon: Icons.emoji_people_rounded,
                     color: const Color(0xFFFFA63D),
                     ringColors: const [
@@ -780,7 +883,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                         key: const Key('gallery_button'),
                         icon: Icons.photo_library_rounded,
                         color: const Color(0xFFB79CFF),
-                        semanticLabel: 'My looks',
+                        semanticLabel: strings.myLooks,
                         badge: _savedCount,
                         size: buttonSize,
                         onTap: _openGallery,
@@ -790,7 +893,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                         key: const Key('surprise_button'),
                         icon: Icons.auto_awesome_rounded,
                         color: const Color(0xFFFFB347),
-                        semanticLabel: 'Surprise me',
+                        semanticLabel: strings.surpriseMe,
                         size: buttonSize,
                         onTap: _surprise,
                       ),
@@ -799,7 +902,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                         key: const Key('camera_button'),
                         icon: Icons.photo_camera_rounded,
                         color: const Color(0xFFFF6B8B),
-                        semanticLabel: 'Save look',
+                        semanticLabel: strings.saveLook,
                         size: buttonSize,
                         onTap: _takePhoto,
                       ),
@@ -817,7 +920,9 @@ class _DressUpScreenState extends State<DressUpScreen>
                             color: muted
                                 ? const Color(0xFFB8AEC4)
                                 : const Color(0xFF4CC9C9),
-                            semanticLabel: muted ? 'Sound off' : 'Sound on',
+                            semanticLabel: muted
+                                ? strings.soundOff
+                                : strings.soundOn,
                             size: buttonSize,
                             onTap: widget.audio.toggleMuted,
                           );
@@ -922,13 +1027,16 @@ class _DressUpScreenState extends State<DressUpScreen>
                           ),
                   ),
                 ),
-                SizedBox(
-                  key: const Key('item_row'),
-                  height: 100,
-                  child: _switcher(
-                    KeyedSubtree(
-                      key: ValueKey('items_${category.id}'),
-                      child: _itemRow(category),
+                KeyedSubtree(
+                  key: _itemRowTarget,
+                  child: SizedBox(
+                    key: const Key('item_row'),
+                    height: 100,
+                    child: _switcher(
+                      KeyedSubtree(
+                        key: ValueKey('items_${category.id}'),
+                        child: _itemRow(category),
+                      ),
                     ),
                   ),
                 ),
@@ -1127,12 +1235,18 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   Widget _categoryBar() {
     return SizedBox(
+      key: _barTarget,
       height: 84,
       child: Stack(
         children: [
           Positioned.fill(child: _categoryList()),
           if (_showScrollHint)
-            Positioned(right: 6, top: 0, bottom: 0, child: _scrollHint()),
+            PositionedDirectional(
+              end: 6,
+              top: 0,
+              bottom: 0,
+              child: _scrollHint(),
+            ),
         ],
       ),
     );
@@ -1140,6 +1254,8 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   /// A small bouncing arrow saying "this bar slides sideways".
   Widget _scrollHint() {
+    // In Arabic the bar starts on the right, so the arrow points left.
+    final side = Directionality.of(context) == TextDirection.rtl ? -1 : 1;
     return IgnorePointer(
       key: const Key('scroll_hint'),
       child: Center(
@@ -1147,7 +1263,7 @@ class _DressUpScreenState extends State<DressUpScreen>
           animation: _hintBounce,
           builder: (context, child) => Transform.translate(
             offset: Offset(
-              8 * Curves.easeInOut.transform(_hintBounce.value) - 8,
+              side * (8 * Curves.easeInOut.transform(_hintBounce.value) - 8),
               0,
             ),
             child: child,
@@ -1242,7 +1358,7 @@ class ActivitiesButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => RingButton(
     buttonKey: const Key('activities_button'),
-    label: 'Activities',
+    label: AppStrings.of(context).activities,
     glow: const Color(0x66D873F0),
     icon: Icons.face_retouching_natural_rounded,
     color: const Color(0xFFFF6FB5),
@@ -1304,12 +1420,26 @@ class _RingButtonState extends State<RingButton>
       _pulse = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 1300),
-      )..repeat(reverse: true);
+      );
+      if (GameMotion.idleLoops) _pulse!.repeat(reverse: true);
+      GameMotion.lite.addListener(_onLite);
+    }
+  }
+
+  /// Lite mode: the button stops pulsing.
+  void _onLite() {
+    final pulse = _pulse;
+    if (pulse == null) return;
+    if (GameMotion.idleLoops) {
+      pulse.repeat(reverse: true);
+    } else {
+      pulse.animateTo(0, duration: const Duration(milliseconds: 200));
     }
   }
 
   @override
   void dispose() {
+    GameMotion.lite.removeListener(_onLite);
     _pulse?.dispose();
     super.dispose();
   }

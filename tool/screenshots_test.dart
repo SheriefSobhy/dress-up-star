@@ -33,6 +33,18 @@ Future<void> loadFonts() async {
   final fredoka = FontLoader('Fredoka')
     ..addFont(rootBundle.load('assets/fonts/Fredoka.ttf'));
   await fredoka.load();
+  // Fredoka has no Arabic letters. Phones use their own Arabic font for
+  // them; here a Windows font stands in (only for the pictures).
+  for (final path in const [
+    r'C:\Windows\Fonts\arial.ttf',
+    r'C:\Windows\Fonts\arialbd.ttf',
+  ]) {
+    final file = File(path);
+    if (!file.existsSync()) continue;
+    final arabic = FontLoader('Fredoka')
+      ..addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+    await arabic.load();
+  }
   final root = Platform.environment['FLUTTER_ROOT'];
   if (root != null) {
     final file = File(
@@ -579,7 +591,128 @@ void main() {
       );
       await shot(tester, '${tag}_00_title');
     });
+    for (final lang in const ['en', 'ar']) {
+      familyScenes(size, tag, lang);
+    }
   }
+}
+
+/// Parents' screens, the tutorial and the main screens in [lang]
+/// ("parents 390 ar", "tutorial 320 en", "tour 390 ar").
+void familyScenes(Size size, String tag, String lang) {
+  final name = '${tag}_$lang';
+
+  Future<void> start(
+    WidgetTester tester, {
+    bool tutorialSeen = true,
+    bool play = true,
+  }) async {
+    // ignore: invalid_use_of_visible_for_testing_member
+    SharedPreferences.setMockInitialValues({
+      GameSettings.scrollHintSeenKey: true,
+      GameSettings.tutorialSeenKey: tutorialSeen,
+      Rewards.dailyStarKey: '2026-11-25',
+      GameSettings.challengeStarsKey: 9,
+      'language': lang,
+    });
+    // ignore: invalid_use_of_visible_for_testing_member
+    Rewards.now = () => DateTime(2026, 11, 25);
+    tester.view.physicalSize = size * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: rootKey,
+        child: DressUpStarApp(
+          storage: LooksStorage(),
+          audio: SilentGameAudio(),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    if (play) {
+      await tap(tester, 'play_button');
+      await tester.pump(const Duration(seconds: 1));
+    }
+  }
+
+  testWidgets('parents $tag $lang', (tester) async {
+    await start(tester, play: false);
+    // Holding the gear: the ring fills and the words show.
+    final g = await tester.startGesture(
+      tester.getCenter(find.byKey(const Key('parents_button'))),
+    );
+    for (var i = 0; i < 15; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await snap(tester, '${name}_90_hold');
+    for (var i = 0; i < 18; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    await shot(tester, '${name}_91_question');
+    // A wrong answer first.
+    await tap(tester, 'gate_key_1');
+    await tap(tester, 'gate_ok');
+    await shot(tester, '${name}_92_wrong');
+    final m = RegExp(r'\d+')
+        .allMatches(
+          tester.widget<Text>(find.byKey(const Key('gate_question'))).data!,
+        )
+        .map((m) => int.parse(m[0]!))
+        .toList();
+    for (final d in '${m[0] * m[1]}'.split('')) {
+      await tap(tester, 'gate_key_$d');
+    }
+    await tap(tester, 'gate_ok');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_93_parents');
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('parents_reset')),
+      200,
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    await shot(tester, '${name}_94_parents_bottom');
+    await tap(tester, 'parents_reset');
+    await shot(tester, '${name}_95_reset_dialog');
+    await tap(tester, 'reset_cancel');
+    await tap(tester, 'parents_privacy');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_96_privacy');
+  });
+
+  testWidgets('tutorial $tag $lang', (tester) async {
+    await start(tester, tutorialSeen: false);
+    await shot(tester, '${name}_a0_tutorial_item');
+    await tap(tester, 'item_hair_long');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_a1_tutorial_scroll');
+    await tester.drag(
+      find.byKey(const Key('category_bar')),
+      Offset(lang == 'ar' ? 160 : -160, 0),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_a2_tutorial_pose');
+    await tap(tester, 'pose_button');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_a3_tutorial_shop');
+  });
+
+  testWidgets('tour $tag $lang', (tester) async {
+    await start(tester);
+    await shot(tester, '${name}_b0_main');
+    await tap(tester, 'activities_button');
+    await shot(tester, '${name}_b1_picker');
+    await tap(tester, 'activity_makeup');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_b2_makeup');
+    await tap(tester, 'done_button');
+    await tester.pump(const Duration(seconds: 1));
+    await tap(tester, 'shop_button');
+    await tester.pump(const Duration(seconds: 1));
+    await shot(tester, '${name}_b3_shop');
+  });
 }
 
 /// Scrolls [row] until [key] shows, then taps it.

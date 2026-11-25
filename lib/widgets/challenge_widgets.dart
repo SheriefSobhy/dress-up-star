@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../data/game_config.dart';
 import '../models/challenge.dart';
 import '../painting/shapes.dart';
@@ -130,7 +131,7 @@ class _ThemeCard extends StatelessWidget {
                     key: const Key('challenge_new'),
                     icon: Icons.shuffle_rounded,
                     color: const Color(0xFFB79CFF),
-                    semanticLabel: 'Another card',
+                    semanticLabel: AppStrings.of(context).anotherCard,
                     size: 56,
                     onTap: () => pick(ThemeCardChoice.another),
                   ),
@@ -139,7 +140,7 @@ class _ThemeCard extends StatelessWidget {
                     key: const Key('challenge_go'),
                     icon: Icons.play_arrow_rounded,
                     color: const Color(0xFF5CCB6A),
-                    semanticLabel: 'Start',
+                    semanticLabel: AppStrings.of(context).start,
                     size: 76,
                     onTap: () => pick(ThemeCardChoice.go),
                   ),
@@ -376,7 +377,7 @@ class ChallengeButton extends StatelessWidget {
     final t = theme;
     return Semantics(
       button: true,
-      label: 'Challenge',
+      label: AppStrings.of(context).challenge,
       child: Pressable(
         key: const Key('challenge_button'),
         onTap: onTap,

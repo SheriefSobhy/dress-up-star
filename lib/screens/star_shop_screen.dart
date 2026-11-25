@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/app_strings.dart';
 import '../data/game_config.dart';
 import '../models/outfit.dart';
 import '../painting/confetti_painter.dart';
@@ -116,7 +117,7 @@ class _StarShopScreenState extends State<StarShopScreen>
                           key: const Key('shop_back'),
                           icon: Icons.arrow_back_rounded,
                           color: const Color(0xFFB79CFF),
-                          semanticLabel: 'Back',
+                          semanticLabel: AppStrings.of(context).back,
                           size: 56,
                           onTap: () {
                             widget.audio.play(Sfx.tap);

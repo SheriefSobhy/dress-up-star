@@ -4,21 +4,32 @@ import 'package:flutter/material.dart';
 
 import '../art/motion.dart';
 import '../data/game_config.dart';
+import '../l10n/app_strings.dart';
 import '../models/outfit.dart';
+import '../services/app_settings.dart';
 import '../services/game_audio.dart';
+import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/doll_view.dart';
 import '../widgets/scene_background.dart';
 import 'dress_up_screen.dart';
+import 'parents/parent_gate.dart';
+import 'parents/parents_screen.dart';
 
 /// The start screen: the game name, the doll waving hello and a big Play
 /// button.
 class TitleScreen extends StatefulWidget {
-  const TitleScreen({super.key, required this.storage, required this.audio});
+  const TitleScreen({
+    super.key,
+    required this.storage,
+    required this.audio,
+    required this.settings,
+  });
 
   final LooksStorage storage;
   final GameAudio audio;
+  final AppSettings settings;
 
   @override
   State<TitleScreen> createState() => _TitleScreenState();
@@ -52,14 +63,42 @@ class _TitleScreenState extends State<TitleScreen>
       _pulse = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 1100),
-      )..repeat(reverse: true);
+      );
+      if (GameMotion.idleLoops) _pulse!.repeat(reverse: true);
+      GameMotion.lite.addListener(_onLite);
+    }
+  }
+
+  /// Lite mode: the Play button stops pulsing.
+  void _onLite() {
+    final pulse = _pulse;
+    if (pulse == null) return;
+    if (GameMotion.idleLoops) {
+      pulse.repeat(reverse: true);
+    } else {
+      pulse.animateTo(0, duration: const Duration(milliseconds: 200));
     }
   }
 
   @override
   void dispose() {
+    GameMotion.lite.removeListener(_onLite);
     _pulse?.dispose();
     super.dispose();
+  }
+
+  /// The parents' gear: after the hold and the question, the settings.
+  Future<void> _openParents() async {
+    final result = await Navigator.of(context).push<ParentsResult>(
+      MaterialPageRoute(
+        builder: (_) =>
+            ParentsScreen(audio: widget.audio, settings: widget.settings),
+      ),
+    );
+    if (!mounted || result != ParentsResult.replayTutorial) return;
+    // Straight into the game, where the pointing finger starts again.
+    await GameSettings.setTutorialSeen(false);
+    if (mounted) _play();
   }
 
   void _play() {
@@ -105,6 +144,17 @@ class _TitleScreenState extends State<TitleScreen>
               ],
             ),
           ),
+          // The parents' gear, small and out of the way.
+          PositionedDirectional(
+            top: 0,
+            end: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: ParentsButton(size: 40, onUnlocked: _openParents),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -116,7 +166,7 @@ class _TitleScreenState extends State<TitleScreen>
       icon: Icons.play_arrow_rounded,
       color: const Color(0xFFFF6FA5),
       size: 112,
-      semanticLabel: 'Play',
+      semanticLabel: AppStrings.of(context).play,
       onTap: _play,
     );
     final pulse = _pulse;

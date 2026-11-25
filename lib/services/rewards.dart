@@ -19,7 +19,7 @@ class Rewards extends ChangeNotifier {
   static const earnedKey = GameSettings.challengeStarsKey;
 
   /// Unlocked items, saved as "id:stars paid".
-  static const unlockedKey = 'unlocked_items';
+  static const unlockedKey = GameSettings.unlockedItemsKey;
 
   /// The last day the daily star was given ("2026-11-24").
   static const dailyStarKey = 'daily_star_day';

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_strings.dart';
 import '../../art/doll_art.dart';
 import '../../art/salon_art.dart';
 import '../../data/game_config.dart';
@@ -357,7 +358,7 @@ class _SalonScreenState extends State<SalonScreen>
           key: const Key('grow_button'),
           icon: Icons.auto_fix_high_rounded,
           color: const Color(0xFF5CCB9E),
-          semanticLabel: 'Grow back',
+          semanticLabel: AppStrings.of(context).growBack,
           size: width < 380 ? 56 : 64,
           onTap: _growBack,
         ),

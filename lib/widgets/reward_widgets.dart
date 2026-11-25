@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../data/game_config.dart';
 import '../painting/shapes.dart';
 import 'art_image.dart';
@@ -449,7 +450,7 @@ class StarShopButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Star Shop',
+      label: AppStrings.of(context).starShop,
       child: Pressable(
         key: const Key('shop_button'),
         onTap: onTap,

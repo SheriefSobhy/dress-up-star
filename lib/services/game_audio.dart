@@ -19,21 +19,65 @@ enum Sfx {
   notYet,
 }
 
-/// Music and sound effects, plus the mute switch (remembered on the device).
+/// Music and sound effects, plus the switches (remembered on the device):
+/// the children's mute button turns everything off, and the parents'
+/// screen can turn the music and the sound effects off one by one.
 ///
 /// The game uses [AudioPlayersGameAudio]; tests use [SilentGameAudio], which
 /// only records what would have played.
 abstract class GameAudio extends ChangeNotifier {
   static const mutedKey = 'sound_muted';
+  static const musicOnKey = 'music_on';
+  static const soundsOnKey = 'sounds_on';
 
   bool _muted = false;
   bool get muted => _muted;
 
-  /// Reads the saved mute setting and gets the sounds ready.
-  Future<void> load() async {
+  bool _musicOn = true;
+  bool _soundsOn = true;
+
+  /// The parents' music switch.
+  bool get musicOn => _musicOn;
+
+  /// The parents' sound effects switch.
+  bool get soundsOn => _soundsOn;
+
+  /// Music may play now.
+  bool get musicAllowed => !_muted && _musicOn;
+
+  /// Sound effects may play now.
+  bool get soundsAllowed => !_muted && _soundsOn;
+
+  /// Reads the saved switches and gets the sounds ready.
+  Future<void> load() => loadSettings();
+
+  /// Only reads the saved switches (cheap; done when the app starts so the
+  /// parents' screen shows them before the game is played).
+  Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _muted = prefs.getBool(mutedKey) ?? false;
+    _musicOn = prefs.getBool(musicOnKey) ?? true;
+    _soundsOn = prefs.getBool(soundsOnKey) ?? true;
     notifyListeners();
+  }
+
+  Future<void> setMusicOn(bool on) async {
+    _musicOn = on;
+    notifyListeners();
+    if (on) {
+      startMusic();
+    } else {
+      pauseMusic();
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(musicOnKey, on);
+  }
+
+  Future<void> setSoundsOn(bool on) async {
+    _soundsOn = on;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(soundsOnKey, on);
   }
 
   Future<void> toggleMuted() async {
@@ -109,7 +153,7 @@ class AudioPlayersGameAudio extends GameAudio {
 
   @override
   void play(Sfx sfx) {
-    if (muted) return;
+    if (!soundsAllowed) return;
     final player = _sfx[sfx]!;
     _safely(() async {
       await player.stop();
@@ -119,7 +163,7 @@ class AudioPlayersGameAudio extends GameAudio {
 
   @override
   void startMusic() {
-    if (muted || _musicStarting) return;
+    if (!musicAllowed || _musicStarting) return;
     if (_musicStarted) {
       if (_musicPaused) {
         _musicPaused = false;
@@ -137,7 +181,7 @@ class AudioPlayersGameAudio extends GameAudio {
       _musicStarted = true;
       _musicPaused = false;
       // The player may have pressed mute while the music was loading.
-      if (muted) pauseMusic();
+      if (!musicAllowed) pauseMusic();
     } catch (e) {
       // Usually "the browser needs a touch first": try again next touch.
       debugPrint('Music could not start yet: $e');
@@ -191,12 +235,12 @@ class SilentGameAudio extends GameAudio {
 
   @override
   void play(Sfx sfx) {
-    if (!muted) played.add(sfx);
+    if (soundsAllowed) played.add(sfx);
   }
 
   @override
   void startMusic() {
-    if (!muted) musicPlaying = true;
+    if (musicAllowed) musicPlaying = true;
   }
 
   @override

@@ -103,6 +103,42 @@ pictures are SVGs in `assets/svg/tools/`.
 - The doll is split into moving parts (hair, skirt, arms, held things) in
   `lib/art/doll_parts.dart`; each part is turned into a picture once per
   outfit, so every frame only moves ready-made pictures.
+## For parents
+
+- The small gear (top corner of the start screen) opens the parents'
+  screen. Hold it for 3 seconds (a ring fills up), then answer a
+  times-table question on the number pad.
+- Inside: music on/off, sound effects on/off, language (phone language,
+  English or Arabic), fewer effects (lite mode), show the how-to-play
+  again, the privacy policy and reset progress (stars, Star Shop items and
+  saved looks; asks first).
+- The game collects no data: no ads, no analytics, no accounts, no
+  internet, no links out. Privacy policy (English and Arabic):
+  https://sheriefsobhy.github.io/dress-up-star/privacy.html
+  (`web/privacy.html`, published with the web game).
+
+## Languages
+
+English and Arabic (right to left). The phone's language is used unless a
+parent picks one. All words are in `lib/l10n/app_strings.dart`; the game's
+name stays "Dress Up Star". Fredoka has no Arabic letters, so phones show
+Arabic in their own font.
+
+## First-time tutorial
+
+The first time the game opens, a big pointing finger shows what to do (no
+reading): tap an item, slide the bottom bar, tap Pose, open the Star Shop.
+Each step waits until it is done. The gray X skips it; it can be shown again
+from the parents' screen (`lib/widgets/tutorial_overlay.dart`).
+
+## Lite mode (slow phones)
+
+`lib/services/frame_watcher.dart` watches frame times. When more than a
+quarter of the frames are slow (over 24 ms) for two checks in a row, lite
+mode turns on and is remembered: the clouds, the doll's breathing,
+sparkles and pulsing buttons stop, and there is less confetti. Parents can
+switch it with "Fewer effects".
+
 ## Adding more items and colors
 
 Everything you can choose lives in [`lib/data/game_config.dart`](lib/data/game_config.dart).
@@ -120,7 +156,7 @@ flutter run -d chrome
 Built on this computer (not on GitHub):
 
 ```
-flutter build apk --release        # build/app/outputs/flutter-apk/app-release.apk
+flutter build apk --release --split-per-abi  # one small APK per phone type, in build/app/outputs/flutter-apk/
 flutter build appbundle --release  # build/app/outputs/bundle/release/app-release.aab (Google Play)
 ```
 
@@ -145,7 +181,9 @@ Screenshots of the screens at phone size (written to `build/screenshots/`):
 flutter test tool/screenshots_test.dart --plain-name "390"
 ```
 
-Run one phone size at a time. `--plain-name "accessory grids"` draws every
+Run one scene at a time. The parents' screens, tutorial and main screens
+in each language are `--plain-name "parents 390 ar"`, `"tutorial 320 en"`,
+`"tour 390 ar"` (any of 390/320 and en/ar). `--plain-name "accessory grids"` draws every
 pair of glasses on every hairstyle, and all the jewelry.
 
 Every push to `main` builds the web version and publishes it to GitHub Pages

@@ -177,7 +177,10 @@ void main() {
     testWidgets('shows the first time and goes away after scrolling', (
       tester,
     ) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        // The tutorial (first launch) was finished: the hint comes next.
+        GameSettings.tutorialSeenKey: true,
+      });
       await pumpGame(tester);
       expect(hint, findsOneWidget);
 
@@ -201,13 +204,19 @@ void main() {
     testWidgets('does not show when everything fits (wide screen)', (
       tester,
     ) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        // The tutorial (first launch) was finished: the hint comes next.
+        GameSettings.tutorialSeenKey: true,
+      });
       await pumpGame(tester, size: const Size(1200, 900));
       expect(hint, findsNothing);
     });
 
     testWidgets('does not block tapping the category under it', (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        // The tutorial (first launch) was finished: the hint comes next.
+        GameSettings.tutorialSeenKey: true,
+      });
       await pumpGame(tester);
       expect(hint, findsOneWidget);
       final under = tester.getCenter(hint);

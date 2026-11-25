@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
+import '../art/motion.dart';
 import 'shapes.dart';
 
 /// A happy burst of confetti, stars and hearts that pops up from [origin]
@@ -36,7 +37,9 @@ class ConfettiPainter extends CustomPainter {
     final t = progress * 2.2; // seconds-ish of flight
     final fade = progress < 0.75 ? 1.0 : 1 - (progress - 0.75) / 0.25;
     final paint = Paint();
-    for (var i = 0; i < 70; i++) {
+    // Lite mode (slow phones): fewer pieces.
+    final pieces = GameMotion.lite.value ? 28 : 70;
+    for (var i = 0; i < pieces; i++) {
       final angle = -math.pi / 2 + (rnd.nextDouble() - 0.5) * math.pi * 1.25;
       final speed = unit * (0.55 + rnd.nextDouble() * 0.75);
       final drag = 1 - 0.35 * t;
