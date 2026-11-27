@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dolls_storage.dart';
 import 'looks_storage.dart';
 
 /// Small things the game remembers on the device.
@@ -50,12 +51,13 @@ class GameSettings {
   static const unlockedItemsKey = 'unlocked_items';
 
   /// Starts the game over: removes every star, every unlocked Star Shop
-  /// item and every saved look. Settings (music, sounds, language) stay,
+  /// item, every saved look and every doll. Settings (music, sounds, language) stay,
   /// and so does today's daily star, so it is not given again right away.
   static Future<void> resetProgress() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(challengeStarsKey);
     await prefs.remove(unlockedItemsKey);
     await prefs.remove(LooksStorage.storageKey);
+    await prefs.remove(DollsStorage.storageKey);
   }
 }

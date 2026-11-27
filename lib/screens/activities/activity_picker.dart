@@ -337,7 +337,7 @@ class _Portrait extends StatelessWidget {
                 final picture = recordPicture((canvas) {
                   canvas.translate(fit.dx, fit.dy);
                   canvas.scale(fit.scale);
-                  paintHand(canvas);
+                  paintHand(canvas, look.body);
                   paintNails(canvas, _sampleNails);
                 });
                 final image = await picture.toImage(
@@ -354,6 +354,7 @@ class _Portrait extends StatelessWidget {
                     ? kMakeupFrame.deflate(4)
                     : const Rect.fromLTRB(14, 26, 186, 226),
                 pixels,
+                depth: true,
               );
             },
           ),

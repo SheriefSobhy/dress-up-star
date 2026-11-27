@@ -88,7 +88,9 @@ class ItemThumbnail extends StatelessWidget {
         final wear = <Slot, WornItem>{item.slot: worn};
         // Head things and glasses look best on a doll with hair (earrings
         // are shown on her bare ear).
-        if (item.slot == Slot.head || item.slot == Slot.eyes) {
+        if (item.slot == Slot.head ||
+            item.slot == Slot.hat ||
+            item.slot == Slot.eyes) {
           final hair = findItem('hair_bob') ?? itemsForSlot(Slot.hair).first;
           wear[Slot.hair] = WornItem(hair, hair.color);
         }
@@ -97,6 +99,7 @@ class ItemThumbnail extends StatelessWidget {
           recipe.flat(Face.open),
           focusRectFor(item.shape),
           pixels,
+          depth: true,
         );
       },
     );

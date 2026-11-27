@@ -66,7 +66,7 @@ void main() {
     test('every item is in exactly one category', () {
       for (final item in gameItems) {
         final homes = gameCategories.where(
-          (c) => !c.colorOnly && c.slots.contains(item.slot),
+          (c) => !c.colorOnly && c.shows(item),
         );
         expect(homes.length, 1, reason: item.id);
       }
@@ -168,6 +168,7 @@ void main() {
       expect(under.last, 'head.svg');
       expect(recipe.over.map((l) => l.asset.split('/').last), [
         'hairLong.svg',
+        'drawn:brows|0|1',
         'earsGem.svg',
         'headTiara.svg',
         'eyesSunHeart.svg',

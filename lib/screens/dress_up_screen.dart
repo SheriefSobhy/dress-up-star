@@ -12,6 +12,7 @@ import '../models/outfit.dart';
 import '../painting/confetti_painter.dart';
 import '../painting/shapes.dart';
 import '../painting/sparkle_painter.dart';
+import '../services/dolls_storage.dart';
 import '../services/game_audio.dart';
 import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
@@ -19,11 +20,15 @@ import '../services/rewards.dart';
 import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/challenge_widgets.dart';
+import '../widgets/confirm_delete.dart';
+import '../widgets/doll_strip.dart';
 import '../widgets/doll_view.dart';
+import '../widgets/parallax.dart';
 import '../widgets/reward_widgets.dart';
 import '../widgets/scene_background.dart';
 import '../widgets/tutorial_overlay.dart';
 import 'activities/activity_picker.dart';
+import 'creator_screen.dart';
 import 'gallery_screen.dart';
 import 'star_shop_screen.dart';
 
@@ -46,7 +51,20 @@ class DressUpScreen extends StatefulWidget {
 
 class _DressUpScreenState extends State<DressUpScreen>
     with TickerProviderStateMixin {
-  Outfit _outfit = Outfit.starter();
+  /// Every doll; [_outfit] is what the one on stage wears.
+  Dolls _dolls = Dolls.start();
+  final DollsStorage _dollsStorage = DollsStorage();
+  bool _dollsLoaded = false;
+
+  Outfit get _outfit => _dolls.active;
+
+  /// Dresses the doll on stage (she keeps her own skin and face) and
+  /// remembers it.
+  set _outfit(Outfit look) {
+    _dolls = _dolls.dress(look);
+    _saveDolls();
+  }
+
   int _categoryIndex = 0;
 
   /// The slot the color buttons change (the last thing tapped).
@@ -55,6 +73,11 @@ class _DressUpScreenState extends State<DressUpScreen>
 
   /// Goes up each time the doll gets a little push (hair and skirt swing).
   int _nudge = 0;
+
+  /// Goes up each time she is swiped, to turn toward [_turnSide].
+  int _turn = 0;
+  int _turnSide = 1;
+  double _swipe = 0;
 
   late final AnimationController _bounce = AnimationController(
     vsync: this,
@@ -178,9 +201,83 @@ class _DressUpScreenState extends State<DressUpScreen>
       if (mounted) setState(() => _savedCount = looks.length);
     });
     _loadRewards();
+    _loadDolls();
     widget.audio.load();
     _categoryScroll.addListener(_onCategoryScroll);
     _maybeShowScrollHint();
+  }
+
+  // ------------------------------------------------------------------ dolls
+
+  Future<void> _loadDolls() async {
+    final dolls = await _dollsStorage.load();
+    if (!mounted) return;
+    setState(() {
+      _dolls = dolls;
+      _dollsLoaded = true;
+    });
+  }
+
+  /// Nothing is written before the saved dolls were read.
+  void _saveDolls() {
+    if (_dollsLoaded) _dollsStorage.save(_dolls);
+  }
+
+  void _showDoll(int id) {
+    if (id == _dolls.activeId) {
+      widget.audio.play(Sfx.tap);
+      _celebrate(const Offset(100, 190));
+      return;
+    }
+    widget.audio.play(Sfx.itemOn);
+    _stopDance();
+    setState(() {
+      _dolls = _dolls.select(id);
+      _activeSlot = null;
+    });
+    _saveDolls();
+    _celebrate(const Offset(100, 190));
+  }
+
+  /// The creator: for the doll on stage, or for a [isNew] one.
+  Future<void> _openCreator({required bool isNew}) async {
+    if (isNew && _dolls.isFull) return;
+    widget.audio.play(Sfx.tap);
+    _stopDance();
+    final start = isNew ? Outfit.starter() : _outfit;
+    final body = await Navigator.of(
+      context,
+    ).push<DollBody>(creatorRoute(outfit: start, audio: widget.audio));
+    if (body == null || !mounted) return;
+    setState(() {
+      _dolls = isNew
+          ? _dolls.add(start.copyWith(body: body))
+          : _dolls.reshape(body);
+      _activeSlot = null;
+    });
+    _saveDolls();
+    _celebrate(const Offset(100, 130));
+    _burstConfetti();
+  }
+
+  Future<void> _deleteDoll() async {
+    if (_dolls.list.length < 2) return;
+    widget.audio.play(Sfx.tap);
+    _stopDance();
+    final doll = _outfit;
+    final yes = await confirmDelete(
+      context,
+      widget.audio,
+      picture: DollFace(outfit: doll, size: 96),
+    );
+    if (!yes || !mounted) return;
+    widget.audio.play(Sfx.itemOff);
+    setState(() {
+      _dolls = _dolls.remove(doll.dollId);
+      _activeSlot = null;
+    });
+    _saveDolls();
+    _celebrate(const Offset(100, 190));
   }
 
   /// Loads the stars, then gives the daily star (with the gift animation)
@@ -319,6 +416,17 @@ class _DressUpScreenState extends State<DressUpScreen>
     HapticFeedback.lightImpact();
   }
 
+  /// A swipe across her: she turns a little that way, then back.
+  void _turnDoll() {
+    if (_swipe.abs() < 24) return;
+    widget.audio.play(Sfx.tap);
+    HapticFeedback.lightImpact();
+    setState(() {
+      _turnSide = _swipe > 0 ? 1 : -1;
+      _turn++;
+    });
+  }
+
   void _burstConfetti() {
     _confettiSeed++;
     _confetti.forward(from: 0);
@@ -408,7 +516,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     if (picked == null) return;
     // Put on what she picked, and show its category.
     final index = gameCategories.indexWhere(
-      (c) => !c.colorOnly && c.slots.contains(picked.slot),
+      (c) => !c.colorOnly && c.shows(picked),
     );
     setState(() {
       _outfit = _outfit.wear(picked);
@@ -566,7 +674,11 @@ class _DressUpScreenState extends State<DressUpScreen>
     if (!mounted) return;
     setState(() {
       _savedCount = looks.length;
-      if (picked != null) _outfit = picked;
+      if (picked != null) {
+        // Back on the doll who wore it (if she is still here).
+        if (_dolls.has(picked.dollId)) _dolls = _dolls.select(picked.dollId);
+        _outfit = picked;
+      }
     });
     if (picked != null) _celebrate(const Offset(100, 190));
   }
@@ -593,14 +705,16 @@ class _DressUpScreenState extends State<DressUpScreen>
   Slot? _colorTarget() {
     final category = _category;
     if (category.colorOnly) return category.slots.first;
-    final active = _activeSlot;
-    if (active != null &&
-        category.slots.contains(active) &&
-        _outfit[active] != null) {
-      return active;
+    // Only things from this category (not pajamas from the Dresses button).
+    bool wearsHere(Slot slot) {
+      final worn = _outfit[slot];
+      return worn != null && category.shows(worn.item);
     }
+
+    final active = _activeSlot;
+    if (active != null && wearsHere(active)) return active;
     for (final slot in category.slots) {
-      if (_outfit[slot] != null) return slot;
+      if (wearsHere(slot)) return slot;
     }
     return null;
   }
@@ -630,7 +744,9 @@ class _DressUpScreenState extends State<DressUpScreen>
                   MediaQuery.paddingOf(context).top +
                   8 +
                   (MediaQuery.sizeOf(context).width < 380 ? 56 : 64) +
-                  14,
+                  // Below the strip of dolls.
+                  (MediaQuery.sizeOf(context).width < 380 ? 40 : 46) +
+                  20,
             ),
         ],
       ),
@@ -644,60 +760,83 @@ class _DressUpScreenState extends State<DressUpScreen>
         final size = constraints.biggest;
         final buttonSize = size.width < 380 ? 56.0 : 64.0;
         final gap = size.width < 360 ? 8.0 : 12.0;
-        return Stack(
+        // On short screens the strip stays between the side buttons.
+        final tight = size.height < 420;
+        final faceSize = tight || size.width < 380 ? 40.0 : 46.0;
+        final stripTop = 8 + buttonSize + (tight ? 2 : 6);
+        final dollTop = stripTop + faceSize + 8;
+        final stage = Stack(
           fit: StackFit.expand,
           children: [
-            SceneBackground(
-              scene:
-                  _outfit[Slot.background] ??
-                  Outfit.starter()[Slot.background]!,
+            ParallaxLayer(
+              depth: -7,
+              // A little bigger, so its edges never show.
+              scale: 1.05,
+              child: SceneBackground(
+                scene:
+                    _outfit[Slot.background] ??
+                    Outfit.starter()[Slot.background]!,
+              ),
             ),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 76, bottom: 4),
-                child: GestureDetector(
-                  key: const Key('doll'),
-                  onTap: () {
-                    widget.audio.play(Sfx.tap);
-                    _celebrate(const Offset(100, 190));
-                  },
-                  child: AnimatedBuilder(
-                    animation: Listenable.merge([_bounce, _happy, _dance]),
-                    builder: (context, _) {
-                      final t = _bounce.value;
-                      final scale = _bounce.isAnimating
-                          ? _bounceScale.transform(t)
-                          : 1.0;
-                      final hop = _bounce.isAnimating
-                          ? _bounceHop.transform(t)
-                          : 0.0;
-                      return Transform.translate(
-                        offset: Offset(0, hop * 16),
-                        child: Transform.scale(
-                          scale: scale,
-                          alignment: Alignment.bottomCenter,
-                          child: RepaintBoundary(
-                            child: DollView(
-                              outfit: _outfit,
-                              happy: _happy.isAnimating || _dancing,
-                              dancing: _dancing,
-                              nudge: _nudge,
+            ParallaxLayer(
+              depth: 3,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.only(top: dollTop, bottom: 4),
+                  child: GestureDetector(
+                    key: const Key('doll'),
+                    onTap: () {
+                      widget.audio.play(Sfx.tap);
+                      _celebrate(const Offset(100, 190));
+                    },
+                    onHorizontalDragStart: (_) => _swipe = 0,
+                    onHorizontalDragUpdate: (d) => _swipe += d.delta.dx,
+                    onHorizontalDragEnd: (_) => _turnDoll(),
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([_bounce, _happy, _dance]),
+                      builder: (context, _) {
+                        final t = _bounce.value;
+                        final scale = _bounce.isAnimating
+                            ? _bounceScale.transform(t)
+                            : 1.0;
+                        final hop = _bounce.isAnimating
+                            ? _bounceHop.transform(t)
+                            : 0.0;
+                        return Transform.translate(
+                          offset: Offset(0, hop * 16),
+                          child: Transform.scale(
+                            scale: scale,
+                            alignment: Alignment.bottomCenter,
+                            child: RepaintBoundary(
+                              child: DollView(
+                                outfit: _outfit,
+                                happy: _happy.isAnimating || _dancing,
+                                dancing: _dancing,
+                                nudge: _nudge,
+                                hop: hop * 16,
+                                turn: _turn,
+                                turnSide: _turnSide,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
+            ),
+            // Soft glows in front of everything in the scene.
+            const IgnorePointer(
+              child: ParallaxLayer(depth: 12, child: ForegroundGlows()),
             ),
             // Sparkles
             IgnorePointer(
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 76, bottom: 4),
+                  padding: EdgeInsets.only(top: dollTop, bottom: 4),
                   child: LayoutBuilder(
                     builder: (context, inner) {
                       final fit = FitTransform(kDollFrame, inner.biggest);
@@ -868,6 +1007,23 @@ class _DressUpScreenState extends State<DressUpScreen>
                 ],
               ),
             ),
+            // Her friends: a face for every doll, new doll and creator.
+            Positioned(
+              top: stripTop,
+              left: tight ? buttonSize + 14 : 8,
+              right: tight ? buttonSize + 14 : 8,
+              child: SafeArea(
+                bottom: false,
+                child: DollStrip(
+                  dolls: _dolls,
+                  faceSize: faceSize,
+                  onShow: _showDoll,
+                  onAdd: () => _openCreator(isNew: true),
+                  onDelete: _deleteDoll,
+                  onCreate: () => _openCreator(isNew: false),
+                ),
+              ),
+            ),
             // Top buttons
             Positioned(
               top: 0,
@@ -935,6 +1091,7 @@ class _DressUpScreenState extends State<DressUpScreen>
             ),
           ],
         );
+        return ParallaxScope(child: stage);
       },
     );
   }

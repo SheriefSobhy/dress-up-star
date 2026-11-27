@@ -151,6 +151,8 @@ void main() {
     expect(under.last, 'head.svg');
     expect(recipe.over.map((l) => l.asset.split('/').last), [
       'hairLong.svg',
+      // Her eyebrows show over the fringe.
+      'drawn:brows|0|1',
       'headCrown.svg',
     ]);
 

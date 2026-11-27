@@ -6,6 +6,7 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
 import 'beauty_art.dart';
+import 'body_art.dart';
 import 'doll_art.dart';
 import 'nails_art.dart';
 import 'salon_art.dart';
@@ -70,18 +71,20 @@ class DollPart {
 
 /// The doll split into parts that can move on their own, in drawing order.
 class DollParts {
-  DollParts(this.parts, {this.makeup = Makeup.none});
+  DollParts(
+    this.parts, {
+    this.makeup = Makeup.none,
+    this.body = DollBody.classic,
+  });
 
   final List<DollPart> parts;
   final Makeup makeup;
+  final DollBody body;
 
   /// The face (with its makeup) for [face].
   List<ArtLayer> face(Face face) =>
-      makeupFaceLayers(makeup, face, faceLayer(face));
+      makeupFaceLayers(makeup, face, faceLayer(face, body), body.eyeShape);
 }
-
-/// Tops whose sleeves reach the wrist.
-const Set<ItemShape> _longSleeves = {ItemShape.topSweater};
 
 /// Earrings come in pairs: the sparkle area covers both ears.
 Rect shineRectFor(ItemShape shape) {
@@ -122,13 +125,21 @@ Future<DollParts> dollParts(Outfit outfit) async {
     if (suffix.isNotEmpty && !assets.contains(path)) return null;
     final shiny = suffix.isEmpty && shinyShapes.contains(worn.item.shape);
     return (
-      ArtLayer(path, color: worn.color, pattern: worn.item.pattern, slot: slot),
+      skinnedItem(
+        ArtLayer(
+          path,
+          color: worn.color,
+          pattern: worn.item.pattern,
+          slot: slot,
+        ),
+        outfit.body,
+      ),
       shiny ? shineRectFor(worn.item.shape) : null,
     );
   }
 
   (ArtLayer, Rect?) plain(ArtLayer layer) => (layer, null);
-  ArtLayer doll(String name) => ArtLayer('$kDollDir$name.svg');
+  ArtLayer doll(String name) => skinLayer(name, outfit.body);
 
   /// One half (left or right of her middle) of a layer, for sleeves.
   (ArtLayer, Rect?)? half((ArtLayer, Rect?)? entry, {required bool right}) {
@@ -191,36 +202,52 @@ Future<DollParts> dollParts(Outfit outfit) async {
     for (final l in dollNailLayers(outfit.nails, right: right))
       (l, nailsShine ? (right ? _rightNails : _leftNails) : null),
   ];
-  final front = hasDress
-      ? item(Slot.dress, '_front')
-      : item(Slot.top, '_front');
-  final top = outfit[Slot.top];
+  // A jacket's sleeves cover the sleeves under it.
+  final sleeves = outfit[Slot.jacket] != null
+      ? Slot.jacket
+      : (hasDress ? Slot.dress : Slot.top);
+  final front = item(sleeves, '_front');
+  final sleeved = outfit[sleeves];
   final longSleeve =
-      !hasDress && top != null && _longSleeves.contains(top.item.shape)
-      ? top.color
+      sleeved != null && longSleeveShapes.contains(sleeved.item.shape)
+      ? sleeved.color
       : null;
+  final dress = outfit[Slot.dress];
+  final stiff = dress != null && stiffShapes.contains(dress.item.shape);
+  final dressKind = stiff ? PartKind.body : PartKind.skirt;
+  final pants = outfit[Slot.pants]?.item.shape;
+  final overalls = pants == ItemShape.pantsOveralls;
+  final covered =
+      dress != null && footCoveringShapes.contains(dress.item.shape);
   const hairBend = 104.0;
   const skirtBend = 206.0;
   const armsRect = 140.0;
 
   // Behind her body (wings first).
   add(PartKind.body, [item(Slot.back)]);
-  add(PartKind.skirt, [item(Slot.dress, '_back')], bendTop: skirtBend);
+  add(dressKind, [item(Slot.dress, '_back')], bendTop: skirtBend);
   add(PartKind.hair, [
     if (salon != null) plain(salon.first) else item(Slot.hair, '_back'),
   ], bendTop: hairBend);
   // Her body and clothes.
   add(PartKind.body, [
     plain(doll('body')),
-    item(Slot.shoes),
+    if (!covered) item(Slot.socks),
+    // Leggings tuck into her shoes; other pants fall over them.
+    if (pants == ItemShape.pantsLeggings) item(Slot.pants),
+    if (!covered) item(Slot.shoes),
+    if (pants != ItemShape.pantsLeggings && !overalls) item(Slot.pants),
     if (!hasDress) item(Slot.top),
+    // Overalls are worn over her top.
+    if (overalls) item(Slot.pants),
   ]);
   add(
-    PartKind.skirt,
+    dressKind,
     [if (hasDress) item(Slot.dress) else item(Slot.skirt)],
     rect: const Rect.fromLTRB(4, armsRect, 196, 374),
     bendTop: skirtBend,
   );
+  add(PartKind.body, [item(Slot.jacket)]);
   add(
     PartKind.leftArm,
     [
@@ -249,8 +276,10 @@ Future<DollParts> dollParts(Outfit outfit) async {
   ], bendTop: hairBend);
   // Earrings peek out in front of the hair.
   add(PartKind.body, [
+    plain(browsLayer(outfit.body)),
     item(Slot.ears),
     item(Slot.head),
+    item(Slot.hat),
     item(Slot.eyes),
   ], rect: const Rect.fromLTRB(4, 0, 196, 200));
   final held = outfit[Slot.hand];
@@ -262,13 +291,22 @@ Future<DollParts> dollParts(Outfit outfit) async {
       [item(Slot.hand)],
     );
   }
-  return DollParts(parts, makeup: outfit.makeup);
+  return DollParts(parts, makeup: outfit.makeup, body: outfit.body);
 }
 
 // ---------------------------------------------------------------- drawing
 
 const Color _skin = Color(0xFFFFDCC8);
 const Color _skinLine = Color(0xFFDE9F84);
+
+/// The colors of a drawn elbow or finger on one doll.
+class _Skin {
+  _Skin(DollBody body)
+    : fill = skinTint(body, _skin),
+      line = skinTint(body, _skinLine);
+  final Color fill;
+  final Color line;
+}
 
 /// Draws the doll in [pose]. The art of each part is drawn by [drawPart]
 /// (doll space) and the face by [drawFace]; [drawShine] adds sparkles over
@@ -292,6 +330,7 @@ void paintPosedDoll(
     final isRight = parts[i].kind == PartKind.rightArm;
     _paintArm(
       canvas,
+      _Skin(doll.body),
       isRight ? right : left,
       parts[i],
       isRight ? pose.rightPeace : pose.leftPeace,
@@ -331,6 +370,7 @@ void paintPosedDoll(
 
 void _paintArm(
   Canvas canvas,
+  _Skin skin,
   ArmBones b,
   DollPart part,
   double peace,
@@ -357,8 +397,8 @@ void _paintArm(
     ..strokeWidth = w
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
-  canvas.drawPath(bone, stroke(_skinLine, 15));
-  canvas.drawPath(bone, stroke(_skin, 12));
+  canvas.drawPath(bone, stroke(skin.line, 15));
+  canvas.drawPath(bone, stroke(skin.fill, 12));
   final sleeve = part.sleeve;
   if (sleeve != null) {
     final cuff = Offset.fromDirection(b.lowerAngle, a * 0.62) + b.elbow;
@@ -394,7 +434,7 @@ void _paintArm(
   canvas.translate(b.elbow.dx, b.elbow.dy);
   canvas.rotate(b.lowerAngle - rest);
   canvas.translate(-restElbow.dx, -restElbow.dy);
-  if (peace > 0) _paintPeaceFingers(canvas, b, peace);
+  if (peace > 0) _paintPeaceFingers(canvas, skin, b, peace);
   canvas.save();
   clipAlongArm(a, 200);
   draw();
@@ -405,17 +445,22 @@ void _paintArm(
 
 /// Two fingers up, drawn where the hand is in the art (before the hand, so
 /// the hand covers where they start).
-void _paintPeaceFingers(Canvas canvas, ArmBones b, double peace) {
+void _paintPeaceFingers(
+  Canvas canvas,
+  _Skin skin,
+  ArmBones b,
+  double peace,
+) {
   final u = Offset.fromDirection(b.restAngle);
   final n = Offset(-u.dy, u.dx);
   final c = b.restHand;
   final outline = Paint()
-    ..color = _skinLine
+    ..color = skin.line
     ..style = PaintingStyle.stroke
     ..strokeWidth = 7
     ..strokeCap = StrokeCap.round;
   final fill = Paint()
-    ..color = _skin
+    ..color = skin.fill
     ..style = PaintingStyle.stroke
     ..strokeWidth = 4.4
     ..strokeCap = StrokeCap.round;
@@ -433,6 +478,7 @@ Future<void Function(Canvas canvas)> posedDollPainter(
   Outfit outfit,
   PoseFrame pose, {
   Face face = Face.open,
+  bool depth = false,
 }) async {
   final doll = await dollParts(outfit);
   final pictures = await Future.wait([
@@ -446,7 +492,9 @@ Future<void Function(Canvas canvas)> posedDollPainter(
     canvas,
     doll,
     pose,
-    drawPart: (c, i) => pictures[i].forEach(c.drawPicture),
+    drawPart: (c, i) => depth
+        ? paintPartWithDepth(c, doll, pictures, i)
+        : pictures[i].forEach(c.drawPicture),
     drawFace: (c) => facePictures.forEach(c.drawPicture),
   );
 }

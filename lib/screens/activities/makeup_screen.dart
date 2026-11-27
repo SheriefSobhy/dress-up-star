@@ -19,6 +19,7 @@ const Rect kMakeupFrame = Rect.fromLTRB(16, 40, 184, 176);
 Outfit closeUpOutfit(Outfit o, {bool glasses = true}) {
   final worn = Map.of(o.worn)
     ..remove(Slot.head)
+    ..remove(Slot.hat)
     ..remove(Slot.hand);
   if (!glasses) worn.remove(Slot.eyes);
   return o.copyWith(worn: worn);

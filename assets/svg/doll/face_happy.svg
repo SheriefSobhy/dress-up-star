@@ -5,10 +5,9 @@
       <stop offset="1" stop-color="#FF7FA3" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <path d="M68 91 Q77 85.5 86 89.5 M114 89.5 Q123 85.5 132 91" fill="none" stroke="#9A6656" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
   <!-- happy ^ ^ eyes -->
-  <path d="M66 119 Q78 103 90 119" fill="none" stroke="#2A1730" stroke-width="3.6" stroke-linecap="round"/>
-  <path d="M110 119 Q122 103 134 119" fill="none" stroke="#2A1730" stroke-width="3.6" stroke-linecap="round"/>
+  <g id="eyeL"><path d="M66 119 Q78 103 90 119" fill="none" stroke="#2A1730" stroke-width="3.6" stroke-linecap="round"/></g>
+  <g id="eyeR"><path d="M110 119 Q122 103 134 119" fill="none" stroke="#2A1730" stroke-width="3.6" stroke-linecap="round"/></g>
   <!-- little sparkles -->
   <path d="M54 102 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6 Z" fill="#FFD84D"/>
   <path d="M146 100 l1.3 3.2 3.2 1.3 -3.2 1.3 -1.3 3.2 -1.3 -3.2 -3.2 -1.3 3.2 -1.3 Z" fill="#FF9EC6"/>

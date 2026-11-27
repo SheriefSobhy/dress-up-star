@@ -208,7 +208,7 @@ void main() {
         // The tutorial (first launch) was finished: the hint comes next.
         GameSettings.tutorialSeenKey: true,
       });
-      await pumpGame(tester, size: const Size(1200, 900));
+      await pumpGame(tester, size: const Size(1400, 900));
       expect(hint, findsNothing);
     });
 

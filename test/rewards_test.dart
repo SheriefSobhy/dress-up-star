@@ -117,7 +117,7 @@ void main() {
         ]),
       );
       // Everything from before stays free.
-      expect(gameItems.where((i) => !i.isSpecial).length, 72);
+      expect(gameItems.where((i) => !i.isSpecial).length, 111);
     });
 
     test('every new drawing exists', () async {

@@ -6,9 +6,11 @@ import 'package:flutter/painting.dart';
 
 import '../data/game_config.dart';
 import '../models/beauty.dart';
+import '../models/doll_body.dart';
 import '../painting/shapes.dart';
 import 'art_library.dart';
 import 'beauty_art.dart' show cellsPath, paintGlitter;
+import 'body_art.dart';
 
 // =============================================================================
 //  Nails: the big hand of the Nails screen (hand space, 300 x 360) and the
@@ -61,7 +63,11 @@ Path handPath() => _handPath ??= () {
 }();
 
 /// Draws the hand (without nails).
-void paintHand(Canvas canvas) {
+void paintHand(Canvas canvas, [DollBody body = DollBody.classic]) {
+  final skinLight = skinTint(body, _skinLight);
+  final skin = skinTint(body, _skin);
+  final skinShade = skinTint(body, _skinShade);
+  final skinLine = skinTint(body, _skinLine);
   final hand = handPath();
   canvas.drawPath(
     hand.shift(const Offset(0, 6)),
@@ -75,7 +81,7 @@ void paintHand(Canvas canvas) {
       ..shader = ui.Gradient.radial(
         const Offset(150, 190),
         190,
-        [_skinLight, _skin, _skinShade],
+        [skinLight, skin, skinShade],
         const [0, 0.55, 1],
       ),
   );
@@ -85,13 +91,13 @@ void paintHand(Canvas canvas) {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.6
       ..strokeJoin = StrokeJoin.round
-      ..color = _skinLine,
+      ..color = skinLine,
   );
   final crease = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.8
     ..strokeCap = StrokeCap.round
-    ..color = _skinLine.withValues(alpha: 0.55);
+    ..color = skinLine.withValues(alpha: 0.55);
   for (final f in kFingers.take(4)) {
     // A little knuckle line in the middle of each finger.
     final mid = Offset.lerp(f.base, f.tip, 0.42)!;
@@ -112,7 +118,11 @@ void paintHand(Canvas canvas) {
   // Soft shine on the back of the hand.
   canvas.drawOval(
     const Rect.fromLTWH(118, 214, 54, 26),
-    Paint()..color = const Color(0x55FFFFFF),
+    Paint()
+      // Fainter on deeper skin, so it stays a shine.
+      ..color = const Color(0xFFFFFFFF).withValues(
+        alpha: 0.33 * skin.computeLuminance() / _skin.computeLuminance(),
+      ),
   );
   // A frilly pink sleeve at the wrist.
   final cuff = Path()..moveTo(92, 360);

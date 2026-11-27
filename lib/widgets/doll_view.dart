@@ -17,7 +17,8 @@ import '../models/outfit.dart';
 ///
 /// The SVG layers are flattened into a few images (one per moving part)
 /// whenever the outfit changes, so every animation frame only moves
-/// ready-made images (fast even on low-end phones).
+/// ready-made images (fast even on low-end phones). The 2.5D shading is
+/// baked into those images; a soft shadow stays on the floor under her.
 class DollView extends StatefulWidget {
   const DollView({
     super.key,
@@ -26,6 +27,9 @@ class DollView extends StatefulWidget {
     this.waving = false,
     this.nudge = 0,
     this.dancing = false,
+    this.hop = 0,
+    this.turn = 0,
+    this.turnSide = 1,
   });
 
   /// What she wears, and her pose: when the pose changes she moves into
@@ -40,6 +44,18 @@ class DollView extends StatefulWidget {
 
   /// She dances (in time with the music) while this is true.
   final bool dancing;
+
+  /// How far (screen pixels, negative is up) the whole picture is raised by
+  /// a hop, so her floor shadow stays on the floor.
+  final double hop;
+
+  /// Change this number to make her turn a little (a 3/4 view) and back,
+  /// toward [turnSide] (-1 left, 1 right).
+  final int turn;
+  final int turnSide;
+
+  /// How long one turn there and back takes.
+  static const Duration turnTime = Duration(milliseconds: 1500);
 
   @override
   State<DollView> createState() => _DollViewState();
@@ -104,6 +120,11 @@ class _Repaint extends ChangeNotifier {
 class _DollViewState extends State<DollView> with TickerProviderStateMixin {
   AnimationController? _idle;
   Timer? _blinkTimer;
+  late final AnimationController _turn = AnimationController(
+    vsync: this,
+    duration: DollView.turnTime,
+  );
+  int _turnSide = 1;
   bool _blinking = false;
   _DollImages? _images;
   String? _wantedKey;
@@ -172,6 +193,12 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
       _moveToHeldPose();
     }
     if (old.nudge != widget.nudge) _kick();
+    if (old.turn != widget.turn) {
+      _turnSide = widget.turnSide;
+      _turn.forward(from: 0);
+      _sway.kick(hair: _turnSide * 0.45, skirt: -_turnSide * 0.35, flare: 0.3);
+      _run();
+    }
   }
 
   @override
@@ -179,6 +206,7 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
     GameMotion.lite.removeListener(_onLite);
     _blinkTimer?.cancel();
     _idle?.dispose();
+    _turn.dispose();
     _ticker?.dispose();
     _repaint.dispose();
     _images?.dispose();
@@ -277,12 +305,16 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
       final doll = await dollParts(widget.outfit);
       final faceKey =
           '${facePixels.width.round()}x${facePixels.height.round()}'
-          '|${widget.outfit.makeup.key}';
-      final partsFuture = Future.wait([
+          '|${widget.outfit.makeup.key}|${widget.outfit.body.key}';
+      final pictures = await Future.wait([
         for (final part in doll.parts)
-          part.kind == PartKind.face
+          Future.wait(part.layers.map(ArtLibrary.instance.picture)),
+      ]);
+      final partsFuture = Future.wait([
+        for (var i = 0; i < doll.parts.length; i++)
+          doll.parts[i].kind == PartKind.face
               ? Future<_PartImage?>.value()
-              : _partImage(part, pixelsPerUnit),
+              : _partImage(doll, pictures, i, pixelsPerUnit),
       ]);
       final faces = await Future.wait([
         for (final face in Face.values)
@@ -310,12 +342,25 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
     }
   }
 
-  Future<_PartImage> _partImage(DollPart part, double pixelsPerUnit) async {
-    final image = await rasterizeDoll(
-      part.layers,
-      part.rect,
-      part.rect.size * pixelsPerUnit,
+  Future<_PartImage> _partImage(
+    DollParts doll,
+    List<List<ui.Picture>> pictures,
+    int index,
+    double pixelsPerUnit,
+  ) async {
+    final part = doll.parts[index];
+    final pixels = part.rect.size * pixelsPerUnit;
+    final picture = recordPicture((canvas) {
+      final fit = FitTransform(part.rect, pixels);
+      canvas.translate(fit.dx, fit.dy);
+      canvas.scale(fit.scale);
+      paintPartWithDepth(canvas, doll, pictures, index);
+    });
+    final image = await picture.toImage(
+      math.max(1, pixels.width.round()),
+      math.max(1, pixels.height.round()),
     );
+    picture.dispose();
     final shine = await PartShine.build(part, pixelsPerUnit * 0.8);
     return _PartImage(image, shine);
   }
@@ -340,6 +385,9 @@ class _DollViewState extends State<DollView> with TickerProviderStateMixin {
             shineTime: () => GameMotion.idleLoops
                 ? _shineClock.elapsedMilliseconds / 1000
                 : 0.8,
+            turn: _turn,
+            turnSide: _turnSide,
+            hop: widget.hop,
           ),
         );
       },
@@ -356,7 +404,10 @@ class _DollPainter extends CustomPainter {
     required this.frame,
     required this.sway,
     required this.shineTime,
-  }) : super(repaint: Listenable.merge([idle, repaint]));
+    required this.turn,
+    required this.turnSide,
+    required this.hop,
+  }) : super(repaint: Listenable.merge([idle, repaint, turn]));
 
   final _DollImages? images;
   final AnimationController? idle;
@@ -364,6 +415,37 @@ class _DollPainter extends CustomPainter {
   final PoseFrame Function() frame;
   final SwayPhysics sway;
   final double Function() shineTime;
+  final Animation<double> turn;
+  final int turnSide;
+  final double hop;
+
+  /// How turned she is now: she turns, holds it a moment and turns back.
+  double get _turned {
+    final t = turn.value;
+    if (t <= 0 || t >= 1) return 0;
+    final u = t < 0.3 ? t / 0.3 : (t > 0.65 ? (1 - t) / 0.35 : 1.0);
+    return easeInOut(u) * turnSide;
+  }
+
+  /// How far (doll units) each part slides when turned: what is nearer to
+  /// us slides toward the side she looks at, what is behind slides away.
+  static List<double> _depthShifts(DollParts doll) {
+    final face = doll.parts.indexWhere((p) => p.kind == PartKind.face);
+    final body = doll.parts.indexWhere(
+      (p) => p.layers.any((l) => l.asset.endsWith('/body.svg')),
+    );
+    return [
+      for (var i = 0; i < doll.parts.length; i++)
+        switch (doll.parts[i].kind) {
+          _ when i < body => -6.0,
+          PartKind.face => 7.0,
+          PartKind.hair => 5.0,
+          PartKind.body when i == face - 1 => 3.5,
+          PartKind.body when i > face => 6.0,
+          _ => 0.0,
+        },
+    ];
+  }
 
   static final Paint _paint = Paint()..filterQuality = FilterQuality.medium;
 
@@ -379,9 +461,34 @@ class _DollPainter extends CustomPainter {
     final wave = 2 * math.pi * t;
     final time = shineTime();
 
+    final pose = frame();
+    final turned = _turned;
+    final shifts = _depthShifts(img.doll);
+    void shifted(Canvas c, int i, VoidCallback draw) {
+      if (turned == 0 || shifts[i] == 0) return draw();
+      c.save();
+      c.translate(shifts[i] * turned, 0);
+      draw();
+      c.restore();
+    }
+
     canvas.save();
     canvas.translate(fit.dx, fit.dy);
     canvas.scale(fit.scale);
+    paintGroundShadow(
+      canvas,
+      pose: pose,
+      lift: -hop / fit.scale,
+      drop: -hop / fit.scale,
+      turn: turned,
+    );
+    // Turned a little: narrower, with a slight lean into the turn.
+    if (turned != 0) {
+      canvas.translate(kFeet.dx, kFeet.dy);
+      canvas.skew(-turned * 0.025, 0);
+      canvas.scale(1 - turned.abs() * 0.13, 1);
+      canvas.translate(-kFeet.dx, -kFeet.dy);
+    }
     // Gentle breathing and swaying around the feet.
     if (t != 0) {
       canvas.translate(kFeet.dx, kFeet.dy);
@@ -392,15 +499,20 @@ class _DollPainter extends CustomPainter {
     paintPosedDoll(
       canvas,
       img.doll,
-      frame(),
-      drawPart: (c, i) => _drawPart(c, img, i),
+      pose,
+      drawPart: (c, i) => shifted(c, i, () => _drawPart(c, img, i)),
       drawFace: (c) {
         final faceImage = img.faces[face];
-        if (faceImage != null) {
+        if (faceImage == null) return;
+        final at = img.doll.parts.indexWhere((p) => p.kind == PartKind.face);
+        shifted(c, at, () {
           c.drawImageRect(faceImage, _src(faceImage), kFaceRect, _paint);
-        }
+        });
       },
-      drawShine: (c, i) => img.parts[i]?.shine?.paint(c, time),
+      drawShine: (c, i) {
+        final shine = img.parts[i]?.shine;
+        if (shine != null) shifted(c, i, () => shine.paint(c, time));
+      },
     );
     canvas.restore();
   }
@@ -476,5 +588,5 @@ class _DollPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DollPainter old) =>
-      old.images != images || old.face != face;
+      old.images != images || old.face != face || old.hop != hop;
 }

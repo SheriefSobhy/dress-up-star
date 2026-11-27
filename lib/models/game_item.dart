@@ -18,6 +18,16 @@ enum Slot {
 
   /// Worn on her back, behind her (wings).
   back,
+
+  /// Jackets and coats, over her top or dress.
+  jacket,
+  pants,
+
+  /// Socks and tights, under everything else.
+  socks,
+
+  /// Hats (they replace crowns and bows).
+  hat,
 }
 
 /// How an item is drawn. Every shape belongs to exactly one [Slot].
@@ -122,6 +132,58 @@ enum ItemShape {
   backButterfly,
   bgBallroom,
   bgUnicorn,
+  // Jackets and coats
+  jacketDenim,
+  jacketPuffer,
+  jacketRain,
+  jacketCardigan,
+  jacketBlazer,
+  jacketHoodie,
+  // Pants
+  pantsJeans,
+  pantsLeggings,
+  pantsShorts,
+  pantsOveralls,
+  pantsFlared,
+  // Hats
+  hatSun,
+  hatBeanie,
+  hatCap,
+  hatBeret,
+  hatWitch,
+  hatFlower,
+  // Costumes (full outfits, worn like a dress)
+  costumePrincess,
+  costumeMermaid,
+  costumeFairy,
+  costumeAstronaut,
+  costumeChef,
+  costumeDoctor,
+  // Pajamas (worn like a dress)
+  pajamaStars,
+  pajamaHearts,
+  pajamaBunny,
+  pajamaCloud,
+  // Sportswear (worn like a dress)
+  sportTennis,
+  sportBallet,
+  sportFootball,
+  sportTracksuit,
+  // Socks and tights
+  socksStriped,
+  socksFrilly,
+  socksRainbow,
+  socksKnee,
+  socksGlitter,
+  // More dresses, tops, skirts and shoes
+  dressSailor,
+  dressStrawberry,
+  topBlouse,
+  topPolo,
+  skirtPleated,
+  skirtRuffle,
+  shoesMaryJanes,
+  shoesRoller,
 }
 
 extension ItemShapeSlot on ItemShape {
@@ -139,7 +201,21 @@ extension ItemShapeSlot on ItemShape {
     if (n.startsWith('ears')) return Slot.ears;
     if (n.startsWith('wrist')) return Slot.wrist;
     if (n.startsWith('back')) return Slot.back;
+    if (n.startsWith('jacket')) return Slot.jacket;
+    if (n.startsWith('pants')) return Slot.pants;
+    if (n.startsWith('socks')) return Slot.socks;
+    if (n.startsWith('hat')) return Slot.hat;
+    if (group.isNotEmpty) return Slot.dress;
     return Slot.background;
+  }
+
+  /// Costumes, pajamas and sportswear are worn like a dress but have their
+  /// own category buttons. Everything else has no group ('').
+  String get group {
+    for (final g in const ['costume', 'pajama', 'sport']) {
+      if (name.startsWith(g)) return g;
+    }
+    return '';
   }
 }
 
@@ -189,6 +265,7 @@ class GameCategory {
     this.icon,
     this.iconArt,
     this.colorOnly = false,
+    this.group = '',
   });
 
   final String id;
@@ -213,6 +290,13 @@ class GameCategory {
   /// If true, the category shows only big color buttons that recolor the
   /// item in `slots.first` (used for "Hair color").
   final bool colorOnly;
+
+  /// Which [ItemShapeSlot.group] of those slots is shown here.
+  final String group;
+
+  /// True when [item] belongs in this category.
+  bool shows(GameItem item) =>
+      slots.contains(item.slot) && item.shape.group == group;
 }
 
 /// A color button in an activity (makeup, hair dye, nail polish).
