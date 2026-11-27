@@ -1234,6 +1234,44 @@ const Map<ChallengeTheme, List<Color>> themeCardColors = {
   ChallengeTheme.ball: [Color(0xFFE3D4FF), Color(0xFFFFD1E8)],
   ChallengeTheme.garden: [Color(0xFFBDF2C4), Color(0xFFFFF6C9)],
   ChallengeTheme.bedtime: [Color(0xFF6C63C9), Color(0xFFB6A6FF)],
+  ChallengeTheme.sports: [Color(0xFFBFE8FF), Color(0xFFC9F5B0)],
+  ChallengeTheme.space: [Color(0xFF2E2A6E), Color(0xFF7B5FC4)],
+  ChallengeTheme.costume: [Color(0xFFFFD6A8), Color(0xFFD9C2FF)],
+};
+
+/// The themes of the Challenge button.
+const List<ChallengeTheme> challengeThemes = [
+  ChallengeTheme.beach,
+  ChallengeTheme.snow,
+  ChallengeTheme.party,
+  ChallengeTheme.ball,
+  ChallengeTheme.garden,
+  ChallengeTheme.bedtime,
+];
+
+/// Items that fit the Fashion Show's own themes (besides the `themes:` of
+/// each item above).
+const Map<ChallengeTheme, Set<String>> extraThemeItems = {
+  ChallengeTheme.sports: {
+    'sport_tennis', 'sport_football', 'sport_tracksuit', 'sport_ballet',
+    'shoes_sneakers', 'shoes_roller_skates', 'hat_cap', 'hair_ponytail',
+    'top_tshirt', 'top_polo', 'top_tank', 'pants_shorts', 'pants_leggings',
+    'socks_knee', 'socks_striped', 'eyes_sun_sport', 'wrist_friendship',
+    'bg_sky', 'bg_garden', //
+  },
+  ChallengeTheme.space: {
+    'shop_costume_astronaut', 'bg_night', 'eyes_star', 'eyes_star_frame',
+    'neck_star', 'ears_star', 'top_tshirt_stars', 'pajama_stars',
+    'hair_space_buns', 'shoes_boots', 'shop_boots_sparkly', 'shop_boots_gold',
+    'socks_glitter_tights', 'pants_leggings', 'hand_wand', //
+  },
+  ChallengeTheme.costume: {
+    'costume_princess', 'shop_costume_mermaid', 'shop_costume_fairy',
+    'shop_costume_astronaut', 'costume_chef', 'costume_doctor', 'hat_witch',
+    'shop_wings_butterfly', 'shop_wings_fairy', 'shop_unicorn_headband',
+    'shop_pajama_bunny', 'dress_mermaid', 'dress_fairy', 'dress_strawberry',
+    'head_crown', 'hand_wand', 'shoes_boots', 'bg_castle', 'bg_candy', //
+  },
 };
 
 // ---------------------------------------------------------------------------

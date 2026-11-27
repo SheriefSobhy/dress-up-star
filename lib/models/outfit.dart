@@ -52,6 +52,7 @@ class Outfit {
     this.pose = DollPose.stand,
     this.body = DollBody.classic,
     this.dollId = firstDollId,
+    this.runway = false,
   }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
@@ -151,6 +152,10 @@ class Outfit {
   /// there were several dolls.
   static const int firstDollId = 1;
 
+  /// A photo taken at the Fashion Show: the gallery shows it on the runway.
+  /// Not part of the look itself, like [dollId].
+  final bool runway;
+
   /// True when her hair comes from the Hair Salon.
   bool get hasSalonHair =>
       !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
@@ -164,6 +169,7 @@ class Outfit {
     DollPose? pose,
     DollBody? body,
     int? dollId,
+    bool? runway,
   }) => Outfit(
     worn ?? this.worn,
     makeup: makeup ?? this.makeup,
@@ -172,6 +178,7 @@ class Outfit {
     pose: pose ?? this.pose,
     body: body ?? this.body,
     dollId: dollId ?? this.dollId,
+    runway: runway ?? this.runway,
   );
 
   WornItem? operator [](Slot slot) => worn[slot];
@@ -225,6 +232,7 @@ class Outfit {
     if (pose != DollPose.stand) 'pose': pose.name,
     if (body != DollBody.classic) 'body': body.toJson(),
     if (dollId != firstDollId) 'doll': dollId,
+    if (runway) 'runway': true,
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -256,6 +264,7 @@ class Outfit {
       pose: DollPose.values.asNameMap()[json['pose']] ?? DollPose.stand,
       body: DollBody.fromJson(json['body']),
       dollId: json['doll'] is int ? json['doll'] as int : firstDollId,
+      runway: json['runway'] == true,
     );
   }
 

@@ -17,7 +17,11 @@ enum Sfx {
   bubble,
   unlock,
   notYet,
+  cheer,
 }
+
+/// The two tunes: the game's own, and the Fashion Show's runway music.
+enum MusicTrack { game, show }
 
 /// Music and sound effects, plus the switches (remembered on the device):
 /// the children's mute button turns everything off, and the parents'
@@ -35,6 +39,23 @@ abstract class GameAudio extends ChangeNotifier {
 
   bool _musicOn = true;
   bool _soundsOn = true;
+
+  MusicTrack _track = MusicTrack.game;
+
+  /// The tune that plays when music is allowed.
+  MusicTrack get track => _track;
+
+  /// Changes the tune (and starts it, if music may play).
+  void setTrack(MusicTrack track) {
+    if (track == _track) return;
+    _track = track;
+    stopTrack();
+    startMusic();
+  }
+
+  /// Forgets the playing tune, so [startMusic] begins [track].
+  @protected
+  void stopTrack();
 
   /// The parents' music switch.
   bool get musicOn => _musicOn;
@@ -123,8 +144,12 @@ class AudioPlayersGameAudio extends GameAudio {
     Sfx.bubble: 'sounds/bubble.wav',
     Sfx.unlock: 'sounds/unlock.wav',
     Sfx.notYet: 'sounds/not_yet.wav',
+    Sfx.cheer: 'sounds/cheer.wav',
   };
-  static const _musicFile = 'sounds/music.wav';
+  static const _musicFiles = {
+    MusicTrack.game: 'sounds/music.wav',
+    MusicTrack.show: 'sounds/runway.wav',
+  };
   static const _musicVolume = 0.35;
 
   final AudioPlayer _music = AudioPlayer();
@@ -176,8 +201,12 @@ class AudioPlayersGameAudio extends GameAudio {
   }
 
   Future<void> _startMusicNow() async {
+    final playing = track;
     try {
-      await _music.play(AssetSource(_musicFile), volume: _musicVolume);
+      await _music.play(
+        AssetSource(_musicFiles[playing]!),
+        volume: _musicVolume,
+      );
       _musicStarted = true;
       _musicPaused = false;
       // The player may have pressed mute while the music was loading.
@@ -188,6 +217,19 @@ class AudioPlayersGameAudio extends GameAudio {
     } finally {
       _musicStarting = false;
     }
+    // The tune was changed while this one was loading.
+    if (playing != track) {
+      stopTrack();
+      startMusic();
+    }
+  }
+
+  @override
+  void stopTrack() {
+    if (!_musicStarted) return;
+    _musicStarted = false;
+    _musicPaused = false;
+    _safely(_music.stop);
   }
 
   @override
@@ -232,6 +274,9 @@ class AudioPlayersGameAudio extends GameAudio {
 class SilentGameAudio extends GameAudio {
   final List<Sfx> played = [];
   bool musicPlaying = false;
+
+  @override
+  void stopTrack() => musicPlaying = false;
 
   @override
   void play(Sfx sfx) {

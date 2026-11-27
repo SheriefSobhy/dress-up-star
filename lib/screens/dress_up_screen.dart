@@ -23,12 +23,14 @@ import '../widgets/challenge_widgets.dart';
 import '../widgets/confirm_delete.dart';
 import '../widgets/doll_strip.dart';
 import '../widgets/doll_view.dart';
+import '../widgets/fashion_show_widgets.dart';
 import '../widgets/parallax.dart';
 import '../widgets/reward_widgets.dart';
 import '../widgets/scene_background.dart';
 import '../widgets/tutorial_overlay.dart';
 import 'activities/activity_picker.dart';
 import 'creator_screen.dart';
+import 'fashion_show_screen.dart';
 import 'gallery_screen.dart';
 import 'star_shop_screen.dart';
 
@@ -116,6 +118,10 @@ class _DressUpScreenState extends State<DressUpScreen>
   /// The theme card she is being dressed for (null: no challenge).
   ChallengeTheme? _challenge;
   ChallengeTheme? _lastTheme;
+
+  /// The theme of the Fashion Show she is getting ready for (null: none).
+  ChallengeTheme? _show;
+  ChallengeTheme? _lastShow;
 
   /// Stars and Star Shop items (saved on the device).
   final Rewards _rewards = Rewards();
@@ -602,7 +608,55 @@ class _DressUpScreenState extends State<DressUpScreen>
     setState(() {
       _challenge = theme;
       _lastTheme = theme;
+      _show = null;
     });
+  }
+
+  /// The Show button: a theme card, then she gets dressed and taps Go.
+  Future<void> _openShowCard() async {
+    widget.audio.play(Sfx.tap);
+    var theme =
+        _show ??
+        pickTheme(_random, last: _lastShow, from: ChallengeTheme.values);
+    while (true) {
+      final choice = await showThemeCard(
+        context,
+        theme: theme,
+        audio: widget.audio,
+        badge: const RunwayIcon(size: 56),
+      );
+      if (!mounted) return;
+      if (choice != ThemeCardChoice.another) break;
+      theme = pickTheme(_random, last: theme, from: ChallengeTheme.values);
+    }
+    setState(() {
+      _show = theme;
+      _lastShow = theme;
+      _challenge = null;
+    });
+  }
+
+  /// The big green Go button: onto the runway.
+  Future<void> _startShow() async {
+    final theme = _show;
+    if (theme == null) return;
+    widget.audio.play(Sfx.itemOn);
+    _stopDance();
+    setState(() => _show = null);
+    await Navigator.of(context).push(
+      fashionShowRoute(
+        outfit: _outfit,
+        theme: theme,
+        rewards: _rewards,
+        storage: widget.storage,
+        audio: widget.audio,
+        random: _random,
+      ),
+    );
+    final looks = await widget.storage.load();
+    if (!mounted) return;
+    setState(() => _savedCount = looks.length);
+    _celebrate(const Offset(100, 190));
   }
 
   /// The check button: stars for the outfit, and a happy celebration.
@@ -677,7 +731,7 @@ class _DressUpScreenState extends State<DressUpScreen>
       if (picked != null) {
         // Back on the doll who wore it (if she is still here).
         if (_dolls.has(picked.dollId)) _dolls = _dolls.select(picked.dollId);
-        _outfit = picked;
+        _outfit = picked.copyWith(runway: false);
       }
     });
     if (picked != null) _celebrate(const Offset(100, 190));
@@ -915,7 +969,7 @@ class _DressUpScreenState extends State<DressUpScreen>
                 },
               ),
             ),
-            // Challenge (and its check button) and Activities
+            // Challenge (and its check button), Fashion Show and Activities
             Positioned(
               left: 12,
               bottom: 12,
@@ -923,6 +977,19 @@ class _DressUpScreenState extends State<DressUpScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_show != null)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: gap),
+                      child: BigRoundButton(
+                        key: const Key('show_go'),
+                        icon: Icons.play_arrow_rounded,
+                        color: const Color(0xFF3FBF55),
+                        semanticLabel: strings.start,
+                        // The big green "Go!".
+                        size: buttonSize + (tight ? 8 : 24),
+                        onTap: _startShow,
+                      ),
+                    ),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     transitionBuilder: (child, animation) => ScaleTransition(
@@ -946,10 +1013,23 @@ class _DressUpScreenState extends State<DressUpScreen>
                             ),
                           ),
                   ),
-                  ChallengeButton(
-                    theme: _challenge,
-                    size: buttonSize,
-                    onTap: _openChallenge,
+                  // Side by side on short screens.
+                  Flex(
+                    direction: tight ? Axis.horizontal : Axis.vertical,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ChallengeButton(
+                        theme: _challenge,
+                        size: buttonSize,
+                        onTap: _openChallenge,
+                      ),
+                      SizedBox(width: gap, height: gap),
+                      ShowButton(
+                        theme: _show,
+                        size: buttonSize,
+                        onTap: _openShowCard,
+                      ),
+                    ],
                   ),
                   SizedBox(height: gap + 4),
                   ActivitiesButton(

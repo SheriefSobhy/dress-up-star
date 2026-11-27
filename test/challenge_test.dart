@@ -21,7 +21,7 @@ Outfit _wear(List<String> ids) =>
 /// slot, a dress or a top and skirt or pants, a hat or a head thing).
 int _bestPossible(ChallengeTheme theme) {
   int bestIn(Iterable<Slot> slots) => slots
-      .where((slot) => itemsForSlot(slot).any((i) => i.themes.contains(theme)))
+      .where((slot) => itemsForSlot(slot).any((i) => fitsTheme(i, theme)))
       .length;
   final common = Slot.values.where(
     (s) => !const [
@@ -113,7 +113,7 @@ void main() {
         );
         final ideas = themeIdeas(theme);
         expect(ideas, hasLength(3));
-        expect(ideas.every((i) => i.themes.contains(theme)), isTrue);
+        expect(ideas.every((i) => fitsTheme(i, theme)), isTrue);
         expect(ideas.map((i) => i.slot).toSet(), hasLength(3));
         expect(themeCardColors[theme], hasLength(2));
       }
@@ -158,7 +158,7 @@ void main() {
         seen.add(next);
         last = next;
       }
-      expect(seen, ChallengeTheme.values.toSet());
+      expect(seen, challengeThemes.toSet());
     });
 
     test('every theme has its picture', () async {

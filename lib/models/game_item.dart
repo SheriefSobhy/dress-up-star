@@ -315,5 +315,16 @@ class ToolColor {
 /// How the doll stands. Saved with looks, so a photo keeps her pose.
 enum DollPose { stand, wave, twirl, peace, hips, curtsy, jump }
 
-/// The picture cards of the Challenge button: dress her for the theme.
-enum ChallengeTheme { beach, snow, party, ball, garden, bedtime }
+/// The picture cards: dress her for the theme. The Challenge button uses the
+/// first six (`challengeThemes`); the Fashion Show uses all of them.
+enum ChallengeTheme {
+  beach,
+  snow,
+  party,
+  ball,
+  garden,
+  bedtime,
+  sports,
+  space,
+  costume,
+}
