@@ -439,6 +439,117 @@ Mix notYet() => Mix(0.5)
   ..note(0, 79, 0.22, vol: 0.26, decay: 9, harmonics: const [1, 0.3])
   ..note(0.16, 76, 0.3, vol: 0.24, decay: 7, harmonics: const [1, 0.3]);
 
+/// An upbeat 8-bar runway beat: a kick on every beat, claps, a bouncing bass
+/// and a bright hook. Loops forever.
+Mix runway() {
+  const bpm = 124.0;
+  const beat = 60 / bpm;
+  final mix = Mix(32 * beat, loop: true);
+  // Bars: C Am F G, twice.
+  const roots = [48, 45, 41, 43];
+  const chords = [
+    [72, 76, 79],
+    [72, 76, 81],
+    [72, 77, 81],
+    [74, 79, 83],
+  ];
+  // Eighth notes (0 is a rest).
+  const hook = [
+    [84, 0, 84, 88, 0, 86, 84, 0],
+    [81, 0, 84, 81, 0, 79, 81, 0],
+    [77, 81, 84, 0, 86, 0, 84, 81],
+    [79, 0, 83, 0, 86, 88, 91, 0],
+  ];
+  for (var bar = 0; bar < 8; bar++) {
+    final start = bar * 4 * beat;
+    for (var b = 0; b < 4; b++) {
+      final t = start + b * beat;
+      mix.tone(
+        start: t,
+        freq: 150,
+        freqEnd: 48,
+        dur: 0.16,
+        vol: 0.45,
+        decay: 18,
+      );
+      mix.noise(start: t + beat / 2, dur: 0.04, vol: 0.07, decay: 90);
+      if (b.isOdd) mix.noise(start: t, dur: 0.09, vol: 0.18, decay: 40);
+      for (var half = 0; half < 2; half++) {
+        mix.note(
+          t + half * beat / 2,
+          roots[bar % 4] + half * 12,
+          beat * 0.45,
+          vol: 0.22,
+          decay: 6,
+          harmonics: const [1, 0.45, 0.2],
+        );
+      }
+    }
+    // Off-beat chord stabs.
+    for (final b in const [1.5, 3.5]) {
+      for (final n in chords[bar % 4]) {
+        mix.note(
+          start + b * beat,
+          n,
+          beat * 0.4,
+          vol: 0.07,
+          decay: 9,
+          harmonics: const [1, 0.5, 0.25],
+        );
+      }
+    }
+    for (var e = 0; e < 8; e++) {
+      final n = hook[bar % 4][e];
+      if (n == 0) continue;
+      mix.note(
+        start + e * beat / 2,
+        n,
+        beat * 0.7,
+        vol: 0.17,
+        decay: 5,
+        harmonics: _bell,
+      );
+    }
+  }
+  return mix;
+}
+
+/// A little crowd clapping and cheering.
+Mix cheer() {
+  final mix = Mix(1.6)
+    ..softNoise(
+      start: 0,
+      dur: 1.55,
+      vol: 0.07,
+      smooth: 0.6,
+      attack: 0.25,
+      release: 0.6,
+      wobble: 0.3,
+    );
+  final random = math.Random(3);
+  for (var i = 0; i < 55; i++) {
+    mix.noise(
+      start: random.nextDouble() * 1.3,
+      dur: 0.025,
+      vol: 0.1 + random.nextDouble() * 0.12,
+      decay: 130,
+    );
+  }
+  for (final (at, n) in const [(0.05, 76), (0.12, 81), (0.2, 84)]) {
+    mix.tone(
+      start: at,
+      freq: midiToHz(n - 5),
+      freqEnd: midiToHz(n),
+      dur: 0.55,
+      vol: 0.07,
+      decay: 4,
+      attack: 0.08,
+      harmonics: const [1, 0.4, 0.2],
+    );
+  }
+  return mix;
+}
+
 void main() {
   final dir = Directory('assets/sounds')..createSync(recursive: true);
   final files = <String, (Mix, double)>{
@@ -455,6 +566,8 @@ void main() {
     'bubble.wav': (bubble(), 0.6),
     'unlock.wav': (unlock(), 0.8),
     'not_yet.wav': (notYet(), 0.55),
+    'runway.wav': (runway(), 0.6),
+    'cheer.wav': (cheer(), 0.65),
   };
   for (final entry in files.entries) {
     final bytes = entry.value.$1.toWav(peak: entry.value.$2);

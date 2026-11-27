@@ -3,9 +3,14 @@ import 'dart:math';
 import '../data/game_config.dart';
 import 'outfit.dart';
 
+/// True when [item] goes with [theme].
+bool fitsTheme(GameItem item, ChallengeTheme theme) =>
+    item.themes.contains(theme) ||
+    (extraThemeItems[theme]?.contains(item.id) ?? false);
+
 /// How many things she wears fit [theme] (the background counts too).
 int themeMatches(Outfit outfit, ChallengeTheme theme) =>
-    outfit.worn.values.where((w) => w.item.themes.contains(theme)).length;
+    outfit.worn.values.where((w) => fitsTheme(w.item, theme)).length;
 
 /// Stars for dressing her for [theme]: 1 to 3, never zero.
 int challengeStars(Outfit outfit, ChallengeTheme theme) {
@@ -16,8 +21,12 @@ int challengeStars(Outfit outfit, ChallengeTheme theme) {
 }
 
 /// A new theme card, not the same as [last].
-ChallengeTheme pickTheme(Random random, {ChallengeTheme? last}) {
-  final options = ChallengeTheme.values.where((t) => t != last).toList();
+ChallengeTheme pickTheme(
+  Random random, {
+  ChallengeTheme? last,
+  List<ChallengeTheme> from = challengeThemes,
+}) {
+  final options = from.where((t) => t != last).toList();
   return options[random.nextInt(options.length)];
 }
 
@@ -37,7 +46,7 @@ List<GameItem> themeIdeas(ChallengeTheme theme, {int count = 3}) {
   final ideas = <GameItem>[];
   for (final slot in order) {
     for (final item in gameItems) {
-      if (item.slot == slot && item.themes.contains(theme)) {
+      if (item.slot == slot && fitsTheme(item, theme)) {
         ideas.add(item);
         break;
       }

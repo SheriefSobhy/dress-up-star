@@ -106,7 +106,10 @@ class ItemThumbnail extends StatelessWidget {
   }
 }
 
-/// A saved look: the doll in front of her background.
+/// The backdrop of photos taken at the Fashion Show.
+const String runwayScene = 'assets/svg/scenes/runway.svg';
+
+/// A saved look: the doll in front of her background (or on the runway).
 class LookPicture extends StatelessWidget {
   const LookPicture({super.key, required this.look});
 
@@ -115,12 +118,12 @@ class LookPicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ArtImage(
-      cacheKey: 'look|${outfitKey(look)}|${look.pose.name}',
+      cacheKey: 'look|${outfitKey(look)}|${look.pose.name}|${look.runway}',
       cache: lookImages,
       draw: (pixels) {
         final bg = look[Slot.background] ?? Outfit.starter()[Slot.background]!;
         return rasterizeScene(
-          sceneLayer(bg),
+          look.runway ? const ArtLayer(runwayScene) : sceneLayer(bg),
           pixels,
           doll: look,
           dollArea: Rect.fromLTWH(

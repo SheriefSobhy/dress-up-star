@@ -43,6 +43,7 @@ Future<ThemeCardChoice?> showThemeCard(
   BuildContext context, {
   required ChallengeTheme theme,
   required GameAudio audio,
+  Widget? badge,
 }) {
   return showGeneralDialog<ThemeCardChoice>(
     context: context,
@@ -50,7 +51,8 @@ Future<ThemeCardChoice?> showThemeCard(
     barrierLabel: 'Close',
     barrierColor: const Color(0x667A3A7A),
     transitionDuration: const Duration(milliseconds: 360),
-    pageBuilder: (context, _, _) => _ThemeCard(theme: theme, audio: audio),
+    pageBuilder: (context, _, _) =>
+        _ThemeCard(theme: theme, audio: audio, badge: badge),
     transitionBuilder: (context, animation, _, child) => FadeTransition(
       opacity: animation,
       child: ScaleTransition(
@@ -67,8 +69,10 @@ Future<ThemeCardChoice?> showThemeCard(
 }
 
 class _ThemeCard extends StatelessWidget {
-  const _ThemeCard({required this.theme, required this.audio});
+  const _ThemeCard({required this.theme, required this.audio, this.badge});
 
+  /// Shown above the picture (the Fashion Show card has its runway).
+  final Widget? badge;
   final ChallengeTheme theme;
   final GameAudio audio;
 
@@ -76,7 +80,10 @@ class _ThemeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     final width = math.min(screen.width - 40, 340.0);
-    final picture = math.min(width - 60, screen.height * 0.3);
+    final picture = math.min(
+      width - 60,
+      screen.height * (badge == null ? 0.3 : 0.24),
+    );
     final ideas = themeIdeas(theme);
     void pick(ThemeCardChoice choice) {
       audio.play(choice == ThemeCardChoice.go ? Sfx.itemOn : Sfx.tap);
@@ -94,6 +101,7 @@ class _ThemeCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (badge != null) ...[badge!, const SizedBox(height: 6)],
               SizedBox(
                 width: picture,
                 height: picture,
@@ -268,7 +276,7 @@ class _ResultState extends State<_Result> with SingleTickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     for (var i = 0; i < widget.stars; i++)
-                      _BigStar(
+                      BigStar(
                         key: Key('result_star_$i'),
                         size: star,
                         progress:
@@ -288,8 +296,8 @@ class _ResultState extends State<_Result> with SingleTickerProviderStateMixin {
 }
 
 /// A big shiny gold star that pops in ([progress] 0..1) and wiggles.
-class _BigStar extends StatelessWidget {
-  const _BigStar({
+class BigStar extends StatelessWidget {
+  const BigStar({
     super.key,
     required this.size,
     required this.progress,

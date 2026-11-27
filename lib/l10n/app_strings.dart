@@ -51,6 +51,7 @@ class AppStrings {
   String get randomDoll => _get('randomDoll');
   String get activities => _get('activities');
   String get challenge => _get('challenge');
+  String get fashionShow => _get('fashionShow');
   String get starShop => _get('starShop');
   String get anotherCard => _get('anotherCard');
   String get start => _get('start');
@@ -118,6 +119,7 @@ class AppStrings {
     'pose': 'Pose',
     'activities': 'Activities',
     'challenge': 'Challenge',
+    'fashionShow': 'Fashion show',
     'starShop': 'Star Shop',
     'anotherCard': 'Another card',
     'start': 'Start',
@@ -178,6 +180,7 @@ class AppStrings {
     'pose': 'وضعية',
     'activities': 'أنشطة',
     'challenge': 'تحدٍّ',
+    'fashionShow': 'عرض الأزياء',
     'starShop': 'متجر النجوم',
     'anotherCard': 'بطاقة أخرى',
     'start': 'ابدأ',
