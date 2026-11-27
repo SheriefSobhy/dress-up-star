@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../art/doll_art.dart';
+import '../art/room_art.dart';
 import '../data/game_config.dart';
 import '../models/outfit.dart';
 
@@ -117,6 +119,26 @@ class LookPicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final room = look.room;
+    if (room != null) {
+      // The whole room, in the shape it was photographed.
+      return ColoredBox(
+        color: const Color(0xFF3A2A50),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: room.aspect,
+            child: ArtImage(
+              key: const Key('room_photo'),
+              cacheKey:
+                  'room|${outfitKey(look)}|${look.pose.name}|'
+                  '${jsonEncode(room.toJson())}',
+              cache: lookImages,
+              draw: (pixels) => rasterizeRoom(room, look, pixels),
+            ),
+          ),
+        ),
+      );
+    }
     return ArtImage(
       cacheKey: 'look|${outfitKey(look)}|${look.pose.name}|${look.runway}',
       cache: lookImages,

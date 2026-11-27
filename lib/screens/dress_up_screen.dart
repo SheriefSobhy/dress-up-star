@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../art/doll_art.dart';
 import '../art/motion.dart';
 import '../data/game_config.dart';
+import '../data/room_config.dart';
 import '../l10n/app_strings.dart';
 import '../models/challenge.dart';
 import '../models/outfit.dart';
@@ -17,6 +18,7 @@ import '../services/game_audio.dart';
 import '../services/game_settings.dart';
 import '../services/looks_storage.dart';
 import '../services/rewards.dart';
+import '../services/room_storage.dart';
 import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/challenge_widgets.dart';
@@ -32,6 +34,7 @@ import 'activities/activity_picker.dart';
 import 'creator_screen.dart';
 import 'fashion_show_screen.dart';
 import 'gallery_screen.dart';
+import 'room_screen.dart';
 import 'star_shop_screen.dart';
 
 /// The main game screen: the doll, the buttons and the wardrobe.
@@ -278,6 +281,7 @@ class _DressUpScreenState extends State<DressUpScreen>
     );
     if (!yes || !mounted) return;
     widget.audio.play(Sfx.itemOff);
+    RoomStorage().remove(doll.dollId);
     setState(() {
       _dolls = _dolls.remove(doll.dollId);
       _activeSlot = null;
@@ -492,7 +496,7 @@ class _DressUpScreenState extends State<DressUpScreen>
   Future<void> _openShop() async {
     widget.audio.play(Sfx.tap);
     _tutorialDone(TutorialStep.shop);
-    final picked = await Navigator.of(context).push<GameItem>(
+    final picked = await Navigator.of(context).push<Object>(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 380),
         reverseTransitionDuration: const Duration(milliseconds: 300),
@@ -519,7 +523,9 @@ class _DressUpScreenState extends State<DressUpScreen>
     );
     if (!mounted) return;
     setState(() {});
-    if (picked == null) return;
+    // Something for her room: straight into the room with it.
+    if (picked is RoomItem) return _openRoom(place: picked);
+    if (picked is! GameItem) return;
     // Put on what she picked, and show its category.
     final index = gameCategories.indexWhere(
       (c) => !c.colorOnly && c.shows(picked),
@@ -530,6 +536,26 @@ class _DressUpScreenState extends State<DressUpScreen>
       if (index >= 0) _categoryIndex = index;
     });
     _celebrate(focusRectFor(picked.shape).center);
+  }
+
+  /// Her bedroom (every doll has her own).
+  Future<void> _openRoom({RoomItem? place}) async {
+    // The saved dolls tell whose room it is.
+    if (!_dollsLoaded) return;
+    widget.audio.play(Sfx.tap);
+    _stopDance();
+    await Navigator.of(context).push(
+      roomRoute(
+        outfit: _outfit,
+        rewards: _rewards,
+        storage: widget.storage,
+        audio: widget.audio,
+        place: place,
+      ),
+    );
+    final looks = await widget.storage.load();
+    if (!mounted) return;
+    setState(() => _savedCount = looks.length);
   }
 
   void _tapColor(Slot slot, Color color) {
@@ -932,14 +958,21 @@ class _DressUpScreenState extends State<DressUpScreen>
                 children: [
                   if (_unlockedItem != null && _unlockShow.isAnimating)
                     UnlockCelebration(
-                      item: _unlockedItem!,
+                      picture: ItemThumbnail(
+                        item: _unlockedItem!,
+                        color: _unlockedItem!.color,
+                      ),
                       progress: _unlockShow.value,
                     ),
                   if (_neededItem != null && _needShow.isAnimating)
                     Align(
                       alignment: const Alignment(0, 0.35),
                       child: NeedStars(
-                        item: _neededItem!,
+                        picture: ItemThumbnail(
+                          item: _neededItem!,
+                          color: _neededItem!.color,
+                        ),
+                        price: _neededItem!.price,
                         have: _rewards.stars,
                         progress: _needShow.value,
                       ),
@@ -1039,21 +1072,37 @@ class _DressUpScreenState extends State<DressUpScreen>
                 ],
               ),
             ),
-            // Star Shop, Dance and Pose
+            // Room, Star Shop, Dance and Pose
             Positioned(
               right: 12,
               bottom: 12,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ListenableBuilder(
-                    listenable: _rewards,
-                    builder: (context, _) => StarShopButton(
-                      key: _shopTarget,
-                      stars: _rewards.stars,
-                      size: buttonSize,
-                      onTap: _openShop,
-                    ),
+                  // Side by side on short screens.
+                  Flex(
+                    direction: tight ? Axis.horizontal : Axis.vertical,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      BigRoundButton(
+                        key: const Key('room_button'),
+                        icon: Icons.house_rounded,
+                        color: const Color(0xFF5BB8F5),
+                        semanticLabel: strings.room,
+                        size: buttonSize,
+                        onTap: _openRoom,
+                      ),
+                      SizedBox(width: gap, height: gap),
+                      ListenableBuilder(
+                        listenable: _rewards,
+                        builder: (context, _) => StarShopButton(
+                          key: _shopTarget,
+                          stars: _rewards.stars,
+                          size: buttonSize,
+                          onTap: _openShop,
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: gap + 4),
                   BigRoundButton(

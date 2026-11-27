@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="184" height="108" viewBox="0 0 184 108"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFA3A3"/><stop offset="0.45" stop-color="#FF6B6B"/><stop offset="1" stop-color="#EB6268"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EBE5EA"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#B8DFFF"/><stop offset="0.45" stop-color="#8CCBFF"/><stop offset="1" stop-color="#86B7EA"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFE791"/><stop offset="0.45" stop-color="#FFD84D"/><stop offset="1" stop-color="#EBC24D"/></linearGradient><linearGradient id="g4" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#998FA3"/><stop offset="0.45" stop-color="#5A4A6A"/><stop offset="1" stop-color="#5A4567"/></linearGradient><linearGradient id="g5" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFDE87"/><stop offset="0.45" stop-color="#FFC93D"/><stop offset="1" stop-color="#EBB53F"/></linearGradient></defs>
+<path d="M6 92 L6 46 Q6 30 26 30 L38 30 Q48 8 70 12 L74 40 L140 46 Q180 52 178 80 L176 92 Z" fill="url(#g0)" stroke="#C55262" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="28" y="44" width="118" height="22" rx="10" fill="url(#g1)" stroke="#C5B2C2" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="52" cy="46" rx="20" ry="10" fill="url(#g1)" stroke="#C5B2C2" stroke-width="1.8" stroke-linejoin="round" transform="rotate(-8 52 46)"/>
+<path d="M70 42 Q120 34 146 50 L146 66 L70 66 Z" fill="url(#g2)" stroke="#7B90C2" stroke-width="1.8" stroke-linejoin="round"/>
+<path d="M16 76 L164 76" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M92 68 L94.3 72.9 L99.6 73.5 L95.7 77.2 L96.7 82.5 L92 79.8 L87.3 82.5 L88.3 77.2 L84.4 73.5 L89.7 72.9 Z" fill="url(#g3)" stroke="#C5994E" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="40" cy="91" rx="15" ry="15" fill="url(#g4)" stroke="#5A3C61" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="40" cy="91" rx="6" ry="6" fill="url(#g5)" stroke="#C58F44" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="142" cy="91" rx="15" ry="15" fill="url(#g4)" stroke="#5A3C61" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="142" cy="91" rx="6" ry="6" fill="url(#g5)" stroke="#C58F44" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="170" cy="66" rx="5" ry="5" fill="url(#g3)" stroke="#C5994E" stroke-width="1.8" stroke-linejoin="round"/>
+</svg>

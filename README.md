@@ -69,6 +69,27 @@ pictures are SVGs in `assets/svg/tools/`.
   unlocked items.
 - Shop items are the entries with `price:` in `lib/data/game_config.dart`.
   Their pictures are in `assets/svg/items/` (wings use the new `back` slot).
+- The shop also sells 6 things for her room (marked with a little house):
+  a canopy princess bed, a castle bunk bed, a rainbow rug, a unicorn lamp, a
+  giant teddy and an aquarium (6 to 12 stars).
+
+## Room Decorating
+
+- The blue house button (right, above the Star Shop) opens the bedroom of
+  the doll on stage. Every doll has her own room, saved on the device.
+- Pick a category in the bottom bar, then tap a picture: wallpapers and
+  floors change at once; everything else appears in the room.
+- Drag things with a finger; pinch, or use the green button, to change the
+  size; the other button flips; drag onto the trash can to remove. Things
+  lower on the screen are drawn in front and stay inside the room.
+- Tap the doll or a pet for a hop and hearts. The bunny is free; the kittens
+  and puppy are the Star Shop pets.
+- Moon / sun button: night (lamps glow, stars in the windows) or day.
+- The camera saves a picture of the room to "My Looks".
+- Things are listed in `lib/data/room_config.dart`; their drawings in
+  `assets/svg/room/` are made by `dart run tool/generate_room_art.dart`.
+  Wallpapers and floors are painted in `lib/art/room_art.dart`.
+
 ## Challenges
 
 - The gold trophy button (left, above Activities) shows a picture card:

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="68" height="82" viewBox="0 0 68 82"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#D2C2FF"/><stop offset="0.45" stop-color="#B79CFF"/><stop offset="1" stop-color="#AC8DEA"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.45" stop-color="#FFE680"/><stop offset="1" stop-color="#EBCF7A"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#857B89"/><stop offset="0.45" stop-color="#3A2A40"/><stop offset="1" stop-color="#3E2942"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFBAD3"/><stop offset="0.45" stop-color="#FF8FB8"/><stop offset="1" stop-color="#EB82AC"/></linearGradient><linearGradient id="g4" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFDE87"/><stop offset="0.45" stop-color="#FFC93D"/><stop offset="1" stop-color="#EBB53F"/></linearGradient></defs>
+<ellipse cx="34" cy="75" rx="22" ry="6" fill="url(#g0)" stroke="#9672C2" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="31" y="58" width="6" height="16" rx="3" fill="url(#g0)" stroke="#9672C2" stroke-width="1.8" stroke-linejoin="round"/>
+<path d="M44 6 C18 6 6 22 6 36 C6 54 22 64 38 64 C50 64 60 56 63 47 C46 54 30 46 30 32 C30 20 36 10 44 6 Z" fill="url(#g1)" stroke="#C5A26F" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="19.5" cy="38" rx="1.1" ry="1.3" fill="url(#g2)"/>
+<circle cx="19.9" cy="37.5" r="0.4" fill="#FFFFFF"/>
+<ellipse cx="17.5" cy="40.3" rx="1.3" ry="0.8" fill="url(#g3)" opacity="0.7"/>
+<ellipse cx="28.5" cy="38" rx="1.1" ry="1.3" fill="url(#g2)"/>
+<circle cx="28.9" cy="37.5" r="0.4" fill="#FFFFFF"/>
+<ellipse cx="30.5" cy="40.3" rx="1.3" ry="0.8" fill="url(#g3)" opacity="0.7"/>
+<path d="M22.4 40 Q24 41.8 25.6 40" fill="none" stroke="#7A3A5A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52 12 L54.3 16.9 L59.6 17.5 L55.7 21.2 L56.7 26.5 L52 23.8 L47.3 26.5 L48.3 21.2 L44.4 17.5 L49.7 16.9 Z" fill="url(#g4)" stroke="#C58F44" stroke-width="1" stroke-linejoin="round"/>
+</svg>

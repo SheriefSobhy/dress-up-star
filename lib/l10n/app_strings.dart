@@ -35,6 +35,10 @@ class AppStrings {
   String get play => _get('play');
   String get close => _get('close');
   String get done => _get('done');
+  String get room => _get('room');
+  String get dayNight => _get('dayNight');
+  String get changeSize => _get('changeSize');
+  String get flip => _get('flip');
   String get back => _get('back');
   String get keep => _get('keep');
   String get delete => _get('delete');
@@ -103,6 +107,10 @@ class AppStrings {
     'play': 'Play',
     'close': 'Close',
     'done': 'Done',
+    'room': 'Room',
+    'dayNight': 'Day or night',
+    'changeSize': 'Bigger or smaller',
+    'flip': 'Flip',
     'back': 'Back',
     'keep': 'Keep',
     'delete': 'Delete',
@@ -147,7 +155,7 @@ class AppStrings {
     'replayTutorial': 'Show the how-to-play again',
     'replayTutorialHint': 'The pointing finger shows how to play.',
     'resetProgress': 'Reset progress',
-    'resetProgressHint': 'Stars, unlocked items, saved looks and dolls.',
+    'resetProgressHint': 'Stars, unlocked items, saved looks, dolls and rooms.',
     'resetQuestion': 'Reset all progress?',
     'resetWarning':
         'This removes all stars, Star Shop items and saved looks on this '
@@ -164,6 +172,10 @@ class AppStrings {
     'play': 'العب',
     'close': 'إغلاق',
     'done': 'تم',
+    'room': 'الغرفة',
+    'dayNight': 'نهار أو ليل',
+    'changeSize': 'أكبر أو أصغر',
+    'flip': 'اقلب',
     'back': 'رجوع',
     'keep': 'احتفظ',
     'delete': 'حذف',
@@ -208,7 +220,8 @@ class AppStrings {
     'replayTutorial': 'اعرض طريقة اللعب مرة أخرى',
     'replayTutorialHint': 'إصبع يشير ويوضح طريقة اللعب.',
     'resetProgress': 'إعادة ضبط التقدم',
-    'resetProgressHint': 'النجوم والعناصر المفتوحة والإطلالات المحفوظة والدمى.',
+    'resetProgressHint':
+        'النجوم والعناصر المفتوحة والإطلالات المحفوظة والدمى والغرف.',
     'resetQuestion': 'إعادة ضبط كل التقدم؟',
     'resetWarning':
         'سيؤدي هذا إلى حذف كل النجوم وعناصر متجر النجوم والإطلالات المحفوظة '

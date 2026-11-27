@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'unlockable.dart';
+
 /// A place on the doll where one item can be worn.
 /// Items in the same slot replace each other.
 enum Slot {
@@ -223,7 +225,7 @@ extension ItemShapeSlot on ItemShape {
 enum ItemPattern { none, dots, stripes, stars, hearts }
 
 /// One thing the doll can wear (or one background).
-class GameItem {
+class GameItem with Unlockable {
   const GameItem({
     required this.id,
     required this.shape,
@@ -235,6 +237,7 @@ class GameItem {
 
   /// Unique name, used when saving looks. Never reuse or rename an id that
   /// has been released, or saved looks will lose that item.
+  @override
   final String id;
   final ItemShape shape;
 
@@ -246,10 +249,8 @@ class GameItem {
   final Set<ChallengeTheme> themes;
 
   /// Stars needed to unlock it in the Star Shop (0: free from the start).
+  @override
   final int price;
-
-  /// A Star Shop item (locked until bought with stars).
-  bool get isSpecial => price > 0;
 
   Slot get slot => shape.slot;
 }

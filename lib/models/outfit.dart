@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import '../data/game_config.dart';
 import 'beauty.dart';
 import 'doll_body.dart';
+import 'room.dart';
 
 export 'beauty.dart';
 export 'doll_body.dart';
@@ -53,6 +54,7 @@ class Outfit {
     this.body = DollBody.classic,
     this.dollId = firstDollId,
     this.runway = false,
+    this.room,
   }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
@@ -156,6 +158,10 @@ class Outfit {
   /// Not part of the look itself, like [dollId].
   final bool runway;
 
+  /// A photo of her room: the gallery shows the room (with her in it).
+  /// Not part of the look itself, like [dollId].
+  final Room? room;
+
   /// True when her hair comes from the Hair Salon.
   bool get hasSalonHair =>
       !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
@@ -170,6 +176,7 @@ class Outfit {
     DollBody? body,
     int? dollId,
     bool? runway,
+    Room? room,
   }) => Outfit(
     worn ?? this.worn,
     makeup: makeup ?? this.makeup,
@@ -179,6 +186,7 @@ class Outfit {
     body: body ?? this.body,
     dollId: dollId ?? this.dollId,
     runway: runway ?? this.runway,
+    room: room ?? this.room,
   );
 
   WornItem? operator [](Slot slot) => worn[slot];
@@ -233,6 +241,7 @@ class Outfit {
     if (body != DollBody.classic) 'body': body.toJson(),
     if (dollId != firstDollId) 'doll': dollId,
     if (runway) 'runway': true,
+    if (room != null) 'room': room!.toJson(),
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -265,6 +274,7 @@ class Outfit {
       body: DollBody.fromJson(json['body']),
       dollId: json['doll'] is int ? json['doll'] as int : firstDollId,
       runway: json['runway'] == true,
+      room: Room.fromJson(json['room']),
     );
   }
 

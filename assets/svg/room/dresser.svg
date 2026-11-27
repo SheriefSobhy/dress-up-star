@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="118" height="102" viewBox="0 0 118 102"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#AFC8C0"/><stop offset="0.45" stop-color="#7EA799"/><stop offset="1" stop-color="#7A9790"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#B9ECD3"/><stop offset="0.45" stop-color="#8EE0B8"/><stop offset="1" stop-color="#88C9AC"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EBE5EA"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#D9F4E7"/><stop offset="0.45" stop-color="#C1EED8"/><stop offset="1" stop-color="#B5D6C8"/></linearGradient><linearGradient id="g4" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FF9CC3"/><stop offset="0.45" stop-color="#FF5F9E"/><stop offset="1" stop-color="#EB5895"/></linearGradient></defs>
+<rect x="12" y="90" width="12" height="11" rx="3" fill="url(#g0)" stroke="#71797F" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="94" y="90" width="12" height="11" rx="3" fill="url(#g0)" stroke="#71797F" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="6" y="14" width="106" height="80" rx="9" fill="url(#g1)" stroke="#7C9E94" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="2" y="8" width="114" height="14" rx="6" fill="url(#g2)" stroke="#C5B2C2" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="13" y="28" width="92" height="18" rx="6" fill="url(#g3)" stroke="#9DA7A8" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="42" cy="37" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="76" cy="37" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="13" y="50" width="92" height="18" rx="6" fill="url(#g3)" stroke="#9DA7A8" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="42" cy="59" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="76" cy="59" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+<rect x="13" y="72" width="92" height="18" rx="6" fill="url(#g3)" stroke="#9DA7A8" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="42" cy="81" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="76" cy="81" rx="3.5" ry="3.5" fill="url(#g4)" stroke="#C54A83" stroke-width="1.8" stroke-linejoin="round"/>
+</svg>

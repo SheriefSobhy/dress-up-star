@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFDE87"/><stop offset="0.45" stop-color="#FFC93D"/><stop offset="1" stop-color="#EBB53F"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFBADC"/><stop offset="0.45" stop-color="#FF8FC7"/><stop offset="1" stop-color="#EB82B9"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFE791"/><stop offset="0.45" stop-color="#FFD84D"/><stop offset="1" stop-color="#EBC24D"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#D2C2FF"/><stop offset="0.45" stop-color="#B79CFF"/><stop offset="1" stop-color="#AC8DEA"/></linearGradient></defs>
+<path fill="#FFC93D" stroke="#C58F44" stroke-width="2" fill-rule="evenodd" d="M56 4 a52 52 0 1 0 .1 0 Z M56 14 a42 42 0 1 1 -.1 0 Z"/>
+<rect x="53.5" y="14" width="5" height="84" rx="2" fill="url(#g0)" stroke="#C58F44" stroke-width="1" stroke-linejoin="round"/>
+<rect x="14" y="53.5" width="84" height="5" rx="2" fill="url(#g0)" stroke="#C58F44" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="20" cy="85.3" rx="5" ry="5" fill="url(#g1)" stroke="#C5699D" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="26.4" cy="89.9" rx="5" ry="5" fill="url(#g1)" stroke="#C5699D" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="24" cy="97.5" rx="5" ry="5" fill="url(#g1)" stroke="#C5699D" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="16" cy="97.5" rx="5" ry="5" fill="url(#g1)" stroke="#C5699D" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="13.6" cy="89.9" rx="5" ry="5" fill="url(#g1)" stroke="#C5699D" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="20" cy="92" rx="4" ry="4" fill="url(#g2)" stroke="#C5994E" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="92" cy="14.8" rx="3.9" ry="3.9" fill="url(#g3)" stroke="#9672C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="97" cy="18.4" rx="3.9" ry="3.9" fill="url(#g3)" stroke="#9672C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="95.1" cy="24.2" rx="3.9" ry="3.9" fill="url(#g3)" stroke="#9672C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="88.9" cy="24.2" rx="3.9" ry="3.9" fill="url(#g3)" stroke="#9672C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="87" cy="18.4" rx="3.9" ry="3.9" fill="url(#g3)" stroke="#9672C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="92" cy="20" rx="3.1" ry="3.1" fill="url(#g2)" stroke="#C5994E" stroke-width="1" stroke-linejoin="round"/>
+</svg>

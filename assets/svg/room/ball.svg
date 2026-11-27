@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFA3A3"/><stop offset="0.45" stop-color="#FF6B6B"/><stop offset="1" stop-color="#EB6268"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EBE5EA"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFE791"/><stop offset="0.45" stop-color="#FFD84D"/><stop offset="1" stop-color="#EBC24D"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#B8DFFF"/><stop offset="0.45" stop-color="#8CCBFF"/><stop offset="1" stop-color="#86B7EA"/></linearGradient></defs>
+<ellipse cx="26" cy="26" rx="24" ry="24" fill="url(#g0)" stroke="#C55262" stroke-width="1.8" stroke-linejoin="round"/>
+<path d="M26 2 C8 14 8 38 26 50 C16 38 16 14 26 2 Z" fill="url(#g1)" stroke="#C5B2C2" stroke-width="1" stroke-linejoin="round"/>
+<path d="M26 2 C44 14 44 38 26 50 C36 38 36 14 26 2 Z" fill="url(#g2)" stroke="#C5994E" stroke-width="1" stroke-linejoin="round"/>
+<path d="M26 2 C20 14 20 38 26 50 C32 38 32 14 26 2 Z" fill="url(#g3)" stroke="#7B90C2" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="26" cy="5" rx="4" ry="4" fill="url(#g1)" stroke="#C5B2C2" stroke-width="1" stroke-linejoin="round"/>
+<circle cx="15" cy="15" r="4" fill="#FFFFFF" opacity="0.8"/>
+</svg>

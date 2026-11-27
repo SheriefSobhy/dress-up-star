@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/game_config.dart';
+import '../models/unlockable.dart';
 import 'game_settings.dart';
 
 /// Stars and the Star Shop: what she has earned, and what is unlocked.
@@ -47,13 +47,13 @@ class Rewards extends ChangeNotifier {
   Set<String> get unlockedIds => Set.unmodifiable(_paid.keys);
 
   /// Free items are always unlocked.
-  bool isUnlocked(GameItem item) =>
+  bool isUnlocked(Unlockable item) =>
       !item.isSpecial || _paid.containsKey(item.id);
 
-  bool canAfford(GameItem item) => stars >= item.price;
+  bool canAfford(Unlockable item) => stars >= item.price;
 
   /// How many more stars are needed for [item].
-  int missingFor(GameItem item) => max(0, item.price - stars);
+  int missingFor(Unlockable item) => max(0, item.price - stars);
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,7 +78,7 @@ class Rewards extends ChangeNotifier {
 
   /// Buys [item] with stars. Returns false (and changes nothing) if there
   /// are not enough stars.
-  Future<bool> unlock(GameItem item) async {
+  Future<bool> unlock(Unlockable item) async {
     if (isUnlocked(item)) return true;
     if (!canAfford(item)) return false;
     _paid[item.id] = item.price;

@@ -38,6 +38,31 @@ class _GalleryScreenState extends State<GalleryScreen> {
     if (mounted) setState(() => _looks = looks);
   }
 
+  /// A room photo is only for looking at: big, tap to close.
+  Future<void> _showRoomPhoto(Outfit look) => showDialog<void>(
+    context: context,
+    builder: (context) => GestureDetector(
+      key: const Key('room_photo_big'),
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        widget.audio.play(Sfx.tap);
+        Navigator.pop(context);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: look.room!.aspect,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: LookPicture(look: look),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final looks = _looks;
@@ -132,7 +157,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
               key: Key('look_$index'),
               onTap: () {
                 widget.audio.play(Sfx.itemOn);
-                Navigator.pop(context, look);
+                if (look.room != null) {
+                  _showRoomPhoto(look);
+                } else {
+                  Navigator.pop(context, look);
+                }
               },
               builder: (pressed) => Container(
                 decoration: BoxDecoration(

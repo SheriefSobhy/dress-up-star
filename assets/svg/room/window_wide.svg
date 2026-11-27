@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="178" height="122" viewBox="0 0 178 122"><defs><linearGradient id="g0" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EBE5EA"/></linearGradient><linearGradient id="g1" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#B9ECD3"/><stop offset="0.45" stop-color="#8EE0B8"/><stop offset="1" stop-color="#88C9AC"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFDE87"/><stop offset="0.45" stop-color="#FFC93D"/><stop offset="1" stop-color="#EBB53F"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#FFE791"/><stop offset="0.45" stop-color="#FFD84D"/><stop offset="1" stop-color="#EBC24D"/></linearGradient></defs>
+<path fill="#FFFFFF" stroke="#7C9E94" stroke-width="1.8" fill-rule="evenodd" d="M24 18 H154 V106 H24 Z M30 24 V100 H148 V24 Z"/>
+<rect x="68" y="24" width="5" height="76" rx="2" fill="url(#g0)" stroke="#C5B2C2" stroke-width="1" stroke-linejoin="round"/>
+<rect x="108" y="24" width="5" height="76" rx="2" fill="url(#g0)" stroke="#C5B2C2" stroke-width="1" stroke-linejoin="round"/>
+<rect x="18" y="102" width="142" height="11" rx="5" fill="url(#g0)" stroke="#C5B2C2" stroke-width="1.8" stroke-linejoin="round"/>
+<path d="M4 12 L44 12 Q44 59.7 16 77.7 Q44 89.7 24 118 L4 118 Z" fill="url(#g1)" stroke="#7C9E94" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="10" cy="77.7" rx="9.6" ry="4.5" fill="url(#g2)" stroke="#C58F44" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M174 12 L134 12 Q134 59.7 162 77.7 Q134 89.7 154 118 L174 118 Z" fill="url(#g1)" stroke="#7C9E94" stroke-width="1.8" stroke-linejoin="round"/>
+<ellipse cx="168" cy="77.7" rx="9.6" ry="4.5" fill="url(#g2)" stroke="#C58F44" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M4 8 H174 V20 Q160 34 146 20 Q132 34 117 20 Q103 34 89 20 Q75 34 61 20 Q46 34 32 20 Q18 34 4 20 Z" fill="url(#g3)" stroke="#C5994E" stroke-width="1.8" stroke-linejoin="round"/>
+</svg>

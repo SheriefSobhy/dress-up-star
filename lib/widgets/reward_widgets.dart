@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import '../data/game_config.dart';
 import '../painting/shapes.dart';
 import 'art_image.dart';
 import 'big_round_button.dart';
@@ -139,11 +138,12 @@ class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
 class UnlockCelebration extends StatelessWidget {
   const UnlockCelebration({
     super.key,
-    required this.item,
+    required this.picture,
     required this.progress,
   });
 
-  final GameItem item;
+  /// The picture of what was unlocked.
+  final Widget picture;
   final double progress;
 
   @override
@@ -184,7 +184,7 @@ class UnlockCelebration extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(26),
-                      child: ItemThumbnail(item: item, color: item.color),
+                      child: picture,
                     ),
                   ),
                 ),
@@ -273,12 +273,14 @@ class _RaysPainter extends CustomPainter {
 class NeedStars extends StatelessWidget {
   const NeedStars({
     super.key,
-    required this.item,
+    required this.picture,
+    required this.price,
     required this.have,
     required this.progress,
   });
 
-  final GameItem item;
+  final Widget picture;
+  final int price;
   final int have;
   final double progress;
 
@@ -288,7 +290,6 @@ class NeedStars extends StatelessWidget {
     if (t <= 0 || t >= 1) return const SizedBox.shrink();
     final show = Curves.easeOutBack.transform((t / 0.2).clamp(0, 1));
     final fade = t < 0.82 ? 1.0 : 1 - (t - 0.82) / 0.18;
-    final price = item.price;
     final perRow = price > 8 ? (price / 2).ceil() : price;
     final star = math.min(24.0, 230 / perRow);
     return IgnorePointer(
@@ -323,7 +324,7 @@ class NeedStars extends StatelessWidget {
                       Positioned.fill(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(18),
-                          child: ItemThumbnail(item: item, color: item.color),
+                          child: picture,
                         ),
                       ),
                       const Positioned(right: -6, top: -6, child: LockBadge()),

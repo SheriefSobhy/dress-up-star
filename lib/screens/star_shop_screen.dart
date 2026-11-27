@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
 import '../data/game_config.dart';
+import '../data/room_config.dart';
 import '../models/outfit.dart';
+import '../models/unlockable.dart';
 import '../painting/confetti_painter.dart';
 import '../services/game_audio.dart';
 import '../services/rewards.dart';
@@ -11,6 +13,7 @@ import '../widgets/art_image.dart';
 import '../widgets/big_round_button.dart';
 import '../widgets/challenge_widgets.dart' show StarCount;
 import '../widgets/reward_widgets.dart';
+import '../widgets/room_thumbnail.dart';
 
 /// All Star Shop items, cheapest first.
 List<GameItem> starShopItems() =>
@@ -18,7 +21,8 @@ List<GameItem> starShopItems() =>
       ..sort((a, b) => a.price.compareTo(b.price));
 
 /// The Star Shop: special items to unlock with stars (no real money).
-/// Tapping an unlocked item closes the shop and returns it, to wear.
+/// Tapping an unlocked item closes the shop and returns it: a [GameItem] to
+/// wear, or a [RoomItem] to put in her room.
 class StarShopScreen extends StatefulWidget {
   const StarShopScreen({
     super.key,
@@ -51,8 +55,8 @@ class _StarShopScreenState extends State<StarShopScreen>
     vsync: this,
     duration: const Duration(milliseconds: 2200),
   );
-  GameItem? _unlocked;
-  GameItem? _needed;
+  Unlockable? _unlocked;
+  Unlockable? _needed;
   final Map<String, int> _shakes = {};
   int _confettiSeed = 100;
 
@@ -64,7 +68,11 @@ class _StarShopScreenState extends State<StarShopScreen>
     super.dispose();
   }
 
-  Future<void> _tap(GameItem item) async {
+  Widget _picture(Unlockable item) => item is RoomItem
+      ? RoomThumbnail(item: item)
+      : ItemThumbnail(item: item as GameItem, color: item.color);
+
+  Future<void> _tap(Unlockable item) async {
     final rewards = widget.rewards;
     if (rewards.isUnlocked(item)) {
       widget.audio.play(Sfx.itemOn);
@@ -94,7 +102,8 @@ class _StarShopScreenState extends State<StarShopScreen>
 
   @override
   Widget build(BuildContext context) {
-    final items = starShopItems();
+    // Clothes first, then the things for her room.
+    final items = <Unlockable>[...starShopItems(), ...roomShopItems()];
     return Scaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -189,7 +198,7 @@ class _StarShopScreenState extends State<StarShopScreen>
               builder: (context, _) => _unlocked == null
                   ? const SizedBox.shrink()
                   : UnlockCelebration(
-                      item: _unlocked!,
+                      picture: _picture(_unlocked!),
                       progress: _unlock.isAnimating ? _unlock.value : 0,
                     ),
             ),
@@ -199,7 +208,8 @@ class _StarShopScreenState extends State<StarShopScreen>
                   ? const SizedBox.shrink()
                   : Center(
                       child: NeedStars(
-                        item: _needed!,
+                        picture: _picture(_needed!),
+                        price: _needed!.price,
                         have: widget.rewards.stars,
                         progress: _need.isAnimating ? _need.value : 0,
                       ),
@@ -211,11 +221,11 @@ class _StarShopScreenState extends State<StarShopScreen>
     );
   }
 
-  Widget _card(GameItem item) {
+  Widget _card(Unlockable item) {
     final rewards = widget.rewards;
     final unlocked = rewards.isUnlocked(item);
     final affordable = !unlocked && rewards.canAfford(item);
-    final wearing = widget.outfit.isWearing(item);
+    final wearing = item is GameItem && widget.outfit.isWearing(item);
     return Shake(
       trigger: _shakes[item.id] ?? 0,
       child: Pressable(
@@ -257,7 +267,7 @@ class _StarShopScreenState extends State<StarShopScreen>
                     borderRadius: BorderRadius.circular(19),
                     child: Opacity(
                       opacity: unlocked || affordable ? 1 : 0.75,
-                      child: ItemThumbnail(item: item, color: item.color),
+                      child: _picture(item),
                     ),
                   ),
                 ),
@@ -279,6 +289,17 @@ class _StarShopScreenState extends State<StarShopScreen>
                       : PricePill(price: item.price),
                 ),
               ),
+              // A little house on things for her room.
+              if (item is RoomItem)
+                const Positioned(
+                  left: 6,
+                  top: 6,
+                  child: Icon(
+                    Icons.home_rounded,
+                    color: Color(0xFF8B5CC9),
+                    size: 22,
+                  ),
+                ),
               if (!unlocked)
                 Positioned(
                   right: -4,

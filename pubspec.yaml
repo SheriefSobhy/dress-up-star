@@ -68,6 +68,7 @@ flutter:
     - assets/svg/doll/
     - assets/svg/icons/
     - assets/svg/items/
+    - assets/svg/room/
     - assets/svg/scenes/
     - assets/svg/themes/
     - assets/svg/tools/
