@@ -45,6 +45,10 @@ class AppStrings {
   String get soundOff => _get('soundOff');
   String get dance => _get('dance');
   String get pose => _get('pose');
+  String get editDoll => _get('editDoll');
+  String get newDoll => _get('newDoll');
+  String get doll => _get('doll');
+  String get randomDoll => _get('randomDoll');
   String get activities => _get('activities');
   String get challenge => _get('challenge');
   String get starShop => _get('starShop');
@@ -104,6 +108,10 @@ class AppStrings {
     'myLooks': 'My looks',
     'surpriseMe': 'Surprise me',
     'saveLook': 'Save look',
+    'editDoll': 'Change my doll',
+    'newDoll': 'New doll',
+    'doll': 'Doll',
+    'randomDoll': 'Random',
     'soundOn': 'Sound on',
     'soundOff': 'Sound off',
     'dance': 'Dance',
@@ -137,7 +145,7 @@ class AppStrings {
     'replayTutorial': 'Show the how-to-play again',
     'replayTutorialHint': 'The pointing finger shows how to play.',
     'resetProgress': 'Reset progress',
-    'resetProgressHint': 'Stars, unlocked items and saved looks.',
+    'resetProgressHint': 'Stars, unlocked items, saved looks and dolls.',
     'resetQuestion': 'Reset all progress?',
     'resetWarning':
         'This removes all stars, Star Shop items and saved looks on this '
@@ -160,6 +168,10 @@ class AppStrings {
     'myLooks': 'إطلالاتي',
     'surpriseMe': 'فاجئني',
     'saveLook': 'احفظ الإطلالة',
+    'editDoll': 'غيّري دميتي',
+    'newDoll': 'دمية جديدة',
+    'doll': 'دمية',
+    'randomDoll': 'عشوائي',
     'soundOn': 'الصوت يعمل',
     'soundOff': 'الصوت مغلق',
     'dance': 'رقص',
@@ -193,7 +205,7 @@ class AppStrings {
     'replayTutorial': 'اعرض طريقة اللعب مرة أخرى',
     'replayTutorialHint': 'إصبع يشير ويوضح طريقة اللعب.',
     'resetProgress': 'إعادة ضبط التقدم',
-    'resetProgressHint': 'النجوم والعناصر المفتوحة والإطلالات المحفوظة.',
+    'resetProgressHint': 'النجوم والعناصر المفتوحة والإطلالات المحفوظة والدمى.',
     'resetQuestion': 'إعادة ضبط كل التقدم؟',
     'resetWarning':
         'سيؤدي هذا إلى حذف كل النجوم وعناصر متجر النجوم والإطلالات المحفوظة '

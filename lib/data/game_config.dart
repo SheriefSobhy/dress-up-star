@@ -557,6 +557,298 @@ const List<GameItem> gameItems = [
     color: Color(0xFFFFD1E8),
   ),
 
+  // Jackets and coats
+  GameItem(
+    id: 'jacket_denim',
+    themes: {ChallengeTheme.garden, ChallengeTheme.party},
+    shape: ItemShape.jacketDenim,
+    color: Color(0xFF5F8FD9),
+  ),
+  GameItem(
+    id: 'jacket_puffer',
+    themes: {ChallengeTheme.snow},
+    shape: ItemShape.jacketPuffer,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'jacket_raincoat',
+    themes: {ChallengeTheme.garden, ChallengeTheme.snow},
+    shape: ItemShape.jacketRain,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'jacket_cardigan',
+    themes: {
+      ChallengeTheme.bedtime,
+      ChallengeTheme.snow,
+      ChallengeTheme.garden,
+    },
+    shape: ItemShape.jacketCardigan,
+    color: Color(0xFF8EE08A),
+  ),
+  GameItem(
+    id: 'jacket_blazer',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.jacketBlazer,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(
+    id: 'jacket_hoodie',
+    themes: {ChallengeTheme.snow, ChallengeTheme.bedtime},
+    shape: ItemShape.jacketHoodie,
+    color: Color(0xFF5CD6D6),
+  ),
+
+  // Pants
+  GameItem(
+    id: 'pants_jeans',
+    themes: {ChallengeTheme.garden, ChallengeTheme.party},
+    shape: ItemShape.pantsJeans,
+    color: Color(0xFF5F8FD9),
+  ),
+  GameItem(
+    id: 'pants_leggings',
+    themes: {ChallengeTheme.snow, ChallengeTheme.bedtime},
+    shape: ItemShape.pantsLeggings,
+    color: Color(0xFFD873F0),
+  ),
+  GameItem(
+    id: 'pants_shorts',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
+    shape: ItemShape.pantsShorts,
+    color: Color(0xFFFFA45C),
+    pattern: ItemPattern.dots,
+  ),
+  GameItem(
+    id: 'pants_overalls',
+    themes: {ChallengeTheme.garden},
+    shape: ItemShape.pantsOveralls,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'pants_flared',
+    themes: {ChallengeTheme.party},
+    shape: ItemShape.pantsFlared,
+    color: Color(0xFFFF8FC7),
+  ),
+
+  // Hats
+  GameItem(
+    id: 'hat_sun',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
+    shape: ItemShape.hatSun,
+    color: Color(0xFFFFE08A),
+  ),
+  GameItem(
+    id: 'hat_beanie',
+    themes: {ChallengeTheme.snow, ChallengeTheme.bedtime},
+    shape: ItemShape.hatBeanie,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'hat_cap',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
+    shape: ItemShape.hatCap,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'hat_beret',
+    themes: {ChallengeTheme.party, ChallengeTheme.ball},
+    shape: ItemShape.hatBeret,
+    color: Color(0xFFD873F0),
+  ),
+  GameItem(
+    id: 'hat_witch',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
+    shape: ItemShape.hatWitch,
+    color: Color(0xFF8A5CC9),
+  ),
+  GameItem(
+    id: 'shop_hat_flower_crown',
+    themes: {ChallengeTheme.garden, ChallengeTheme.ball, ChallengeTheme.beach},
+    shape: ItemShape.hatFlower,
+    color: Color(0xFFFF8FC7),
+    price: 5,
+  ),
+
+  // Costumes
+  GameItem(
+    id: 'costume_princess',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.costumePrincess,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(
+    id: 'shop_costume_mermaid',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
+    shape: ItemShape.costumeMermaid,
+    color: Color(0xFF5CD6D6),
+    price: 12,
+  ),
+  GameItem(
+    id: 'shop_costume_fairy',
+    themes: {ChallengeTheme.garden, ChallengeTheme.bedtime},
+    shape: ItemShape.costumeFairy,
+    color: Color(0xFFFF8FC7),
+    price: 9,
+  ),
+  GameItem(
+    id: 'shop_costume_astronaut',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
+    shape: ItemShape.costumeAstronaut,
+    color: Color(0xFFFFFFFF),
+    price: 10,
+  ),
+  GameItem(
+    id: 'costume_chef',
+    themes: {ChallengeTheme.party},
+    shape: ItemShape.costumeChef,
+    color: Color(0xFFFFFFFF),
+  ),
+  GameItem(
+    id: 'costume_doctor',
+    themes: {ChallengeTheme.party},
+    shape: ItemShape.costumeDoctor,
+    color: Color(0xFFFFFFFF),
+  ),
+
+  // Pajamas
+  GameItem(
+    id: 'pajama_stars',
+    themes: {ChallengeTheme.bedtime},
+    shape: ItemShape.pajamaStars,
+    color: Color(0xFF7C8CE8),
+    pattern: ItemPattern.stars,
+  ),
+  GameItem(
+    id: 'pajama_hearts',
+    themes: {ChallengeTheme.bedtime},
+    shape: ItemShape.pajamaHearts,
+    color: Color(0xFFFF9EC8),
+    pattern: ItemPattern.hearts,
+  ),
+  GameItem(
+    id: 'shop_pajama_bunny',
+    themes: {ChallengeTheme.bedtime, ChallengeTheme.snow},
+    shape: ItemShape.pajamaBunny,
+    color: Color(0xFFE3D4FF),
+    price: 7,
+  ),
+  GameItem(
+    id: 'pajama_cloud',
+    themes: {ChallengeTheme.bedtime},
+    shape: ItemShape.pajamaCloud,
+    color: Color(0xFF8FCBFF),
+  ),
+
+  // Sportswear
+  GameItem(
+    id: 'sport_tennis',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
+    shape: ItemShape.sportTennis,
+    color: Color(0xFF8EE08A),
+  ),
+  GameItem(
+    id: 'sport_ballet',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.sportBallet,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'sport_football',
+    themes: {ChallengeTheme.garden},
+    shape: ItemShape.sportFootball,
+    color: Color(0xFFFF6B6B),
+  ),
+  GameItem(
+    id: 'sport_tracksuit',
+    themes: {ChallengeTheme.snow, ChallengeTheme.garden},
+    shape: ItemShape.sportTracksuit,
+    color: Color(0xFFB079F2),
+  ),
+
+  // Socks and tights
+  GameItem(
+    id: 'socks_striped',
+    themes: {ChallengeTheme.party, ChallengeTheme.bedtime},
+    shape: ItemShape.socksStriped,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'socks_frilly',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party},
+    shape: ItemShape.socksFrilly,
+    color: Color(0xFFFFD1E8),
+  ),
+  GameItem(
+    id: 'socks_rainbow_tights',
+    themes: {ChallengeTheme.party, ChallengeTheme.snow},
+    shape: ItemShape.socksRainbow,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'socks_knee',
+    themes: {ChallengeTheme.snow, ChallengeTheme.garden},
+    shape: ItemShape.socksKnee,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(
+    id: 'socks_glitter_tights',
+    themes: {ChallengeTheme.ball, ChallengeTheme.party, ChallengeTheme.snow},
+    shape: ItemShape.socksGlitter,
+    color: Color(0xFFD873F0),
+  ),
+
+  // More dresses, tops, skirts and shoes
+  GameItem(
+    id: 'dress_sailor',
+    themes: {ChallengeTheme.beach},
+    shape: ItemShape.dressSailor,
+    color: Color(0xFF5F8FD9),
+  ),
+  GameItem(
+    id: 'dress_strawberry',
+    themes: {ChallengeTheme.garden, ChallengeTheme.party},
+    shape: ItemShape.dressStrawberry,
+    color: Color(0xFFFF5C7A),
+  ),
+  GameItem(
+    id: 'top_blouse',
+    themes: {ChallengeTheme.ball, ChallengeTheme.garden},
+    shape: ItemShape.topBlouse,
+    color: Color(0xFFFFD1E8),
+  ),
+  GameItem(
+    id: 'top_polo',
+    themes: {ChallengeTheme.beach, ChallengeTheme.garden},
+    shape: ItemShape.topPolo,
+    color: Color(0xFF8EE08A),
+  ),
+  GameItem(
+    id: 'skirt_pleated',
+    themes: {ChallengeTheme.party, ChallengeTheme.garden},
+    shape: ItemShape.skirtPleated,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'skirt_ruffle',
+    themes: {ChallengeTheme.beach, ChallengeTheme.party},
+    shape: ItemShape.skirtRuffle,
+    color: Color(0xFFFFA45C),
+  ),
+  GameItem(
+    id: 'shoes_mary_janes',
+    themes: {ChallengeTheme.ball, ChallengeTheme.bedtime},
+    shape: ItemShape.shoesMaryJanes,
+    color: Color(0xFFFF6B6B),
+  ),
+  GameItem(
+    id: 'shoes_roller_skates',
+    themes: {ChallengeTheme.party, ChallengeTheme.beach},
+    shape: ItemShape.shoesRoller,
+    color: Color(0xFF5CD6D6),
+  ),
+
   // -------------------------------------------------------------------------
   // Star Shop specials: locked until bought with stars (`price`, 3 to 15).
   // -------------------------------------------------------------------------
@@ -711,6 +1003,13 @@ const List<GameCategory> gameCategories = [
     previewItemId: 'top_tshirt',
   ),
   GameCategory(
+    id: 'jackets',
+    slots: [Slot.jacket],
+    buttonColor: Color(0xFFFFD3B6),
+    colors: clothesColors,
+    previewItemId: 'jacket_denim',
+  ),
+  GameCategory(
     id: 'skirts',
     slots: [Slot.skirt],
     buttonColor: Color(0xFFFFF0A8),
@@ -718,11 +1017,56 @@ const List<GameCategory> gameCategories = [
     previewItemId: 'skirt_tutu',
   ),
   GameCategory(
+    id: 'pants',
+    slots: [Slot.pants],
+    buttonColor: Color(0xFFBFD7FF),
+    colors: clothesColors,
+    previewItemId: 'pants_jeans',
+  ),
+  GameCategory(
+    id: 'costumes',
+    slots: [Slot.dress],
+    group: 'costume',
+    buttonColor: Color(0xFFF5C6EC),
+    colors: clothesColors,
+    previewItemId: 'costume_princess',
+  ),
+  GameCategory(
+    id: 'pajamas',
+    slots: [Slot.dress],
+    group: 'pajama',
+    buttonColor: Color(0xFFC9CBF5),
+    colors: clothesColors,
+    previewItemId: 'pajama_stars',
+  ),
+  GameCategory(
+    id: 'sportswear',
+    slots: [Slot.dress],
+    group: 'sport',
+    buttonColor: Color(0xFFC8F0B8),
+    colors: clothesColors,
+    previewItemId: 'sport_football',
+  ),
+  GameCategory(
+    id: 'socks',
+    slots: [Slot.socks],
+    buttonColor: Color(0xFFFFE3EE),
+    colors: clothesColors,
+    previewItemId: 'socks_striped',
+  ),
+  GameCategory(
     id: 'shoes',
     slots: [Slot.shoes],
     buttonColor: Color(0xFFC7CEEA),
     colors: clothesColors,
     previewItemId: 'shoes_sneakers',
+  ),
+  GameCategory(
+    id: 'hats',
+    slots: [Slot.hat],
+    buttonColor: Color(0xFFFFE9B0),
+    colors: clothesColors,
+    previewItemId: 'hat_sun',
   ),
   GameCategory(
     id: 'accessories',
@@ -766,9 +1110,50 @@ const Set<Slot> requiredSlots = {Slot.hair, Slot.background};
 
 /// Putting on an item in the key slot takes off the items in the value slots.
 const Map<Slot, List<Slot>> slotConflicts = {
-  Slot.dress: [Slot.top, Slot.skirt],
+  Slot.dress: [Slot.top, Slot.skirt, Slot.pants],
   Slot.top: [Slot.dress],
-  Slot.skirt: [Slot.dress],
+  Slot.skirt: [Slot.dress, Slot.pants],
+  Slot.pants: [Slot.dress, Slot.skirt],
+  Slot.hat: [Slot.head],
+  Slot.head: [Slot.hat],
+};
+
+/// Clothes with legs (or that wrap her legs): they stand still with her
+/// instead of swinging like a skirt.
+const Set<ItemShape> stiffShapes = {
+  ItemShape.costumeMermaid,
+  ItemShape.costumeAstronaut,
+  ItemShape.costumeChef,
+  ItemShape.costumeDoctor,
+  ItemShape.pajamaStars,
+  ItemShape.pajamaBunny,
+  ItemShape.pajamaCloud,
+  ItemShape.sportFootball,
+  ItemShape.sportTracksuit,
+};
+
+/// Clothes that cover her feet, so shoes and socks are not drawn.
+const Set<ItemShape> footCoveringShapes = {
+  ItemShape.costumeMermaid,
+  ItemShape.pajamaBunny,
+};
+
+/// Clothes whose sleeves reach the wrist (the bent elbow gets their color).
+const Set<ItemShape> longSleeveShapes = {
+  ItemShape.topSweater,
+  ItemShape.jacketDenim,
+  ItemShape.jacketPuffer,
+  ItemShape.jacketRain,
+  ItemShape.jacketCardigan,
+  ItemShape.jacketBlazer,
+  ItemShape.jacketHoodie,
+  ItemShape.costumeAstronaut,
+  ItemShape.costumeChef,
+  ItemShape.costumeDoctor,
+  ItemShape.pajamaStars,
+  ItemShape.pajamaBunny,
+  ItemShape.pajamaCloud,
+  ItemShape.sportTracksuit,
 };
 
 /// When switching to another item in these slots, keep the chosen color
@@ -810,6 +1195,7 @@ const Set<ItemShape> shinyShapes = {
   ItemShape.eyesSunRainbow,
   ItemShape.neckDiamond,
   ItemShape.shoesSparkly,
+  ItemShape.socksGlitter,
 };
 
 // ---------------------------------------------------------------------------

@@ -4,8 +4,10 @@ import 'package:flutter/painting.dart';
 
 import '../data/game_config.dart';
 import 'beauty.dart';
+import 'doll_body.dart';
 
 export 'beauty.dart';
+export 'doll_body.dart';
 
 final Map<String, GameItem> _itemsById = {
   for (final item in gameItems) item.id: item,
@@ -20,7 +22,7 @@ List<GameItem> itemsForSlot(Slot slot) =>
 
 /// All items shown in [category].
 List<GameItem> itemsForCategory(GameCategory category) =>
-    gameItems.where((item) => category.slots.contains(item.slot)).toList();
+    gameItems.where(category.shows).toList();
 
 /// An item the doll is wearing, with the color it was given.
 class WornItem {
@@ -48,6 +50,8 @@ class Outfit {
     this.salon = SalonHair.natural,
     this.nails = NailSet.none,
     this.pose = DollPose.stand,
+    this.body = DollBody.classic,
+    this.dollId = firstDollId,
   }) : worn = Map.unmodifiable(worn);
 
   /// What the doll wears when the game starts.
@@ -82,16 +86,24 @@ class Outfit {
 
     wearRandom(Slot.background, backgroundColors);
     wearRandom(Slot.hair, hairColors, color: pick(hairColors));
+    // A dress (or costume, pajamas, sportswear), or a top with a skirt or
+    // pants.
     if (rnd.nextBool()) {
       wearRandom(Slot.dress, clothesColors);
     } else {
       wearRandom(Slot.top, clothesColors);
-      wearRandom(Slot.skirt, clothesColors);
+      wearRandom(rnd.nextInt(3) == 0 ? Slot.pants : Slot.skirt, clothesColors);
     }
     wearRandom(Slot.shoes, clothesColors);
-    for (final slot in [Slot.head, Slot.hand]) {
-      if (rnd.nextInt(3) == 0) wearRandom(slot, accessoryColors);
+    if (rnd.nextInt(5) == 0) wearRandom(Slot.jacket, clothesColors);
+    if (rnd.nextInt(4) == 0) wearRandom(Slot.socks, clothesColors);
+    // A hat or something else on her head, never both.
+    if (rnd.nextInt(5) == 0) {
+      wearRandom(Slot.hat, clothesColors);
+    } else if (rnd.nextInt(3) == 0) {
+      wearRandom(Slot.head, accessoryColors);
     }
+    if (rnd.nextInt(3) == 0) wearRandom(Slot.hand, accessoryColors);
     if (rnd.nextInt(3) == 0) wearRandom(Slot.eyes, glassesColors);
     if (itemsForSlot(Slot.back).any(ok) && rnd.nextInt(4) == 0) {
       wearRandom(Slot.back, accessoryColors);
@@ -128,6 +140,17 @@ class Outfit {
   /// How she stands (from the Pose button).
   final DollPose pose;
 
+  /// Her skin and face (from the character creator).
+  final DollBody body;
+
+  /// Which doll wears this. Not part of the look itself (two dolls dressed
+  /// the same are equal outfits).
+  final int dollId;
+
+  /// The doll the game started with; also the owner of looks saved before
+  /// there were several dolls.
+  static const int firstDollId = 1;
+
   /// True when her hair comes from the Hair Salon.
   bool get hasSalonHair =>
       !salon.isNatural && worn[Slot.hair]?.item.id == salonHairId;
@@ -139,12 +162,16 @@ class Outfit {
     SalonHair? salon,
     NailSet? nails,
     DollPose? pose,
+    DollBody? body,
+    int? dollId,
   }) => Outfit(
     worn ?? this.worn,
     makeup: makeup ?? this.makeup,
     salon: salon ?? this.salon,
     nails: nails ?? this.nails,
     pose: pose ?? this.pose,
+    body: body ?? this.body,
+    dollId: dollId ?? this.dollId,
   );
 
   WornItem? operator [](Slot slot) => worn[slot];
@@ -196,6 +223,8 @@ class Outfit {
     if (hasSalonHair) 'salon': salon.toJson(),
     if (!nails.isEmpty) 'nails': nails.toJson(),
     if (pose != DollPose.stand) 'pose': pose.name,
+    if (body != DollBody.classic) 'body': body.toJson(),
+    if (dollId != firstDollId) 'doll': dollId,
   };
 
   /// Reads a saved outfit. Unknown slots or items (for example an item that
@@ -225,6 +254,8 @@ class Outfit {
       salon: salon,
       nails: NailSet.fromJson(json['nails']),
       pose: DollPose.values.asNameMap()[json['pose']] ?? DollPose.stand,
+      body: DollBody.fromJson(json['body']),
+      dollId: json['doll'] is int ? json['doll'] as int : firstDollId,
     );
   }
 
@@ -233,6 +264,7 @@ class Outfit {
     if (other is! Outfit || other.worn.length != worn.length) return false;
     if (other.makeup != makeup || other.salon != salon) return false;
     if (other.nails != nails || other.pose != pose) return false;
+    if (other.body != body) return false;
     for (final entry in worn.entries) {
       if (other.worn[entry.key] != entry.value) return false;
     }
@@ -248,5 +280,6 @@ class Outfit {
     salon,
     nails,
     pose,
+    body,
   );
 }

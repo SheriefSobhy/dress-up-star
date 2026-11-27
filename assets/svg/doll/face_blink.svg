@@ -5,12 +5,11 @@
       <stop offset="1" stop-color="#FF8FAE" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <path d="M68 94 Q77 90.5 86 93.5 M114 93.5 Q123 90.5 132 94" fill="none" stroke="#9A6656" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
   <!-- closed eyes -->
-  <path d="M66 115 Q78 124 90 115" fill="none" stroke="#2A1730" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M67.5 116.5 L63 120 M70.5 119 L68 123.5" stroke="#2A1730" stroke-width="2" stroke-linecap="round"/>
-  <path d="M110 115 Q122 124 134 115" fill="none" stroke="#2A1730" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M132.5 116.5 L137 120 M129.5 119 L132 123.5" stroke="#2A1730" stroke-width="2" stroke-linecap="round"/>
+  <g id="eyeL"><path d="M66 115 Q78 124 90 115" fill="none" stroke="#2A1730" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M67.5 116.5 L63 120 M70.5 119 L68 123.5" stroke="#2A1730" stroke-width="2" stroke-linecap="round"/></g>
+  <g id="eyeR"><path d="M110 115 Q122 124 134 115" fill="none" stroke="#2A1730" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M132.5 116.5 L137 120 M129.5 119 L132 123.5" stroke="#2A1730" stroke-width="2" stroke-linecap="round"/></g>
   <ellipse cx="63" cy="133" rx="11" ry="7" fill="url(#blush)"/>
   <ellipse cx="137" cy="133" rx="11" ry="7" fill="url(#blush)"/>
   <path d="M59 132 l2 -2 M64 132 l2 -2" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>

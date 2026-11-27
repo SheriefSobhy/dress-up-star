@@ -255,7 +255,7 @@ class _NailsScreenState extends State<NailsScreen>
       ),
       stageBuilder: (context, info) => CustomPaint(
         size: Size.infinite,
-        painter: _HandPainter(_nails, _soaked, info.bounce),
+        painter: _HandPainter(_nails, _soaked, widget.outfit.body, info.bounce),
       ),
     );
   }
@@ -307,10 +307,12 @@ class _FaceBubble extends StatelessWidget {
 }
 
 class _HandPainter extends CustomPainter {
-  _HandPainter(this.nails, this.soaked, this.bounce) : super(repaint: bounce);
+  _HandPainter(this.nails, this.soaked, this.body, this.bounce)
+    : super(repaint: bounce);
 
   final NailSet nails;
   final Set<int> soaked;
+  final DollBody body;
   final Animation<double> bounce;
 
   @override
@@ -327,7 +329,7 @@ class _HandPainter extends CustomPainter {
       canvas.rotate(math.sin(wiggle * math.pi) * 0.03);
       canvas.translate(-pivot.dx, -pivot.dy);
     }
-    paintHand(canvas);
+    paintHand(canvas, body);
     paintNails(canvas, nails);
     for (final n in soaked) {
       _foam(canvas, kFingers[n]);

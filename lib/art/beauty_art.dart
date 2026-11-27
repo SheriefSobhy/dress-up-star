@@ -7,6 +7,7 @@ import '../data/game_config.dart';
 import '../models/beauty.dart';
 import '../painting/shapes.dart';
 import 'art_library.dart';
+import 'body_art.dart';
 import 'doll_art.dart' show Face;
 
 // =============================================================================
@@ -127,7 +128,12 @@ void paintMakeupUnder(Canvas canvas, Makeup m) {
 }
 
 /// Lipstick, eyelashes and stickers: drawn over the face.
-void paintMakeupOver(Canvas canvas, Makeup m, Face face) {
+void paintMakeupOver(
+  Canvas canvas,
+  Makeup m,
+  Face face, [
+  int eyeShape = 0,
+]) {
   if (!m.lips.isEmpty) {
     for (final c in usedColors(m.lips, lipsZone.length)) {
       final color = lipstickColors[c].color;
@@ -139,11 +145,17 @@ void paintMakeupOver(Canvas canvas, Makeup m, Face face) {
       canvas.restore();
     }
   }
-  if (m.lashLeft > 0) _paintLashes(canvas, m.lashLeft, face);
+  if (m.lashLeft > 0) {
+    canvas.save();
+    applyEyeShape(canvas, eyeShape, kLeftEye);
+    _paintLashes(canvas, m.lashLeft, face);
+    canvas.restore();
+  }
   if (m.lashRight > 0) {
     canvas.save();
     canvas.translate(200, 0);
     canvas.scale(-1, 1);
+    applyEyeShape(canvas, eyeShape, kLeftEye);
     _paintLashes(canvas, m.lashRight, face);
     canvas.restore();
   }
@@ -467,7 +479,12 @@ void paintButterfly(Canvas canvas, Offset c, double size) {
 
 /// The face layers with makeup, in drawing order: makeup under the eyes and
 /// mouth, the face itself, then lipstick, lashes and stickers.
-List<ArtLayer> makeupFaceLayers(Makeup m, Face face, ArtLayer faceArt) {
+List<ArtLayer> makeupFaceLayers(
+  Makeup m,
+  Face face,
+  ArtLayer faceArt, [
+  int eyeShape = 0,
+]) {
   if (m.isEmpty) return [faceArt];
   final hasUnder = !m.blush.isEmpty || !m.shadow.isEmpty;
   return [
@@ -478,8 +495,8 @@ List<ArtLayer> makeupFaceLayers(Makeup m, Face face, ArtLayer faceArt) {
       ),
     faceArt,
     ArtLayer.drawn(
-      'makeup_over|${face.name}|${m.key}',
-      () async => recordPicture((c) => paintMakeupOver(c, m, face)),
+      'makeup_over|${face.name}|$eyeShape|${m.key}',
+      () async => recordPicture((c) => paintMakeupOver(c, m, face, eyeShape)),
     ),
   ];
 }

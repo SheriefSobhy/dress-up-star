@@ -10,7 +10,8 @@ import '../models/outfit.dart';
 /// The doll drawn straight from her vector art and zoomed in on [frame]
 /// (doll space). Used by the activities, where she changes with every
 /// finger move: only the changed layers are redrawn, and nothing animates
-/// unless something happens.
+/// unless something happens. The shaded (2.5D) look of her art is made once
+/// per layer and kept as a picture, so strokes stay fast.
 class LiveDoll extends StatefulWidget {
   const LiveDoll({
     super.key,
@@ -44,9 +45,89 @@ class LiveDoll extends StatefulWidget {
 }
 
 class _Layer {
-  const _Layer(this.picture, this.hair);
+  const _Layer(this.art, this.picture);
+  final ArtLayer art;
   final ui.Picture picture;
-  final bool hair;
+  bool get hair => art.slot == Slot.hair;
+}
+
+/// The shaded pictures of her art layers, for one size of the widget.
+class _ShadedLayers {
+  final Map<String, ui.Image> _images = {};
+  final Set<String> _used = {};
+  Rect _area = Rect.zero;
+  double _pixels = 0;
+
+  /// Forgets the pictures if the widget changed size.
+  void fit(Rect area, double pixelsPerUnit) {
+    if (area == _area && pixelsPerUnit == _pixels) return;
+    clear();
+    _area = area;
+    _pixels = pixelsPerUnit;
+  }
+
+  /// Draws [layer] shaded, with the shadow [above] casts on it.
+  void draw(Canvas canvas, _Layer layer, List<_Layer> above) {
+    final key = [layer.art.key, for (final a in above) a.art.key].join('+');
+    _used.add(key);
+    final image = _images[key] ??= _build(layer, above);
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      _area,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+  }
+
+  ui.Image _build(_Layer layer, List<_Layer> above) {
+    final picture = recordPicture((canvas) {
+      canvas.scale(_pixels);
+      canvas.translate(-_area.left, -_area.top);
+      canvas.saveLayer(_area, Paint());
+      paintRounded(
+        canvas,
+        () => canvas.drawPicture(layer.picture),
+        bounds: _area,
+      );
+      if (above.isNotEmpty) {
+        paintOcclusion(
+          canvas,
+          () {
+            for (final a in above) {
+              canvas.drawPicture(a.picture);
+            }
+          },
+          offset: const Offset(2, 5),
+          opacity: 0.3,
+          bounds: _area,
+        );
+      }
+      canvas.restore();
+    });
+    final image = picture.toImageSync(
+      (_area.width * _pixels).ceil().clamp(1, 4096),
+      (_area.height * _pixels).ceil().clamp(1, 4096),
+    );
+    picture.dispose();
+    return image;
+  }
+
+  /// Forgets the pictures the last frame did not use (old hairdos, skins).
+  void trim() {
+    _images.removeWhere((key, image) {
+      if (_used.contains(key)) return false;
+      image.dispose();
+      return true;
+    });
+    _used.clear();
+  }
+
+  void clear() {
+    for (final image in _images.values) {
+      image.dispose();
+    }
+    _images.clear();
+  }
 }
 
 class _Pictures {
@@ -58,6 +139,7 @@ class _Pictures {
 
 class _LiveDollState extends State<LiveDoll> {
   _Pictures? _pictures;
+  final _ShadedLayers _shaded = _ShadedLayers();
   int _token = 0;
 
   @override
@@ -72,6 +154,12 @@ class _LiveDollState extends State<LiveDoll> {
     if (old.outfit != widget.outfit || old.wetHair != widget.wetHair) _load();
   }
 
+  @override
+  void dispose() {
+    _shaded.clear();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     final outfit = widget.outfit;
     final token = ++_token;
@@ -80,8 +168,7 @@ class _LiveDollState extends State<LiveDoll> {
       Future<List<_Layer>> pictures(List<ArtLayer> layers) async {
         final list = await Future.wait(layers.map(ArtLibrary.instance.picture));
         return [
-          for (var i = 0; i < layers.length; i++)
-            _Layer(list[i], layers[i].slot == Slot.hair),
+          for (var i = 0; i < layers.length; i++) _Layer(layers[i], list[i]),
         ];
       }
 
@@ -104,11 +191,14 @@ class _LiveDollState extends State<LiveDoll> {
 
   @override
   Widget build(BuildContext context) {
+    final ratio = artPixelRatio(MediaQuery.devicePixelRatioOf(context));
     return ClipRect(
       child: CustomPaint(
         size: Size.infinite,
         painter: _LiveDollPainter(
           pictures: _pictures,
+          shaded: _shaded,
+          ratio: ratio,
           frame: widget.frame,
           face: widget.face,
           sway: widget.hairSway,
@@ -123,6 +213,8 @@ class _LiveDollState extends State<LiveDoll> {
 class _LiveDollPainter extends CustomPainter {
   _LiveDollPainter({
     required this.pictures,
+    required this.shaded,
+    required this.ratio,
     required this.frame,
     required this.face,
     this.sway,
@@ -131,6 +223,8 @@ class _LiveDollPainter extends CustomPainter {
   }) : super(repaint: Listenable.merge([sway, bounce]));
 
   final _Pictures? pictures;
+  final _ShadedLayers shaded;
+  final double ratio;
   final Rect frame;
   final Face face;
   final ValueListenable<double>? sway;
@@ -146,6 +240,19 @@ class _LiveDollPainter extends CustomPainter {
     final fit = FitTransform(frame, size);
     final hop = bounce?.value ?? 0;
     final wind = sway?.value ?? 0;
+    // What shows in the widget (and a little more, for hops and wind).
+    shaded.fit(
+      Rect.fromPoints(
+        fit.invert(Offset.zero),
+        fit.invert(size.bottomRight(Offset.zero)),
+      ).inflate(12).intersect(kDepthBounds),
+      fit.scale * ratio,
+    );
+    // Her front hair shades her head.
+    final fringe = [
+      for (final l in p.over)
+        if (l.hair && hasDepth(l.art)) l,
+    ];
     canvas.save();
     canvas.translate(fit.dx, fit.dy);
     canvas.scale(fit.scale);
@@ -156,6 +263,12 @@ class _LiveDollPainter extends CustomPainter {
       canvas.scale(1 + hop * 0.025, 1 - hop * 0.015);
       canvas.translate(-pivot.dx, -pivot.dy);
     }
+    void picture(_Layer layer) {
+      if (!hasDepth(layer.art)) return canvas.drawPicture(layer.picture);
+      final head = layer.art.asset.endsWith('/head.svg');
+      shaded.draw(canvas, layer, head ? fringe : const []);
+    }
+
     void draw(_Layer layer) {
       if (layer.hair && wind != 0) {
         // The hair dryer blows the ends of the hair sideways.
@@ -163,10 +276,10 @@ class _LiveDollPainter extends CustomPainter {
         canvas.translate(100, 60);
         canvas.skew(wind * 0.12, 0);
         canvas.translate(-100, -60);
-        canvas.drawPicture(layer.picture);
+        picture(layer);
         canvas.restore();
       } else {
-        canvas.drawPicture(layer.picture);
+        picture(layer);
       }
     }
 
@@ -175,6 +288,7 @@ class _LiveDollPainter extends CustomPainter {
     p.over.forEach(draw);
     foreground?.call(canvas);
     canvas.restore();
+    shaded.trim();
   }
 
   @override

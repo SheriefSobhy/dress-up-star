@@ -6,6 +6,7 @@ import '../widgets/art_image.dart';
 import '../services/game_audio.dart';
 import '../services/looks_storage.dart';
 import '../widgets/big_round_button.dart';
+import '../widgets/confirm_delete.dart';
 
 /// "My Looks": every saved outfit. Tap one to wear it again.
 class GalleryScreen extends StatefulWidget {
@@ -30,50 +31,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _delete(int index) async {
-    // Ask with pictures only: a big check to delete, a big X to keep.
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.delete_rounded,
-                size: 64,
-                color: Color(0xFFB79CFF),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  BigRoundButton(
-                    key: const Key('delete_no'),
-                    icon: Icons.close_rounded,
-                    color: const Color(0xFF8EE08A),
-                    semanticLabel: AppStrings.of(context).keep,
-                    onTap: () {
-                      widget.audio.play(Sfx.tap);
-                      Navigator.pop(context, false);
-                    },
-                  ),
-                  BigRoundButton(
-                    key: const Key('delete_yes'),
-                    icon: Icons.check_rounded,
-                    color: const Color(0xFFFF6B8B),
-                    semanticLabel: AppStrings.of(context).delete,
-                    onTap: () => Navigator.pop(context, true),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (yes != true) return;
+    final yes = await confirmDelete(context, widget.audio);
+    if (!yes) return;
     widget.audio.play(Sfx.itemOff);
     final looks = await widget.storage.removeAt(index);
     if (mounted) setState(() => _looks = looks);

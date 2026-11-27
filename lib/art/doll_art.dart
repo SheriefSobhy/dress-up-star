@@ -8,12 +8,16 @@ import '../data/game_config.dart';
 import '../models/outfit.dart';
 import 'art_library.dart';
 import 'beauty_art.dart';
+import 'body_art.dart';
+import 'depth.dart';
 import 'doll_parts.dart';
 import 'doll_pose.dart';
 import 'nails_art.dart';
 import 'salon_art.dart';
 
 export 'art_library.dart' show ArtLayer, ArtLibrary, recordPicture;
+export 'body_art.dart' show skinTint;
+export 'depth.dart';
 export 'doll_parts.dart';
 export 'doll_pose.dart';
 
@@ -55,6 +59,41 @@ class FitTransform {
 
 /// The part of doll space that shows an item best (thumbnails, sparkles).
 Rect focusRectFor(ItemShape shape) {
+  // Shapes that need their own view.
+  switch (shape) {
+    case ItemShape.costumeMermaid:
+      return const Rect.fromLTRB(36, 164, 164, 374);
+    case ItemShape.costumeFairy:
+      return const Rect.fromLTRB(6, 130, 194, 292);
+    case ItemShape.pajamaBunny:
+      return const Rect.fromLTRB(24, 0, 176, 356);
+    case ItemShape.pajamaStars:
+    case ItemShape.pajamaCloud:
+    case ItemShape.costumeAstronaut:
+    case ItemShape.costumeChef:
+    case ItemShape.costumeDoctor:
+    case ItemShape.sportTracksuit:
+      return const Rect.fromLTRB(46, 158, 154, 352);
+    case ItemShape.pajamaHearts:
+      return const Rect.fromLTRB(46, 160, 154, 322);
+    case ItemShape.sportTennis:
+    case ItemShape.sportBallet:
+    case ItemShape.sportFootball:
+      return const Rect.fromLTRB(44, 162, 156, 284);
+    case ItemShape.jacketRain:
+      return const Rect.fromLTRB(48, 158, 152, 282);
+    case ItemShape.pantsShorts:
+      return const Rect.fromLTRB(64, 206, 136, 284);
+    case ItemShape.pantsOveralls:
+      return const Rect.fromLTRB(56, 166, 144, 350);
+    case ItemShape.socksRainbow:
+    case ItemShape.socksGlitter:
+      return const Rect.fromLTRB(58, 228, 142, 370);
+    case ItemShape.shoesRoller:
+      return const Rect.fromLTRB(64, 306, 136, 372);
+    default:
+      break;
+  }
   switch (shape.slot) {
     case Slot.hair:
       return const Rect.fromLTRB(22, 6, 178, 284);
@@ -93,6 +132,14 @@ Rect focusRectFor(ItemShape shape) {
       }
     case Slot.back:
       return const Rect.fromLTRB(4, 110, 196, 300);
+    case Slot.jacket:
+      return const Rect.fromLTRB(50, 156, 150, 256);
+    case Slot.pants:
+      return const Rect.fromLTRB(56, 208, 144, 356);
+    case Slot.socks:
+      return const Rect.fromLTRB(64, 290, 136, 370);
+    case Slot.hat:
+      return const Rect.fromLTRB(16, 0, 184, 112);
     case Slot.background:
       return kDollFrame;
   }
@@ -109,7 +156,8 @@ String itemAsset(ItemShape shape, [String suffix = '']) =>
 
 enum Face { open, blink, happy }
 
-ArtLayer faceLayer(Face face) => ArtLayer('${kDollDir}face_${face.name}.svg');
+ArtLayer faceLayer(Face face, [DollBody body = DollBody.classic]) =>
+    faceArtLayer(face.name, body);
 
 ArtLayer sceneLayer(WornItem bg) =>
     ArtLayer(itemAsset(bg.item.shape), color: bg.color, slot: Slot.background);
@@ -117,16 +165,23 @@ ArtLayer sceneLayer(WornItem bg) =>
 /// The SVG layers of a dressed doll, in drawing order, split around the
 /// parts that animate (the face and, when waving, the right arm).
 class DollRecipe {
-  DollRecipe(this.under, this.rightArm, this.over, {this.makeup = Makeup.none});
+  DollRecipe(
+    this.under,
+    this.rightArm,
+    this.over, {
+    this.makeup = Makeup.none,
+    this.body = DollBody.classic,
+  });
 
   final List<ArtLayer> under;
   final List<ArtLayer> rightArm;
   final List<ArtLayer> over;
   final Makeup makeup;
+  final DollBody body;
 
   /// The face (with its makeup) for [face].
   List<ArtLayer> face(Face face) =>
-      makeupFaceLayers(makeup, face, faceLayer(face));
+      makeupFaceLayers(makeup, face, faceLayer(face, body), body.eyeShape);
 
   List<ArtLayer> flat(Face face) => [
     ...under,
@@ -148,11 +203,19 @@ Future<DollRecipe> dollRecipe(
     final path = itemAsset(worn.item.shape, suffix);
     if (suffix.isNotEmpty && !assets.contains(path)) return const [];
     return [
-      ArtLayer(path, color: worn.color, pattern: worn.item.pattern, slot: slot),
+      skinnedItem(
+        ArtLayer(
+          path,
+          color: worn.color,
+          pattern: worn.item.pattern,
+          slot: slot,
+        ),
+        outfit.body,
+      ),
     ];
   }
 
-  ArtLayer doll(String name) => ArtLayer('$kDollDir$name.svg');
+  ArtLayer doll(String name) => skinLayer(name, outfit.body);
   // Salon hair replaces the plain long hair (also while it is wet).
   final hair = outfit[Slot.hair];
   final wet = wetHair != null && !wetHair.isEmpty;
@@ -163,6 +226,12 @@ Future<DollRecipe> dollRecipe(
       : null;
   final hasDress = outfit[Slot.dress] != null;
   final arm = [doll('arm_right'), ...dollNailLayers(outfit.nails, right: true)];
+  final pants = outfit[Slot.pants]?.item.shape;
+  final covered = footCoveringShapes.contains(outfit[Slot.dress]?.item.shape);
+  // A jacket's sleeves cover the sleeves under it.
+  final sleeves = outfit[Slot.jacket] != null
+      ? Slot.jacket
+      : (hasDress ? Slot.dress : Slot.top);
 
   final under = <ArtLayer>[
     // Wings behind everything.
@@ -170,20 +239,25 @@ Future<DollRecipe> dollRecipe(
     ...part(Slot.dress, '_back'),
     if (salon != null) salon.first else ...part(Slot.hair, '_back'),
     doll('body'),
-    ...part(Slot.shoes),
+    if (!covered) ...part(Slot.socks),
+    // Leggings tuck into her shoes; other pants fall over them.
+    if (pants == ItemShape.pantsLeggings) ...part(Slot.pants),
+    if (!covered) ...part(Slot.shoes),
+    if (pants != ItemShape.pantsLeggings && pants != ItemShape.pantsOveralls)
+      ...part(Slot.pants),
     if (hasDress)
       ...part(Slot.dress)
     else ...[
       ...part(Slot.top),
+      // Overalls are worn over her top.
+      if (pants == ItemShape.pantsOveralls) ...part(Slot.pants),
       ...part(Slot.skirt),
     ],
+    ...part(Slot.jacket),
     doll('arm_left'),
     ...dollNailLayers(outfit.nails, right: false),
     if (!separateRightArm) ...arm,
-    if (hasDress)
-      ...part(Slot.dress, '_front')
-    else
-      ...part(Slot.top, '_front'),
+    ...part(sleeves, '_front'),
     // Jewelry sits on top of the clothes, under her chin.
     ...part(Slot.wrist),
     ...part(Slot.neck),
@@ -191,9 +265,11 @@ Future<DollRecipe> dollRecipe(
   ];
   final over = <ArtLayer>[
     if (salon != null) salon.last else ...part(Slot.hair),
+    browsLayer(outfit.body),
     // Earrings peek out in front of the hair.
     ...part(Slot.ears),
     ...part(Slot.head),
+    ...part(Slot.hat),
     ...part(Slot.eyes),
     ...part(Slot.hand),
   ];
@@ -202,25 +278,31 @@ Future<DollRecipe> dollRecipe(
     separateRightArm ? arm : const [],
     over,
     makeup: outfit.makeup,
+    body: outfit.body,
   );
 }
 
 // ------------------------------------------------------------- rasterizing
 
 /// Draws [layers] (doll space) so that [frame] fills [pixels], centered.
+/// With [depth], every layer gets its 2.5D shading.
 Future<ui.Image> rasterizeDoll(
   List<ArtLayer> layers,
   Rect frame,
-  Size pixels,
-) async {
+  Size pixels, {
+  bool depth = false,
+}) async {
   final pictures = await Future.wait(layers.map(ArtLibrary.instance.picture));
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
   final fit = FitTransform(frame, pixels);
   canvas.translate(fit.dx, fit.dy);
   canvas.scale(fit.scale);
-  for (final p in pictures) {
-    canvas.drawPicture(p);
+  for (var i = 0; i < pictures.length; i++) {
+    void draw() => canvas.drawPicture(pictures[i]);
+    depth && hasDepth(layers[i])
+        ? paintRounded(canvas, draw, bounds: frame.inflate(8))
+        : draw();
   }
   return _finish(recorder, pixels);
 }
@@ -265,11 +347,13 @@ Future<ui.Image> rasterizeScene(
   canvas.restore();
   if (doll != null) {
     // In the pose she was saved in.
-    final paintDoll = await posedDollPainter(doll, heldPoseFrame(doll.pose));
+    final pose = heldPoseFrame(doll.pose);
+    final paintDoll = await posedDollPainter(doll, pose, depth: true);
     final area = dollArea ?? Offset.zero & pixels;
     final fit = FitTransform(kDollFrame, area.size);
     canvas.translate(area.left + fit.dx, area.top + fit.dy);
     canvas.scale(fit.scale);
+    paintGroundShadow(canvas, pose: pose);
     paintDoll(canvas);
   }
   return _finish(recorder, pixels);
@@ -332,6 +416,7 @@ String outfitKey(Outfit o) => [
   if (!o.makeup.isEmpty) 'makeup:${o.makeup.key}',
   if (o.hasSalonHair) 'salon:${o.salon.key}',
   if (!o.nails.isEmpty) 'nails:${o.nails.key}',
+  if (o.body != DollBody.classic) 'body:${o.body.key}',
 ].join(',');
 
 /// Pixel density used for art: sharp, but capped so low-end phones stay fast.

@@ -56,7 +56,7 @@ class ArtLibrary {
           () => rootBundle.loadString(layer.asset),
         );
         final svg = prepareSvg(
-          raw,
+          layer.edit?.call(raw) ?? raw,
           color: layer.color,
           pattern: layer.pattern,
           slot: layer.slot,
@@ -86,6 +86,8 @@ class ArtLayer {
     this.color,
     this.pattern = ItemPattern.none,
     this.slot,
+    this.edit,
+    this.variant = '',
   }) : draw = null;
 
   /// A layer drawn by [draw]. [name] must change whenever the drawing does.
@@ -95,7 +97,9 @@ class ArtLayer {
     this.slot,
   }) : asset = 'drawn:$name',
        color = null,
-       pattern = ItemPattern.none;
+       pattern = ItemPattern.none,
+       edit = null,
+       variant = '';
 
   final String asset;
   final Color? color;
@@ -103,7 +107,12 @@ class ArtLayer {
   final Slot? slot;
   final Future<ui.Picture> Function()? draw;
 
-  String get key => '$asset|${color?.toARGB32()}|${pattern.name}';
+  /// Changes the SVG before it is drawn (skin and face choices). [variant]
+  /// must name the change.
+  final String Function(String svg)? edit;
+  final String variant;
+
+  String get key => '$asset|${color?.toARGB32()}|${pattern.name}|$variant';
 }
 
 /// Records a picture drawn by [paint].
@@ -213,6 +222,12 @@ _PatternArea _areaFor(Slot? slot) {
       return const _PatternArea(Rect.fromLTRB(60, 160, 140, 250), bow: 2);
     case Slot.hand:
       return const _PatternArea(Rect.fromLTRB(118, 236, 166, 300));
+    case Slot.jacket:
+      return const _PatternArea(Rect.fromLTRB(60, 160, 140, 280), bow: 2);
+    case Slot.pants:
+      return const _PatternArea(Rect.fromLTRB(66, 188, 134, 354));
+    case Slot.socks:
+      return const _PatternArea(Rect.fromLTRB(70, 232, 130, 366));
     default:
       return const _PatternArea(Rect.fromLTRB(0, 0, 200, 400));
   }

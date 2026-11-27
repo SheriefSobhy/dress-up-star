@@ -18,18 +18,25 @@ Outfit _wear(List<String> ids) =>
     ids.fold(Outfit.starter(), (o, id) => o.wear(findItem(id)!));
 
 /// The most matching items one outfit can have for [theme] (one item per
-/// slot, a dress or a top and skirt).
+/// slot, a dress or a top and skirt or pants, a hat or a head thing).
 int _bestPossible(ChallengeTheme theme) {
   int bestIn(Iterable<Slot> slots) => slots
       .where((slot) => itemsForSlot(slot).any((i) => i.themes.contains(theme)))
       .length;
   final common = Slot.values.where(
-    (s) => s != Slot.dress && s != Slot.top && s != Slot.skirt,
+    (s) => !const [
+      Slot.dress,
+      Slot.top,
+      Slot.skirt,
+      Slot.pants,
+      Slot.hat,
+    ].contains(s),
   );
-  return max(
+  return [
     bestIn([...common, Slot.dress]),
     bestIn([...common, Slot.top, Slot.skirt]),
-  );
+    bestIn([...common, Slot.top, Slot.pants]),
+  ].reduce(max);
 }
 
 Future<SilentGameAudio> _start(
