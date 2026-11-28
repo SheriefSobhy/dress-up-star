@@ -72,6 +72,7 @@ void main() {
       'costumes',
       'pajamas',
       'sportswear',
+      'beach',
       'socks',
       'shoes',
       'hats',

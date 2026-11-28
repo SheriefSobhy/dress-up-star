@@ -116,8 +116,8 @@ void main() {
           ItemShape.bgUnicorn,
         ]),
       );
-      // Everything from before stays free.
-      expect(gameItems.where((i) => !i.isSpecial).length, 111);
+      // Everything from before stays free, and so do 32 beach things.
+      expect(gameItems.where((i) => !i.isSpecial).length, 111 + 32);
     });
 
     test('every new drawing exists', () async {

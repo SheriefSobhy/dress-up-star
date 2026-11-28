@@ -21,6 +21,11 @@ Outfit closeUpOutfit(Outfit o, {bool glasses = true}) {
     ..remove(Slot.head)
     ..remove(Slot.hat)
     ..remove(Slot.hand);
+  // A burkini's hood would hide the hair she is working on.
+  final dress = worn[Slot.dress];
+  if (dress != null && hairCoveringShapes.contains(dress.item.shape)) {
+    worn.remove(Slot.dress);
+  }
   if (!glasses) worn.remove(Slot.eyes);
   return o.copyWith(worn: worn);
 }

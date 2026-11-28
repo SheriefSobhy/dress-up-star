@@ -19,7 +19,8 @@ void main() {
     const counts = {
       'jackets': 6,
       'pants': 5,
-      'hats': 6,
+      // With the Beach extras.
+      'hats': 12,
       'costumes': 6,
       'pajamas': 4,
       'sportswear': 4,
@@ -28,7 +29,7 @@ void main() {
       'dresses': 10,
       'tops': 6,
       'skirts': 5,
-      'shoes': 6,
+      'shoes': 9,
     };
     for (final e in counts.entries) {
       final items = _in(e.key).where(

@@ -50,6 +50,14 @@ pictures are SVGs in `assets/svg/tools/`.
 
 
 
+## Beach & Swim
+
+The beach ball button has modest swimwear (one-pieces, swim dresses, rash
+guard sets, burkinis with swim hoods) and cover-ups. Swimwear is worn like a
+dress and hides socks; cover-ups go over it. Sun hats, swim caps, goggles,
+flip-flops and beach toys are in their usual categories. Hoods and swim caps
+cover her hair. The art is made by `dart run tool/generate_beach_art.dart`.
+
 ## Star Shop and stars
 
 - Stars come from challenges, plus one star a day the first time the game

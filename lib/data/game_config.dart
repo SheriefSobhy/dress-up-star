@@ -87,6 +87,12 @@ const List<Color> glassesColors = [
 // Items
 // ---------------------------------------------------------------------------
 
+/// Every Beach & Swim thing fits the beach and summer picture cards.
+const Set<ChallengeTheme> _beachThemes = {
+  ChallengeTheme.beach,
+  ChallengeTheme.summer,
+};
+
 const List<GameItem> gameItems = [
   // Hair styles
   GameItem(
@@ -966,6 +972,231 @@ const List<GameItem> gameItems = [
     color: Color(0xFFE3D4FF),
     price: 15,
   ),
+
+  // -------------------------------------------------------------------------
+  // Beach & Swim. All swimwear is modest; four are Star Shop items.
+  // -------------------------------------------------------------------------
+  GameItem(
+    id: 'swim_frilly',
+    themes: _beachThemes,
+    shape: ItemShape.swimFrilly,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'swim_polka',
+    themes: _beachThemes,
+    shape: ItemShape.swimPolka,
+    color: Color(0xFFFF6B8B),
+    pattern: ItemPattern.dots,
+  ),
+  GameItem(
+    id: 'swim_rainbow',
+    themes: _beachThemes,
+    shape: ItemShape.swimRainbow,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'swim_sporty',
+    themes: _beachThemes,
+    shape: ItemShape.swimSporty,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'swim_dress_ruffle',
+    themes: _beachThemes,
+    shape: ItemShape.swimDressRuffle,
+    color: Color(0xFFD873F0),
+  ),
+  GameItem(
+    id: 'swim_dress_skater',
+    themes: _beachThemes,
+    shape: ItemShape.swimDressSkater,
+    color: Color(0xFFFFA45C),
+  ),
+  GameItem(
+    id: 'swim_dress_peplum',
+    themes: _beachThemes,
+    shape: ItemShape.swimDressPeplum,
+    color: Color(0xFF8EE08A),
+  ),
+  GameItem(
+    id: 'swim_rash_shorts',
+    themes: _beachThemes,
+    shape: ItemShape.swimRashShorts,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'swim_rash_sport',
+    themes: _beachThemes,
+    shape: ItemShape.swimRashSport,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'swim_rash_leggings',
+    themes: _beachThemes,
+    shape: ItemShape.swimRashLeggings,
+    color: Color(0xFFB79CFF),
+  ),
+  GameItem(
+    id: 'swim_burkini_waves',
+    themes: _beachThemes,
+    shape: ItemShape.swimBurkiniWaves,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'swim_burkini_flower',
+    themes: _beachThemes,
+    shape: ItemShape.swimBurkiniFlower,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'beach_sundress',
+    themes: _beachThemes,
+    shape: ItemShape.beachSundress,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'beach_kaftan',
+    themes: _beachThemes,
+    shape: ItemShape.beachKaftan,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'beach_robe',
+    themes: _beachThemes,
+    shape: ItemShape.beachRobe,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'hat_straw',
+    themes: _beachThemes,
+    shape: ItemShape.hatStraw,
+    color: Color(0xFFFFE08A),
+  ),
+  GameItem(
+    id: 'hat_bucket',
+    themes: _beachThemes,
+    shape: ItemShape.hatBucket,
+    color: Color(0xFF7CB8FF),
+  ),
+  GameItem(
+    id: 'hat_floppy',
+    themes: _beachThemes,
+    shape: ItemShape.hatFloppy,
+    color: Color(0xFFFFA45C),
+  ),
+  GameItem(
+    id: 'hat_visor',
+    themes: _beachThemes,
+    shape: ItemShape.hatVisor,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'hat_swim_cap',
+    themes: _beachThemes,
+    shape: ItemShape.hatSwimCap,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'hat_swim_cap_flower',
+    themes: _beachThemes,
+    shape: ItemShape.hatSwimCapFlower,
+    color: Color(0xFFD873F0),
+  ),
+  GameItem(
+    id: 'eyes_goggles',
+    themes: _beachThemes,
+    shape: ItemShape.eyesGoggles,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'eyes_swim_mask',
+    themes: _beachThemes,
+    shape: ItemShape.eyesSwimMask,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'shoes_flip_flops',
+    themes: _beachThemes,
+    shape: ItemShape.shoesFlipFlops,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'shoes_flip_flower',
+    themes: _beachThemes,
+    shape: ItemShape.shoesFlipFlower,
+    color: Color(0xFF5CD6D6),
+  ),
+  GameItem(
+    id: 'shoes_jelly',
+    themes: _beachThemes,
+    shape: ItemShape.shoesJelly,
+    color: Color(0xFFD873F0),
+  ),
+  GameItem(
+    id: 'hand_floaties',
+    themes: _beachThemes,
+    shape: ItemShape.handFloaties,
+    color: Color(0xFFFFA45C),
+  ),
+  GameItem(
+    id: 'hand_ring_duck',
+    themes: _beachThemes,
+    shape: ItemShape.handRingDuck,
+    color: Color(0xFFFFD84D),
+  ),
+  GameItem(
+    id: 'hand_ring_donut',
+    themes: _beachThemes,
+    shape: ItemShape.handRingDonut,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'hand_beach_ball',
+    themes: _beachThemes,
+    shape: ItemShape.handBeachBall,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'hand_bucket',
+    themes: _beachThemes,
+    shape: ItemShape.handBucket,
+    color: Color(0xFFFF6B8B),
+  ),
+  GameItem(
+    id: 'hand_ice_cream',
+    themes: _beachThemes,
+    shape: ItemShape.handIceCream,
+    color: Color(0xFFFF8FC7),
+  ),
+  GameItem(
+    id: 'shop_swim_mermaid',
+    themes: _beachThemes,
+    shape: ItemShape.swimMermaid,
+    color: Color(0xFF5CD6D6),
+    price: 6,
+  ),
+  GameItem(
+    id: 'shop_swim_burkini_rainbow',
+    themes: _beachThemes,
+    shape: ItemShape.swimBurkiniRainbow,
+    color: Color(0xFFB79CFF),
+    price: 9,
+  ),
+  GameItem(
+    id: 'shop_ring_flamingo',
+    themes: _beachThemes,
+    shape: ItemShape.handRingFlamingo,
+    color: Color(0xFFFF8FC7),
+    price: 5,
+  ),
+  GameItem(
+    id: 'shop_shoes_jelly_sparkle',
+    themes: _beachThemes,
+    shape: ItemShape.shoesJellySparkle,
+    color: Color(0xFFFF8FC7),
+    price: 4,
+  ),
 ];
 
 // ---------------------------------------------------------------------------
@@ -1046,6 +1277,14 @@ const List<GameCategory> gameCategories = [
     buttonColor: Color(0xFFC8F0B8),
     colors: clothesColors,
     previewItemId: 'sport_football',
+  ),
+  GameCategory(
+    id: 'beach',
+    slots: [Slot.dress, Slot.jacket],
+    group: 'beach',
+    buttonColor: Color(0xFFAEE9FF),
+    colors: clothesColors,
+    iconArt: 'assets/svg/icons/beach.svg',
   ),
   GameCategory(
     id: 'socks',
@@ -1130,6 +1369,26 @@ const Set<ItemShape> stiffShapes = {
   ItemShape.pajamaCloud,
   ItemShape.sportFootball,
   ItemShape.sportTracksuit,
+  ItemShape.swimFrilly,
+  ItemShape.swimPolka,
+  ItemShape.swimRainbow,
+  ItemShape.swimMermaid,
+  ItemShape.swimSporty,
+  ItemShape.swimRashShorts,
+  ItemShape.swimRashSport,
+  ItemShape.swimRashLeggings,
+  ItemShape.swimBurkiniWaves,
+  ItemShape.swimBurkiniFlower,
+  ItemShape.swimBurkiniRainbow,
+};
+
+/// Things that cover all her hair: burkini swim hoods and swim caps.
+const Set<ItemShape> hairCoveringShapes = {
+  ItemShape.swimBurkiniWaves,
+  ItemShape.swimBurkiniFlower,
+  ItemShape.swimBurkiniRainbow,
+  ItemShape.hatSwimCap,
+  ItemShape.hatSwimCapFlower,
 };
 
 /// Clothes that cover her feet, so shoes and socks are not drawn.
@@ -1154,6 +1413,13 @@ const Set<ItemShape> longSleeveShapes = {
   ItemShape.pajamaBunny,
   ItemShape.pajamaCloud,
   ItemShape.sportTracksuit,
+  ItemShape.swimRashShorts,
+  ItemShape.swimRashSport,
+  ItemShape.swimRashLeggings,
+  ItemShape.swimBurkiniWaves,
+  ItemShape.swimBurkiniFlower,
+  ItemShape.swimBurkiniRainbow,
+  ItemShape.beachRobe,
 };
 
 /// When switching to another item in these slots, keep the chosen color
@@ -1196,6 +1462,8 @@ const Set<ItemShape> shinyShapes = {
   ItemShape.neckDiamond,
   ItemShape.shoesSparkly,
   ItemShape.socksGlitter,
+  ItemShape.swimMermaid,
+  ItemShape.shoesJellySparkle,
 };
 
 // ---------------------------------------------------------------------------
@@ -1237,6 +1505,7 @@ const Map<ChallengeTheme, List<Color>> themeCardColors = {
   ChallengeTheme.sports: [Color(0xFFBFE8FF), Color(0xFFC9F5B0)],
   ChallengeTheme.space: [Color(0xFF2E2A6E), Color(0xFF7B5FC4)],
   ChallengeTheme.costume: [Color(0xFFFFD6A8), Color(0xFFD9C2FF)],
+  ChallengeTheme.summer: [Color(0xFFFFF3A8), Color(0xFFA8E8FF)],
 };
 
 /// The themes of the Challenge button.

@@ -76,7 +76,7 @@ void main() {
 
   group('themes', () {
     test('the show has every theme; challenges keep their six', () {
-      expect(ChallengeTheme.values, hasLength(9));
+      expect(ChallengeTheme.values, hasLength(10));
       expect(challengeThemes, hasLength(6));
     });
 

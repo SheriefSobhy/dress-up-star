@@ -65,6 +65,39 @@ Rect focusRectFor(ItemShape shape) {
       return const Rect.fromLTRB(36, 164, 164, 374);
     case ItemShape.costumeFairy:
       return const Rect.fromLTRB(6, 130, 194, 292);
+    case ItemShape.swimFrilly:
+    case ItemShape.swimPolka:
+    case ItemShape.swimRainbow:
+    case ItemShape.swimMermaid:
+    case ItemShape.swimSporty:
+      return const Rect.fromLTRB(50, 160, 150, 272);
+    case ItemShape.swimDressRuffle:
+    case ItemShape.swimDressSkater:
+    case ItemShape.swimDressPeplum:
+      return const Rect.fromLTRB(44, 162, 156, 286);
+    case ItemShape.swimRashShorts:
+    case ItemShape.swimRashSport:
+      return const Rect.fromLTRB(46, 162, 154, 288);
+    case ItemShape.swimRashLeggings:
+      return const Rect.fromLTRB(46, 160, 154, 352);
+    case ItemShape.swimBurkiniWaves:
+    case ItemShape.swimBurkiniFlower:
+    case ItemShape.swimBurkiniRainbow:
+      return const Rect.fromLTRB(24, 36, 176, 352);
+    case ItemShape.beachSundress:
+    case ItemShape.beachKaftan:
+    case ItemShape.beachRobe:
+      return const Rect.fromLTRB(48, 160, 152, 308);
+    case ItemShape.eyesSwimMask:
+      return const Rect.fromLTRB(40, 52, 176, 146);
+    case ItemShape.handFloaties:
+      return const Rect.fromLTRB(52, 166, 148, 226);
+    case ItemShape.handRingDuck:
+    case ItemShape.handRingFlamingo:
+    case ItemShape.handRingDonut:
+      return const Rect.fromLTRB(112, 214, 192, 302);
+    case ItemShape.handIceCream:
+      return const Rect.fromLTRB(108, 196, 166, 274);
     case ItemShape.pajamaBunny:
       return const Rect.fromLTRB(24, 0, 176, 356);
     case ItemShape.pajamaStars:
@@ -162,6 +195,23 @@ ArtLayer faceLayer(Face face, [DollBody body = DollBody.classic]) =>
 ArtLayer sceneLayer(WornItem bg) =>
     ArtLayer(itemAsset(bg.item.shape), color: bg.color, slot: Slot.background);
 
+/// True when a swim hood or swim cap hides all her hair.
+bool hairCovered(Outfit outfit) => [
+  outfit[Slot.dress],
+  outfit[Slot.hat],
+].any((w) => w != null && hairCoveringShapes.contains(w.item.shape));
+
+/// Whose sleeves to draw, innermost first. A jacket's sleeves cover the
+/// sleeves under it; a beach cover-up leaves them on underneath.
+List<Slot> sleeveSlots(Outfit outfit) {
+  final jacket = outfit[Slot.jacket];
+  return [
+    if (jacket == null || jacket.item.shape.isCoverUp)
+      outfit[Slot.dress] != null ? Slot.dress : Slot.top,
+    if (jacket != null) Slot.jacket,
+  ];
+}
+
 /// The SVG layers of a dressed doll, in drawing order, split around the
 /// parts that animate (the face and, when waving, the right arm).
 class DollRecipe {
@@ -219,8 +269,10 @@ Future<DollRecipe> dollRecipe(
   // Salon hair replaces the plain long hair (also while it is wet).
   final hair = outfit[Slot.hair];
   final wet = wetHair != null && !wetHair.isEmpty;
+  final noHair = hairCovered(outfit);
   final salon =
-      hair != null &&
+      !noHair &&
+          hair != null &&
           (outfit.hasSalonHair || (wet && hair.item.id == salonHairId))
       ? salonHairLayers(outfit.salon, hair.color, wet: wetHair)
       : null;
@@ -228,18 +280,19 @@ Future<DollRecipe> dollRecipe(
   final arm = [doll('arm_right'), ...dollNailLayers(outfit.nails, right: true)];
   final pants = outfit[Slot.pants]?.item.shape;
   final covered = footCoveringShapes.contains(outfit[Slot.dress]?.item.shape);
-  // A jacket's sleeves cover the sleeves under it.
-  final sleeves = outfit[Slot.jacket] != null
-      ? Slot.jacket
-      : (hasDress ? Slot.dress : Slot.top);
+  final swimming = outfit[Slot.dress]?.item.shape.isSwimwear ?? false;
+  final floaties = outfit[Slot.hand]?.item.shape == ItemShape.handFloaties;
 
   final under = <ArtLayer>[
     // Wings behind everything.
     ...part(Slot.back),
     ...part(Slot.dress, '_back'),
-    if (salon != null) salon.first else ...part(Slot.hair, '_back'),
+    if (salon != null)
+      salon.first
+    else if (!noHair)
+      ...part(Slot.hair, '_back'),
     doll('body'),
-    if (!covered) ...part(Slot.socks),
+    if (!covered && !swimming) ...part(Slot.socks),
     // Leggings tuck into her shoes; other pants fall over them.
     if (pants == ItemShape.pantsLeggings) ...part(Slot.pants),
     if (!covered) ...part(Slot.shoes),
@@ -257,21 +310,25 @@ Future<DollRecipe> dollRecipe(
     doll('arm_left'),
     ...dollNailLayers(outfit.nails, right: false),
     if (!separateRightArm) ...arm,
-    ...part(sleeves, '_front'),
+    for (final slot in sleeveSlots(outfit)) ...part(slot, '_front'),
+    // Arm floaties go over her sleeves.
+    if (floaties) ...part(Slot.hand),
     // Jewelry sits on top of the clothes, under her chin.
     ...part(Slot.wrist),
     ...part(Slot.neck),
     doll('head'),
   ];
   final over = <ArtLayer>[
-    if (salon != null) salon.last else ...part(Slot.hair),
+    if (salon != null) salon.last else if (!noHair) ...part(Slot.hair),
+    // A burkini's swim hood.
+    ...part(Slot.dress, '_hood'),
     browsLayer(outfit.body),
     // Earrings peek out in front of the hair.
     ...part(Slot.ears),
     ...part(Slot.head),
     ...part(Slot.hat),
     ...part(Slot.eyes),
-    ...part(Slot.hand),
+    if (!floaties) ...part(Slot.hand),
   ];
   return DollRecipe(
     under,

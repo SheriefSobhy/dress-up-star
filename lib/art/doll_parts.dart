@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
@@ -193,7 +194,8 @@ Future<DollParts> dollParts(Outfit outfit) async {
   }
 
   final hair = outfit[Slot.hair];
-  final salon = hair != null && outfit.hasSalonHair
+  final noHair = hairCovered(outfit);
+  final salon = !noHair && hair != null && outfit.hasSalonHair
       ? salonHairLayers(outfit.salon, hair.color)
       : null;
   final hasDress = outfit[Slot.dress] != null;
@@ -202,16 +204,19 @@ Future<DollParts> dollParts(Outfit outfit) async {
     for (final l in dollNailLayers(outfit.nails, right: right))
       (l, nailsShine ? (right ? _rightNails : _leftNails) : null),
   ];
-  // A jacket's sleeves cover the sleeves under it.
-  final sleeves = outfit[Slot.jacket] != null
-      ? Slot.jacket
-      : (hasDress ? Slot.dress : Slot.top);
-  final front = item(sleeves, '_front');
-  final sleeved = outfit[sleeves];
-  final longSleeve =
-      sleeved != null && longSleeveShapes.contains(sleeved.item.shape)
-      ? sleeved.color
-      : null;
+  final sleeves = sleeveSlots(outfit);
+  final fronts = [for (final slot in sleeves) item(slot, '_front')];
+  // The bent elbow takes the color of the outermost long sleeve.
+  Color? longSleeve;
+  for (final slot in sleeves) {
+    final worn = outfit[slot];
+    if (worn != null && longSleeveShapes.contains(worn.item.shape)) {
+      longSleeve = worn.color;
+    }
+  }
+  final swimming = outfit[Slot.dress]?.item.shape.isSwimwear ?? false;
+  final floaties = outfit[Slot.hand]?.item.shape == ItemShape.handFloaties;
+  final coverUp = outfit[Slot.jacket]?.item.shape.isCoverUp ?? false;
   final dress = outfit[Slot.dress];
   final stiff = dress != null && stiffShapes.contains(dress.item.shape);
   final dressKind = stiff ? PartKind.body : PartKind.skirt;
@@ -227,12 +232,15 @@ Future<DollParts> dollParts(Outfit outfit) async {
   add(PartKind.body, [item(Slot.back)]);
   add(dressKind, [item(Slot.dress, '_back')], bendTop: skirtBend);
   add(PartKind.hair, [
-    if (salon != null) plain(salon.first) else item(Slot.hair, '_back'),
+    if (salon != null)
+      plain(salon.first)
+    else if (!noHair)
+      item(Slot.hair, '_back'),
   ], bendTop: hairBend);
   // Her body and clothes.
   add(PartKind.body, [
     plain(doll('body')),
-    if (!covered) item(Slot.socks),
+    if (!covered && !swimming) item(Slot.socks),
     // Leggings tuck into her shoes; other pants fall over them.
     if (pants == ItemShape.pantsLeggings) item(Slot.pants),
     if (!covered) item(Slot.shoes),
@@ -247,13 +255,20 @@ Future<DollParts> dollParts(Outfit outfit) async {
     rect: const Rect.fromLTRB(4, armsRect, 196, 374),
     bendTop: skirtBend,
   );
-  add(PartKind.body, [item(Slot.jacket)]);
+  // A cover-up swings with the skirt under it.
+  add(
+    coverUp ? PartKind.skirt : PartKind.body,
+    [item(Slot.jacket)],
+    rect: coverUp ? const Rect.fromLTRB(4, armsRect, 196, 374) : kDollFrame,
+    bendTop: coverUp ? skirtBend : 0,
+  );
   add(
     PartKind.leftArm,
     [
       plain(doll('arm_left')),
       ...nails(right: false),
-      half(front, right: false),
+      for (final front in fronts) half(front, right: false),
+      if (floaties) half(item(Slot.hand), right: false),
       item(Slot.wrist),
     ],
     rect: const Rect.fromLTRB(4, armsRect, 100, 300),
@@ -261,7 +276,12 @@ Future<DollParts> dollParts(Outfit outfit) async {
   );
   add(
     PartKind.rightArm,
-    [plain(doll('arm_right')), ...nails(right: true), half(front, right: true)],
+    [
+      plain(doll('arm_right')),
+      ...nails(right: true),
+      for (final front in fronts) half(front, right: true),
+      if (floaties) half(item(Slot.hand), right: true),
+    ],
     rect: const Rect.fromLTRB(100, armsRect, 196, 300),
     sleeve: longSleeve,
   );
@@ -272,8 +292,16 @@ Future<DollParts> dollParts(Outfit outfit) async {
   ], rect: const Rect.fromLTRB(4, 0, 196, 240));
   add(PartKind.face, const []);
   add(PartKind.hair, [
-    if (salon != null) plain(salon.last) else item(Slot.hair),
+    if (salon != null) plain(salon.last) else if (!noHair) item(Slot.hair),
   ], bendTop: hairBend);
+  // A burkini's swim hood sits where front hair would, and never swings.
+  const hoodRect = Rect.fromLTRB(20, 30, 180, 194);
+  add(
+    PartKind.hair,
+    [item(Slot.dress, '_hood')],
+    rect: hoodRect,
+    bendTop: hoodRect.bottom,
+  );
   // Earrings peek out in front of the hair.
   add(PartKind.body, [
     plain(browsLayer(outfit.body)),
@@ -283,7 +311,7 @@ Future<DollParts> dollParts(Outfit outfit) async {
     item(Slot.eyes),
   ], rect: const Rect.fromLTRB(4, 0, 196, 200));
   final held = outfit[Slot.hand];
-  if (held != null) {
+  if (held != null && !floaties) {
     add(
       held.item.shape == ItemShape.handWand
           ? PartKind.leftHeld
@@ -324,7 +352,12 @@ void paintPosedDoll(
   final left = ArmBones.reach(right: false, target: pose.leftHand);
   final right = ArmBones.reach(right: true, target: pose.rightHand);
   final parts = doll.parts;
-  final lastHair = parts.lastIndexWhere((p) => p.kind == PartKind.hair);
+  // Under a swim cap there is no front hair: lifted arms still pass in
+  // front of her face.
+  final lastHair = math.max(
+    parts.lastIndexWhere((p) => p.kind == PartKind.hair),
+    parts.indexWhere((p) => p.kind == PartKind.face),
+  );
 
   void drawArm(int i) {
     final isRight = parts[i].kind == PartKind.rightArm;
@@ -445,12 +478,7 @@ void _paintArm(
 
 /// Two fingers up, drawn where the hand is in the art (before the hand, so
 /// the hand covers where they start).
-void _paintPeaceFingers(
-  Canvas canvas,
-  _Skin skin,
-  ArmBones b,
-  double peace,
-) {
+void _paintPeaceFingers(Canvas canvas, _Skin skin, ArmBones b, double peace) {
   final u = Offset.fromDirection(b.restAngle);
   final n = Offset(-u.dy, u.dx);
   final c = b.restHand;

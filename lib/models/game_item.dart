@@ -186,6 +186,45 @@ enum ItemShape {
   skirtRuffle,
   shoesMaryJanes,
   shoesRoller,
+  // Beach & Swim: swimwear (worn like a dress)...
+  swimFrilly,
+  swimPolka,
+  swimRainbow,
+  swimMermaid,
+  swimSporty,
+  swimDressRuffle,
+  swimDressSkater,
+  swimDressPeplum,
+  swimRashShorts,
+  swimRashSport,
+  swimRashLeggings,
+  swimBurkiniWaves,
+  swimBurkiniFlower,
+  swimBurkiniRainbow,
+  // ...cover-ups (worn over it, like a jacket)...
+  beachSundress,
+  beachKaftan,
+  beachRobe,
+  // ...and beach extras, in their usual places on her.
+  hatStraw,
+  hatBucket,
+  hatFloppy,
+  hatVisor,
+  hatSwimCap,
+  hatSwimCapFlower,
+  eyesGoggles,
+  eyesSwimMask,
+  shoesFlipFlops,
+  shoesFlipFlower,
+  shoesJelly,
+  shoesJellySparkle,
+  handFloaties,
+  handRingDuck,
+  handRingFlamingo,
+  handRingDonut,
+  handBeachBall,
+  handBucket,
+  handIceCream,
 }
 
 extension ItemShapeSlot on ItemShape {
@@ -207,13 +246,21 @@ extension ItemShapeSlot on ItemShape {
     if (n.startsWith('pants')) return Slot.pants;
     if (n.startsWith('socks')) return Slot.socks;
     if (n.startsWith('hat')) return Slot.hat;
+    if (n.startsWith('beach')) return Slot.jacket;
     if (group.isNotEmpty) return Slot.dress;
     return Slot.background;
   }
 
-  /// Costumes, pajamas and sportswear are worn like a dress but have their
-  /// own category buttons. Everything else has no group ('').
+  /// A swimsuit, swim dress, rash guard set or burkini.
+  bool get isSwimwear => name.startsWith('swim');
+
+  /// A beach cover-up: it goes over what she wears, sleeves and all.
+  bool get isCoverUp => name.startsWith('beach');
+
+  /// Costumes, pajamas, sportswear and beach clothes have their own category
+  /// buttons. Everything else has no group ('').
   String get group {
+    if (isSwimwear || isCoverUp) return 'beach';
     for (final g in const ['costume', 'pajama', 'sport']) {
       if (name.startsWith(g)) return g;
     }
@@ -328,4 +375,5 @@ enum ChallengeTheme {
   sports,
   space,
   costume,
+  summer,
 }
